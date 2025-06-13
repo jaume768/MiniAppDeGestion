@@ -1,0 +1,20 @@
+# docker-compose.yml
+version: '3.8'
+
+services:
+  db:
+    image: mysql:8.0
+    container_name: mysql-gestion
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: root_pass123     # contraseña de root
+      MYSQL_DATABASE: gestion_empresa      # base de datos que se creará
+      MYSQL_USER: gestion_user             # usuario no-root
+      MYSQL_PASSWORD: gestion_pass123      # contraseña de ese usuario
+    ports:
+      - "3306:3306"                        # mapeo de puerto para acceder desde tu host
+    volumes:
+      - mysql_data:/var/lib/mysql          # volumen persistente
+
+volumes:
+  mysql_data:

@@ -1,0 +1,8 @@
+# Ignore MySQL database
+mysql_data
+
+# Ignore virtual environment
+venv
+
+# Ignore logs
+*.log
