@@ -1,0 +1,151 @@
+.header {
+  width: 100%;
+  background: var(--gradient-primary);
+  color: white;
+  box-shadow: var(--shadow-md);
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+}
+
+.headerContent {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.8rem var(--spacing-lg);
+  max-width: var(--container-max-width);
+  margin: 0 auto;
+}
+
+.logoContainer {
+  display: flex;
+  align-items: center;
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  text-decoration: none;
+  color: white;
+}
+
+.logoIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: var(--radius-circle);
+  margin-right: 10px;
+}
+
+.logoText {
+  font-weight: bold;
+  font-size: 1.1rem;
+}
+
+.appName {
+  font-weight: 600;
+  font-size: 1.2rem;
+  display: block;
+}
+
+.mainNav {
+  display: flex;
+  align-items: center;
+}
+
+.navList {
+  list-style: none;
+  display: flex;
+  margin: 0;
+  padding: 0;
+}
+
+.navLink {
+  display: flex;
+  align-items: center;
+  padding: 0.6rem 1rem;
+  margin: 0 0.2rem;
+  color: white;
+  text-decoration: none;
+  border-radius: var(--radius-md);
+  transition: var(--transition-fast);
+  font-weight: 500;
+}
+
+.navLink:hover {
+  background: rgba(255, 255, 255, 0.15);
+  color: white;
+}
+
+.navLink.active {
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+}
+
+.navIcon {
+  font-size: 1.25rem;
+  margin-right: 8px;
+}
+
+.mobileMenuButton {
+  display: none;
+  background: transparent;
+  border: none;
+  color: white;
+  cursor: pointer;
+  padding: 0.5rem;
+}
+
+/* Estilos responsivos */
+@media (max-width: 768px) {
+  .logoText {
+    font-size: 1rem;
+  }
+  
+  .appName {
+    font-size: 1rem;
+  }
+  
+  .mobileMenuButton {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  .mainNav {
+    position: fixed;
+    top: 60px;
+    left: -100%;
+    width: 100%;
+    height: calc(100vh - 60px);
+    background-color: var(--surface);
+    transition: var(--transition-normal);
+    box-shadow: var(--shadow-md);
+  }
+  
+  .mobileNavActive {
+    left: 0;
+  }
+  
+  .navList {
+    flex-direction: column;
+    width: 100%;
+    padding: var(--spacing-md) 0;
+  }
+  
+  .navLink {
+    color: var(--text-primary);
+    width: 100%;
+    padding: var(--spacing-md) var(--spacing-xl);
+    margin: 0;
+    border-radius: 0;
+  }
+  
+  .navLink:hover, .navLink.active {
+    color: var(--primary);
+    background-color: var(--surface-2);
+  }
+}

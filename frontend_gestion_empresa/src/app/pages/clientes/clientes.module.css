@@ -1,0 +1,167 @@
+.pageHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
+.errorMessage {
+  background-color: #FEE2E2;
+  color: #B91C1C;
+  padding: 0.75rem 1rem;
+  border-radius: 0.375rem;
+  margin-bottom: 1rem;
+  border: 1px solid #F87171;
+}
+
+.tableContainer {
+  overflow-x: auto;
+  margin-bottom: 2rem;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  margin-top: 1rem;
+}
+
+.table th, .table td {
+  padding: 12px 15px;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.table th {
+  background-color: #f5f5f5;
+  font-weight: 600;
+  color: #333;
+}
+
+.table tr:hover {
+  background-color: #f9f9f9;
+}
+
+.actions {
+  display: flex;
+  gap: 8px;
+}
+
+.actionButton {
+  padding: 8px 12px;
+  border-radius: 4px;
+  font-size: 14px;
+  cursor: pointer;
+  border: none;
+  transition: all 0.2s;
+}
+
+.primaryButton {
+  background-color: #3B82F6;
+  color: white;
+}
+
+.primaryButton:hover {
+  background-color: #2563EB;
+}
+
+.secondaryButton {
+  background-color: #E5E7EB;
+  color: #374151;
+}
+
+.secondaryButton:hover {
+  background-color: #D1D5DB;
+}
+
+.dangerButton {
+  background-color: #EF4444;
+  color: white;
+}
+
+.dangerButton:hover {
+  background-color: #DC2626;
+}
+
+.noRecords {
+  text-align: center;
+  color: #6B7280;
+  padding: 2rem;
+}
+
+.formContainer {
+  background-color: #fff;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+}
+
+.formContainer h3 {
+  margin-top: 0;
+  margin-bottom: 1.5rem;
+  font-size: 1.25rem;
+  font-weight: 600;
+}
+
+.formGroup {
+  margin-bottom: 1rem;
+}
+
+.formRow {
+  display: flex;
+  gap: 1rem;
+}
+
+.formRow .formGroup {
+  flex: 1;
+}
+
+.formLabel {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: 500;
+  font-size: 0.875rem;
+  color: #374151;
+}
+
+.formInput {
+  width: 100%;
+  padding: 0.625rem;
+  border: 1px solid #D1D5DB;
+  border-radius: 4px;
+  font-size: 0.875rem;
+}
+
+.formTextarea {
+  min-height: 100px;
+  resize: vertical;
+}
+
+.formActions {
+  display: flex;
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+
+@media (max-width: 768px) {
+  .formRow {
+    flex-direction: column;
+    gap: 0;
+  }
+  
+  .table th, .table td {
+    padding: 8px 10px;
+  }
+  
+  .actions {
+    flex-direction: column;
+    gap: 6px;
+  }
+  
+  .pageHeader {
+    flex-direction: column;
+    gap: 1rem;
+    align-items: flex-start;
+  }
+}
