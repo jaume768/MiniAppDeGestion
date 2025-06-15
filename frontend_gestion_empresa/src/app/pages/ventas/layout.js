@@ -4,7 +4,6 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import styles from './ventas.module.css';
-import Navigation from '../../components/Navigation';
 
 export default function VentasLayout({ children }) {
   const pathname = usePathname();
@@ -13,8 +12,6 @@ export default function VentasLayout({ children }) {
 
   return (
     <div className={styles.ventasContainer}>
-      <Navigation />
-      
       <div className={styles.ventasHeader}>
         <h1>Gestión de Ventas</h1>
         <div className={styles.ventasTabs}>

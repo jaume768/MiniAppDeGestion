@@ -222,18 +222,6 @@ export default function Home() {
               </div>
             </Link>
             
-            <Link href="/pages/proyectos" className={`${styles.statCard} ${styles.proyectosCard}`}>
-              <div className={styles.statIconWrapper}>
-                <span className={styles.statIcon}>
-                  <IconBriefcase />
-                </span>
-              </div>
-              <div className={styles.statInfo}>
-                <p className={styles.statNumber}>{stats.proyectos}</p>
-                <p className={styles.statLabel}>Proyectos</p>
-              </div>
-            </Link>
-            
             <Link href="/pages/ventas/pedidos" className={`${styles.statCard} ${styles.pedidosCard}`}>
               <div className={styles.statIconWrapper}>
                 <span className={styles.statIcon}>

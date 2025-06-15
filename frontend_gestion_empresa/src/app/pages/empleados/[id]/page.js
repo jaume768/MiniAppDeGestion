@@ -101,28 +101,24 @@ export default function EmpleadoDetalle({ params }) {
 
   if (loading) return (
     <div>
-      <Navigation />
       <p>Cargando información del empleado...</p>
     </div>
   );
   
   if (error) return (
     <div>
-      <Navigation />
       <div className={styles.errorMessage}>{error}</div>
     </div>
   );
   
   if (!empleado) return (
     <div>
-      <Navigation />
       <p>No se encontró el empleado solicitado.</p>
     </div>
   );
 
   return (
     <div>
-      <Navigation />
       <div className={styles.detailHeader}>
         <Link href="/pages/empleados" className={styles.backLink}>
           &larr; Volver a empleados

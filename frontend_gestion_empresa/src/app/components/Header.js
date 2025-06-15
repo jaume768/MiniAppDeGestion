@@ -49,7 +49,7 @@ const IconClose = () => (
   </svg>
 );
 
-export default function Header() {
+export default function Sidebar() {
   const pathname = usePathname();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   
@@ -64,30 +64,23 @@ export default function Header() {
   };
 
   return (
-    <header className={styles.header}>
-      <div className={styles.headerContent}>
-        {/* Logo y nombre de la app */}
-        <div className={styles.logoContainer}>
-          <Link href="/" className={styles.logo}>
-            <div className={styles.logoIcon}>
-              <span className={styles.logoText}>GE</span>
-            </div>
-            <span className={styles.appName}>Gestión Empresarial</span>
-          </Link>
-        </div>
+    <>
+      {/* Sidebar para pantallas grandes */}
+      <aside className={styles.sidebar}>
+        <div className={styles.sidebarContent}>
+          {/* Logo y nombre de la app */}
+          <div className={styles.logoContainer}>
+            <Link href="/" className={styles.logo}>
+              <div className={styles.logoIcon}>
+                <span className={styles.logoText}>GE</span>
+              </div>
+              <span className={styles.appName}>Gestión Empresarial</span>
+            </Link>
+          </div>
         
-        {/* Botón menú móvil */}
-        <button 
-          className={styles.mobileMenuButton} 
-          onClick={toggleMobileMenu}
-          aria-label="Menú"
-        >
-          {mobileMenuOpen ? <IconClose /> : <IconBars />}
-        </button>
-        
-        {/* Navegación principal */}
-        <nav className={`${styles.mainNav} ${mobileMenuOpen ? styles.mobileNavActive : ''}`}>
-          <ul className={styles.navList}>
+          {/* Navegación en sidebar */}
+          <nav className={styles.sidebarNav}>
+            <ul className={styles.navList}>
             <li>
               <Link 
                 href="/" 
@@ -138,9 +131,90 @@ export default function Header() {
                 <span>Ventas</span>
               </Link>
             </li>
-          </ul>
-        </nav>
-      </div>
-    </header>
+            </ul>
+          </nav>
+        </div>
+      </aside>
+
+      {/* Header para pantallas móviles */}
+      <header className={styles.mobileHeader}>
+        <div className={styles.headerContent}>
+          {/* Logo y nombre de la app */}
+          <div className={styles.logoContainer}>
+            <Link href="/" className={styles.logo}>
+              <div className={styles.logoIcon}>
+                <span className={styles.logoText}>GE</span>
+              </div>
+              <span className={styles.appName}>Gestión Empresarial</span>
+            </Link>
+          </div>
+          
+          {/* Botón menú móvil */}
+          <button 
+            className={styles.mobileMenuButton} 
+            onClick={toggleMobileMenu}
+            aria-label="Menú"
+          >
+            {mobileMenuOpen ? <IconClose /> : <IconBars />}
+          </button>
+          
+          {/* Navegación móvil */}
+          <nav className={`${styles.mobileNav} ${mobileMenuOpen ? styles.mobileNavActive : ''}`}>
+            <ul className={styles.navList}>
+              <li>
+                <Link 
+                  href="/" 
+                  className={`${styles.navLink} ${isActive('/') ? styles.active : ''}`}
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  <IconHome className={styles.navIcon} />
+                  <span>Inicio</span>
+                </Link>
+              </li>
+              <li>
+                <Link 
+                  href="/pages/clientes" 
+                  className={`${styles.navLink} ${isActive('/pages/clientes') ? styles.active : ''}`}
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  <IconUser className={styles.navIcon} />
+                  <span>Clientes</span>
+                </Link>
+              </li>
+              <li>
+                <Link 
+                  href="/pages/empleados" 
+                  className={`${styles.navLink} ${isActive('/pages/empleados') ? styles.active : ''}`}
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  <IconUsers className={styles.navIcon} />
+                  <span>Empleados</span>
+                </Link>
+              </li>
+              <li>
+                <Link 
+                  href="/pages/proyectos" 
+                  className={`${styles.navLink} ${isActive('/pages/proyectos') ? styles.active : ''}`}
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  <IconFolder className={styles.navIcon} />
+                  <span>Proyectos</span>
+                </Link>
+              </li>
+              <li>
+                <Link 
+                  href="/pages/ventas" 
+                  className={`${styles.navLink} ${isActive('/pages/ventas') ? styles.active : ''}`}
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  <IconCart className={styles.navIcon} />
+                  <span>Ventas</span>
+                </Link>
+              </li>
+            </ul>
+          </nav>
+        </div>
+      </header>
+    </>
   );
 }

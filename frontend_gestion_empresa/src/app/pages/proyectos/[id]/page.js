@@ -171,21 +171,18 @@ export default function ProyectoDetalle({ params }) {
 
   if (loading) return (
     <div>
-      <Navigation />
       <p>Cargando información del proyecto...</p>
     </div>
   );
   
   if (error) return (
     <div>
-      <Navigation />
-      <div className={styles.errorMessage}>{error}</div>
+        <div className={styles.errorMessage}>{error}</div>
     </div>
   );
   
   if (!proyecto) return (
     <div>
-      <Navigation />
       <p>No se encontró el proyecto solicitado.</p>
     </div>
   );
@@ -195,7 +192,6 @@ export default function ProyectoDetalle({ params }) {
 
   return (
     <div>
-      <Navigation />
       <div className={styles.detailHeader}>
         <Link href="/pages/proyectos" className={styles.backLink}>
           &larr; Volver a proyectos

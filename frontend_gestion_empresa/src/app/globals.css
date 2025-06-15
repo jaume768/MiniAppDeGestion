@@ -146,6 +146,7 @@ a:hover {
   justify-content: space-between;
   align-items: center;
   margin-bottom: var(--spacing-xl);
+  margin-top: var(--spacing-xl);
   padding-bottom: var(--spacing-md);
   border-bottom: 1px solid var(--border-light);
 }

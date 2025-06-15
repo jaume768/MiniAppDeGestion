@@ -1,8 +1,8 @@
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 
-// Importar el componente Header
-import Header from "./components/Header";
+// Importar el componente Sidebar/Header (ahora funciona como ambos)
+import Sidebar from "./components/Header";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -30,11 +30,11 @@ export default function RootLayout({ children }) {
         />
       </head>
       <body className={`${geistSans.variable} ${geistMono.variable}`}>
-        {/* Header global para todas las páginas */}
-        <Header />
+        {/* Sidebar/Header global para todas las páginas */}
+        <Sidebar />
         
         {/* Contenedor principal con padding y máximo ancho */}
-        <main className="container">
+        <main className="container py-4">
           {children}
         </main>
       </body>
