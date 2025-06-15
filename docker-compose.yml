@@ -12,9 +12,50 @@ services:
       MYSQL_USER: gestion_user             # usuario no-root
       MYSQL_PASSWORD: gestion_pass123      # contraseña de ese usuario
     ports:
-      - "3306:3306"                        # mapeo de puerto para acceder desde tu host
+      - "3306:3306"                      # mapeo de puerto para acceder desde tu host
     volumes:
       - mysql_data:/var/lib/mysql          # volumen persistente
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "gestion_user", "-pgestion_pass123"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+  
+  api:
+    build:
+      context: ./api_gestion_empresa
+      dockerfile: Dockerfile
+    container_name: api-gestion
+    restart: always
+    command: sh -c "chmod +x entrypoint.sh && ./entrypoint.sh python manage.py runserver 0.0.0.0:8000"
+    volumes:
+      - ./api_gestion_empresa:/app         # hot reload: cualquier cambio en el código se refleja inmediatamente
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+    environment:
+      - DEBUG=1
+      - DATABASE_HOST=db
+      - DATABASE_NAME=gestion_empresa
+      - DATABASE_USER=gestion_user
+      - DATABASE_PASSWORD=gestion_pass123
+
+  frontend:
+    build:
+      context: ./frontend_gestion_empresa
+      dockerfile: Dockerfile
+    container_name: frontend-gestion
+    restart: always
+    volumes:
+      - ./frontend_gestion_empresa:/app    # hot reload para el código de frontend
+      - /app/node_modules                  # evita que los node_modules locales interfieran con los del contenedor
+    ports:
+      - "3000:3000"                      # puerto para acceder al frontend
+    environment:
+      - NEXT_PUBLIC_API_URL=http://localhost:8000/api  # URL de la API para las peticiones desde el frontend
+    depends_on:
+      - api
 
 volumes:
   mysql_data:

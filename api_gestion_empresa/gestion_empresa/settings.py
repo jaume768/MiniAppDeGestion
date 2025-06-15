@@ -10,6 +10,7 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
+import os
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -23,9 +24,9 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure--3uy-t&-loml41+2_==9dh%t8&1pgu2^x5vewf$gd!74_7s!b9'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = int(os.environ.get('DEBUG', 1)) == 1
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*'] # En entorno de desarrollo permitimos todos los hosts
 
 
 # Application definition
@@ -77,11 +78,11 @@ WSGI_APPLICATION = 'gestion_empresa.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'gestion_empresa',
-        'USER': 'gestion_user',
-        'PASSWORD': 'gestion_pass123',
-        'HOST': '127.0.0.1',
-        'PORT': '3306',
+        'NAME': os.environ.get('DATABASE_NAME', 'gestion_empresa'),
+        'USER': os.environ.get('DATABASE_USER', 'gestion_user'),
+        'PASSWORD': os.environ.get('DATABASE_PASSWORD', 'gestion_pass123'),
+        'HOST': os.environ.get('DATABASE_HOST', '127.0.0.1'),
+        'PORT': os.environ.get('DATABASE_PORT', '3306'),
         'OPTIONS': {
             # Asegura compatibilidad de modos SQL
             'init_command': "SET sql_mode='STRICT_TRANS_TABLES'",

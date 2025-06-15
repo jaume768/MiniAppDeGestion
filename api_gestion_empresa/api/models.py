@@ -63,3 +63,27 @@ class Factura(models.Model):
 
     def __str__(self):
         return f"Factura #{self.id} - Pedido #{self.pedido.id}"
+
+class Departamento(models.Model):
+    nombre = models.CharField(max_length=100)
+    descripcion = models.TextField(blank=True)
+
+class Empleado(models.Model):
+    nombre = models.CharField(max_length=100)
+    puesto = models.CharField(max_length=100)
+    departamento = models.ForeignKey(Departamento, on_delete=models.CASCADE)
+    salario = models.DecimalField(max_digits=10, decimal_places=2)
+    fecha_contratacion = models.DateField()
+
+class Proyecto(models.Model):
+    ESTADOS = (
+        ('PLAN', 'Planificación'),
+        ('PROG', 'En progreso'),
+        ('COMP', 'Completado'),
+    )
+    nombre = models.CharField(max_length=100)
+    descripcion = models.TextField(blank=True)
+    estado = models.CharField(max_length=4, choices=ESTADOS, default='PLAN')
+    fecha_inicio = models.DateField()
+    fecha_fin = models.DateField(null=True, blank=True)
+    empleados = models.ManyToManyField(Empleado)

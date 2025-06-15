@@ -2,7 +2,8 @@ from rest_framework import serializers
 from .models import (
     Categoria, Articulo, Cliente,
     Presupuesto, PresupuestoItem,
-    Pedido, PedidoItem, Factura
+    Pedido, PedidoItem, Factura,
+    Departamento, Empleado, Proyecto
 )
 
 class CategoriaSerializer(serializers.ModelSerializer):
@@ -67,4 +68,19 @@ class PedidoSerializer(serializers.ModelSerializer):
 class FacturaSerializer(serializers.ModelSerializer):
     class Meta:
         model = Factura
+        fields = '__all__'
+
+class DepartamentoSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Departamento
+        fields = '__all__'
+
+class EmpleadoSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Empleado
+        fields = '__all__'
+
+class ProyectoSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Proyecto
         fields = '__all__'
