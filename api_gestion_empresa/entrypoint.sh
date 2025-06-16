@@ -2,7 +2,7 @@
 
 # Esperar a que la base de datos esté disponible
 echo "Esperando a que la base de datos esté disponible..."
-sleep 10
+sleep 15
 
 # Aplicar migraciones
 echo "Aplicando migraciones..."
