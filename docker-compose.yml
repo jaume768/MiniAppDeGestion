@@ -1,18 +1,14 @@
-# docker-compose.yml
-version: '3.8'
-
 services:
   db:
     image: mysql:8.0
     container_name: mysql-gestion
-    restart: always
     environment:
       MYSQL_ROOT_PASSWORD: root_pass123     # contraseña de root
       MYSQL_DATABASE: gestion_empresa      # base de datos que se creará
       MYSQL_USER: gestion_user             # usuario no-root
       MYSQL_PASSWORD: gestion_pass123      # contraseña de ese usuario
     ports:
-      - "3306:3306"                      # mapeo de puerto para acceder desde tu host
+      - "3307:3306"                      # mapeo de puerto para acceder desde tu host
     volumes:
       - mysql_data:/var/lib/mysql          # volumen persistente
     healthcheck:
@@ -26,7 +22,6 @@ services:
       context: ./api_gestion_empresa
       dockerfile: Dockerfile
     container_name: api-gestion
-    restart: always
     command: sh -c "chmod +x entrypoint.sh && ./entrypoint.sh python manage.py runserver 0.0.0.0:8000"
     volumes:
       - ./api_gestion_empresa:/app         # hot reload: cualquier cambio en el código se refleja inmediatamente
@@ -46,7 +41,6 @@ services:
       context: ./frontend_gestion_empresa
       dockerfile: Dockerfile
     container_name: frontend-gestion
-    restart: always
     volumes:
       - ./frontend_gestion_empresa:/app    # hot reload para el código de frontend
       - /app/node_modules                  # evita que los node_modules locales interfieran con los del contenedor

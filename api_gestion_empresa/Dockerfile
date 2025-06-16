@@ -3,9 +3,9 @@ FROM python:3.11-slim
 WORKDIR /app
 
 # Evitar que Python genere archivos .pyc
-ENV PYTHONDONTWRITEBYTECODE 1
+ENV PYTHONDONTWRITEBYTECODE=1
 # Evitar que Python almacene en búfer la salida estándar
-ENV PYTHONUNBUFFERED 1
+ENV PYTHONUNBUFFERED=1
 
 # Instalar dependencias del sistema necesarias para mysqlclient
 RUN apt-get update && apt-get install -y \

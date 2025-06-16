@@ -123,8 +123,8 @@ export default function Sidebar() {
             </li>
             <li>
               <Link 
-                href="/pages/ventas" 
-                className={`${styles.navLink} ${isActive('/pages/ventas') ? styles.active : ''}`}
+                href="/pages/ventas/presupuestos" 
+                className={`${styles.navLink} ${isActive('/pages/ventas/presupuestos') ? styles.active : ''}`}
                 onClick={() => setMobileMenuOpen(false)}
               >
                 <IconCart className={styles.navIcon} />

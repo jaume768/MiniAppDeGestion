@@ -405,7 +405,7 @@ export default function ProyectoDetalle({ params }) {
               <option value="">Selecciona un empleado</option>
               {empleados.map(empleado => (
                 <option key={empleado.id} value={empleado.id}>
-                  {`${empleado.nombre} ${empleado.apellidos || ''} - ${empleado.puesto || 'Sin puesto'}`}
+                  {`${empleado.nombre} - ${empleado.puesto || 'Sin puesto'}`}
                 </option>
               ))}
             </select>
@@ -438,7 +438,7 @@ export default function ProyectoDetalle({ params }) {
                     <td>{empleado.id}</td>
                     <td>
                       <Link href={`/pages/empleados/${empleado.id}`}>
-                        {`${empleado.nombre} ${empleado.apellidos || ''}`}
+                        {`${empleado.nombre}`}
                       </Link>
                     </td>
                     <td>{empleado.puesto || '-'}</td>

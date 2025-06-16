@@ -189,17 +189,6 @@ export default function ClientesPage() {
               />
             </div>
             
-            <div className="form-group mb-3">
-              <label className="form-label">Notas:</label>
-              <textarea 
-                name="notas"
-                value={formData.notas}
-                onChange={handleInputChange}
-                className="form-control"
-                rows="3"
-              ></textarea>
-            </div>
-            
             <div className="form-actions">
               <button 
                 type="submit" 

@@ -65,6 +65,15 @@ export const empleadosAPI = {
   getPorDepartamento: (departamento) => fetchAPI(`/empleados/por-departamento/${departamento}/`),
 };
 
+// Departamentos
+export const departamentosAPI = {
+  getAll: () => fetchAPI('/departamentos/'),
+  getById: (id) => fetchAPI(`/departamentos/${id}/`),
+  create: (data) => fetchAPI('/departamentos/', { method: 'POST', body: JSON.stringify(data) }),
+  update: (id, data) => fetchAPI(`/departamentos/${id}/`, { method: 'PUT', body: JSON.stringify(data) }),
+  delete: (id) => fetchAPI(`/departamentos/${id}/`, { method: 'DELETE' }),
+};
+
 // Proyectos
 export const proyectosAPI = {
   getAll: () => fetchAPI('/proyectos/'),
@@ -136,11 +145,11 @@ export const facturasAPI = {
   getAll: () => fetchAPI('/facturas/'),
   getById: (id) => fetchAPI(`/facturas/${id}/`),
   create: (data) => fetchAPI('/facturas/', { method: 'POST', body: JSON.stringify(data) }),
-  crearDesdePresupuesto: (presupuestoId) => fetchAPI('/facturas/crear-desde-presupuesto/', { 
+  crearDesdePresupuesto: (presupuestoId) => fetchAPI('/facturas/crear_desde_presupuesto/', { 
     method: 'POST', 
     body: JSON.stringify({ presupuesto_id: presupuestoId }) 
   }),
-  crearDesdePedido: (pedidoId) => fetchAPI('/facturas/crear-desde-pedido/', { 
+  crearDesdePedido: (pedidoId) => fetchAPI('/facturas/crear_desde_pedido/', { 
     method: 'POST', 
     body: JSON.stringify({ pedido_id: pedidoId }) 
   }),

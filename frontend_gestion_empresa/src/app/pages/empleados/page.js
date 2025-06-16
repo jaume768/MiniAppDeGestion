@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { empleadosAPI } from '../../services/api';
+import { empleadosAPI, departamentosAPI } from '../../services/api';
 import styles from './empleados.module.css';
 import TableComponent from '../../components/TableComponent';
 // SVG Icons
@@ -40,7 +40,6 @@ export default function EmpleadosPage() {
   // Estado para el formulario
   const [formData, setFormData] = useState({
     nombre: '',
-    apellidos: '',
     email: '',
     telefono: '',
     puesto: '',
@@ -49,13 +48,31 @@ export default function EmpleadosPage() {
     salario: ''
   });
 
-  // Cargar empleados
+  // Cargar empleados y departamentos
   useEffect(() => {
     const fetchData = async () => {
       try {
         setLoading(true);
-        const empleadosData = await empleadosAPI.getAll();
-        setEmpleados(empleadosData);
+        
+        // Cargar empleados y departamentos en paralelo
+        const [empleadosData, departamentosData] = await Promise.all([
+          empleadosAPI.getAll(),
+          departamentosAPI.getAll()
+        ]);
+        
+        // Crear un mapa de departamentos para fácil búsqueda
+        const deptMap = {};
+        departamentosData.forEach(dept => {
+          deptMap[dept.id] = dept.nombre;
+        });
+        
+        // Añadir el nombre del departamento a cada empleado
+        const empleadosConDepartamento = empleadosData.map(empleado => ({
+          ...empleado,
+          departamento_nombre: deptMap[empleado.departamento] || 'Sin departamento'
+        }));
+        
+        setEmpleados(empleadosConDepartamento);
         setLoading(false);
       } catch (err) {
         console.error("Error al cargar empleados:", err);
@@ -85,7 +102,6 @@ export default function EmpleadosPage() {
       setEmpleados([...empleados, newEmpleado]);
       setFormData({
         nombre: '',
-        apellidos: '',
         email: '',
         telefono: '',
         puesto: '',
@@ -151,18 +167,6 @@ export default function EmpleadosPage() {
                   onChange={handleInputChange}
                   required
                   placeholder="Nombre del empleado"
-                />
-              </div>
-              
-              <div className="form-group">
-                <label>Apellidos:</label>
-                <input 
-                  type="text"
-                  name="apellidos"
-                  value={formData.apellidos}
-                  onChange={handleInputChange}
-                  required
-                  placeholder="Apellidos del empleado"
                 />
               </div>
             </div>
@@ -266,10 +270,10 @@ export default function EmpleadosPage() {
         isLoading={loading}
         headers={[
           { name: 'ID', key: 'id' },
-          { name: 'Nombre', key: 'nombre_completo', render: (empleado) => `${empleado.nombre} ${empleado.apellidos}` },
+          { name: 'Nombre', key: 'nombre_completo', render: (empleado) => `${empleado.nombre}` },
           { name: 'Email', key: 'email', render: (empleado) => empleado.email || '-' },
           { name: 'Puesto', key: 'puesto', render: (empleado) => empleado.puesto || '-' },
-          { name: 'Departamento', key: 'departamento', render: (empleado) => empleado.departamento || '-' },
+          { name: 'Departamento', key: 'departamento_nombre', render: (empleado) => empleado.departamento_nombre || '-' },
         ]}
         data={empleados}
         onRowClick={(empleado) => window.location.href = `/pages/empleados/${empleado.id}`}

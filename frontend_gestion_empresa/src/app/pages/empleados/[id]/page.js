@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { empleadosAPI } from '../../../services/api';
+import { empleadosAPI, departamentosAPI } from '../../../services/api';
 import styles from '../empleados.module.css';
 import Navigation from '../../../components/Navigation';
 
@@ -19,7 +19,6 @@ export default function EmpleadoDetalle({ params }) {
   // Estado para el formulario de edición
   const [formData, setFormData] = useState({
     nombre: '',
-    apellidos: '',
     email: '',
     telefono: '',
     puesto: '',
@@ -34,14 +33,29 @@ export default function EmpleadoDetalle({ params }) {
       try {
         setLoading(true);
         
-        // Cargar empleado
-        const empleadoData = await empleadosAPI.getById(id);
-        setEmpleado(empleadoData);
+        // Cargar empleado y departamentos en paralelo
+        const [empleadoData, departamentosData] = await Promise.all([
+          empleadosAPI.getById(id),
+          departamentosAPI.getAll()
+        ]);
+        
+        // Crear un mapa de departamentos para fácil búsqueda
+        const deptMap = {};
+        departamentosData.forEach(dept => {
+          deptMap[dept.id] = dept.nombre;
+        });
+        
+        // Añadir el nombre del departamento al empleado
+        const empleadoConDepartamento = {
+          ...empleadoData,
+          departamento_nombre: deptMap[empleadoData.departamento] || 'Sin departamento'
+        };
+        
+        setEmpleado(empleadoConDepartamento);
         
         // Inicializar formData con los datos del empleado
         setFormData({
           nombre: empleadoData.nombre || '',
-          apellidos: empleadoData.apellidos || '',
           email: empleadoData.email || '',
           telefono: empleadoData.telefono || '',
           puesto: empleadoData.puesto || '',
@@ -123,7 +137,7 @@ export default function EmpleadoDetalle({ params }) {
         <Link href="/pages/empleados" className={styles.backLink}>
           &larr; Volver a empleados
         </Link>
-        <h2>{`${empleado.nombre} ${empleado.apellidos}`}</h2>
+        <h2>{`${empleado.nombre}`}</h2>
         <div className={styles.detailActions}>
           {!editing ? (
             <button 
@@ -159,18 +173,6 @@ export default function EmpleadoDetalle({ params }) {
                   type="text"
                   name="nombre"
                   value={formData.nombre}
-                  onChange={handleInputChange}
-                  className={styles.formInput}
-                  required
-                />
-              </div>
-              
-              <div className={styles.formGroup}>
-                <label className={styles.formLabel}>Apellidos:</label>
-                <input 
-                  type="text"
-                  name="apellidos"
-                  value={formData.apellidos}
                   onChange={handleInputChange}
                   className={styles.formInput}
                   required
@@ -274,8 +276,8 @@ export default function EmpleadoDetalle({ params }) {
         ) : (
           <div className={styles.employeeInfo}>
             <div className={styles.infoGroup}>
-              <span className={styles.infoLabel}>Nombre completo:</span>
-              <span className={styles.infoValue}>{`${empleado.nombre} ${empleado.apellidos}`}</span>
+              <span className={styles.infoLabel}>Nombre:</span>
+              <span className={styles.infoValue}>{empleado.nombre}</span>
             </div>
             
             <div className={styles.infoGroup}>
@@ -295,7 +297,7 @@ export default function EmpleadoDetalle({ params }) {
             
             <div className={styles.infoGroup}>
               <span className={styles.infoLabel}>Departamento:</span>
-              <span className={styles.infoValue}>{empleado.departamento || '-'}</span>
+              <span className={styles.infoValue}>{empleado.departamento_nombre || '-'}</span>
             </div>
             
             <div className={styles.infoGroup}>

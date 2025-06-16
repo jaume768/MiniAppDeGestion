@@ -282,17 +282,6 @@ export default function ClienteDetalle({ params }) {
               />
             </div>
             
-            <div className="mb-4">
-              <label className="form-label">Notas:</label>
-              <textarea 
-                name="notas"
-                value={formData.notas}
-                onChange={handleInputChange}
-                className="form-control"
-                rows="3"
-              ></textarea>
-            </div>
-            
             <div className="d-flex gap-2">
               <button 
                 type="submit" 
@@ -336,12 +325,6 @@ export default function ClienteDetalle({ params }) {
               <p>{cliente.cif || '-'}</p>
             </div>
             
-            {cliente.notas && (
-              <div className="col-12">
-                <h6 className="text-muted mb-1">Notas</h6>
-                <p>{cliente.notas}</p>
-              </div>
-            )}
           </div>
         )}
         </div>

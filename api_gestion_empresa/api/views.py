@@ -1,12 +1,13 @@
 from rest_framework import viewsets
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from rest_framework.decorators import action
 from django.db.models import Sum, Count, ExpressionWrapper, DurationField, F
 from django.utils import timezone
 from datetime import date
 from .models import (
     Categoria, Articulo, Cliente,
-    Presupuesto, Pedido, Factura,
+    Presupuesto, Pedido, PedidoItem, Factura,
     Departamento, Empleado, Proyecto
 )
 from .serializers import (
@@ -34,10 +35,83 @@ class PresupuestoViewSet(viewsets.ModelViewSet):
 class PedidoViewSet(viewsets.ModelViewSet):
     queryset = Pedido.objects.all()
     serializer_class = PedidoSerializer
+    
+    @action(detail=True, methods=['get'])
+    def items(self, request, pk=None):
+        pedido = self.get_object()
+        items = PedidoItem.objects.filter(pedido=pedido)
+        from .serializers import PedidoItemSerializer
+        serializer = PedidoItemSerializer(items, many=True)
+        return Response(serializer.data)
 
 class FacturaViewSet(viewsets.ModelViewSet):
     queryset = Factura.objects.all()
     serializer_class = FacturaSerializer
+    
+    @action(detail=False, methods=['post'])
+    def crear_desde_pedido(self, request):
+        """Crear una factura a partir de un pedido existente"""
+        pedido_id = request.data.get('pedido_id')
+        
+        if not pedido_id:
+            return Response({'error': 'El ID del pedido es requerido'}, status=400)
+            
+        try:
+            pedido = Pedido.objects.get(id=pedido_id)
+            
+            # Crear la factura a partir del pedido
+            factura = Factura.objects.create(
+                pedido=pedido,
+                total=pedido.total
+            )
+            
+            serializer = self.get_serializer(factura)
+            return Response(serializer.data, status=201)
+            
+        except Pedido.DoesNotExist:
+            return Response({'error': 'El pedido no existe'}, status=404)
+        except Exception as e:
+            return Response({'error': str(e)}, status=400)
+    
+    @action(detail=False, methods=['post'])
+    def crear_desde_presupuesto(self, request):
+        """Crear una factura a partir de un presupuesto existente"""
+        presupuesto_id = request.data.get('presupuesto_id')
+        
+        if not presupuesto_id:
+            return Response({'error': 'El ID del presupuesto es requerido'}, status=400)
+            
+        try:
+            presupuesto = Presupuesto.objects.get(id=presupuesto_id)
+            
+            # Primero, creamos un pedido a partir del presupuesto
+            pedido = Pedido.objects.create(
+                cliente=presupuesto.cliente,
+                total=presupuesto.total
+            )
+            
+            # Copiamos los items del presupuesto al pedido
+            for item in presupuesto.items.all():
+                PedidoItem.objects.create(
+                    pedido=pedido,
+                    articulo=item.articulo,
+                    cantidad=item.cantidad,
+                    precio_unitario=item.precio_unitario
+                )
+            
+            # Creamos la factura a partir del pedido
+            factura = Factura.objects.create(
+                pedido=pedido,
+                total=pedido.total
+            )
+            
+            serializer = self.get_serializer(factura)
+            return Response(serializer.data, status=201)
+            
+        except Presupuesto.DoesNotExist:
+            return Response({'error': 'El presupuesto no existe'}, status=404)
+        except Exception as e:
+            return Response({'error': str(e)}, status=400)
 
 class DepartamentoViewSet(viewsets.ModelViewSet):
     queryset = Departamento.objects.all()
@@ -52,7 +126,7 @@ class ProyectoViewSet(viewsets.ModelViewSet):
     serializer_class = ProyectoSerializer
 
 class ReportesView(APIView):
-    def get(self, request, format=None):
+    def get(self, request, format=None, **kwargs):
         # Obtener la parte final de la URL para determinar qué vista mostrar
         path = request.path
         
@@ -62,9 +136,7 @@ class ReportesView(APIView):
         
         # Reportes de ventas por año
         elif 'ventas' in path:
-            year = self.kwargs.get('year') if hasattr(self, 'kwargs') else timezone.now().year
-            if request.resolver_match and request.resolver_match.kwargs:
-                year = request.resolver_match.kwargs.get('year', timezone.now().year)
+            year = kwargs.get('year', timezone.now().year)
             return self.get_ventas_por_mes(year)
         
         # Reporte general predeterminado
@@ -102,7 +174,7 @@ class ReportesView(APIView):
         
         # 6. Facturas recientes
         facturas_recientes = Factura.objects.all().order_by('-fecha')[:5].values(
-            'id', 'cliente__nombre', 'total', 'fecha', 'pagado'
+            'id', 'pedido__cliente__nombre', 'total', 'fecha'
         )
         
         return Response({
