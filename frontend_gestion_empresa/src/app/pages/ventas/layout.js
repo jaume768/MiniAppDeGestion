@@ -33,6 +33,18 @@ export default function VentasLayout({ children }) {
           >
             Facturas
           </Link>
+          <Link 
+            href="/pages/ventas/albaranes" 
+            className={`${styles.tabLink} ${isActive('albaranes') ? styles.activeTab : ''}`}
+          >
+            Albaranes
+          </Link>
+          <Link 
+            href="/pages/ventas/tickets" 
+            className={`${styles.tabLink} ${isActive('tickets') ? styles.activeTab : ''}`}
+          >
+            Tickets
+          </Link>
         </div>
       </div>
       

@@ -172,6 +172,28 @@ export const reportesAPI = {
   getProductividadEmpleados: () => fetchAPI('/reportes/productividad-empleados/'),
 };
 
+export const albaranesAPI = {
+  getAll: () => fetchAPI('/albaranes/'),
+  getById: (id) => fetchAPI(`/albaranes/${id}/`),
+  create: (data) => fetchAPI('/albaranes/', { method: 'POST', body: JSON.stringify(data) }),
+  update: (id, data) => fetchAPI(`/albaranes/${id}/`, { method: 'PUT', body: JSON.stringify(data) }),
+  delete: (id) => fetchAPI(`/albaranes/${id}/`, { method: 'DELETE' }),
+  getItems: (id) => fetchAPI(`/albaranes/${id}/items/`),
+  addItem: (id, data) => fetchAPI(`/albaranes/${id}/items/`, { method: 'POST', body: JSON.stringify(data) }),
+  removeItem: (albaranId, itemId) => fetchAPI(`/albaranes/${albaranId}/items/${itemId}/`, { method: 'DELETE' }),
+};
+
+export const ticketsAPI = {
+  getAll: () => fetchAPI('/tickets/'),
+  getById: (id) => fetchAPI(`/tickets/${id}/`),
+  create: (data) => fetchAPI('/tickets/', { method: 'POST', body: JSON.stringify(data) }),
+  update: (id, data) => fetchAPI(`/tickets/${id}/`, { method: 'PUT', body: JSON.stringify(data) }),
+  delete: (id) => fetchAPI(`/tickets/${id}/`, { method: 'DELETE' }),
+  getItems: (id) => fetchAPI(`/tickets/${id}/items/`),
+  addItem: (id, data) => fetchAPI(`/tickets/${id}/items/`, { method: 'POST', body: JSON.stringify(data) }),
+  removeItem: (ticketId, itemId) => fetchAPI(`/tickets/${ticketId}/items/${itemId}/`, { method: 'DELETE' }),
+};
+
 export default {
   clientes: clientesAPI,
   empleados: empleadosAPI,
@@ -182,4 +204,6 @@ export default {
   presupuestos: presupuestosAPI,
   pedidos: pedidosAPI,
   facturas: facturasAPI,
+  albaranes: albaranesAPI,
+  tickets: ticketsAPI,
 };

@@ -8,12 +8,14 @@ from datetime import date
 from .models import (
     Categoria, Articulo, Cliente,
     Presupuesto, Pedido, PedidoItem, Factura,
-    Departamento, Empleado, Proyecto
+    Departamento, Empleado, Proyecto,
+    Albaran, AlbaranItem, Ticket, TicketItem
 )
 from .serializers import (
     CategoriaSerializer, ArticuloSerializer, ClienteSerializer,
     PresupuestoSerializer, PedidoSerializer, FacturaSerializer,
-    DepartamentoSerializer, EmpleadoSerializer, ProyectoSerializer
+    DepartamentoSerializer, EmpleadoSerializer, ProyectoSerializer,
+    AlbaranSerializer, TicketSerializer, PedidoItemSerializer
 )
 
 class CategoriaViewSet(viewsets.ModelViewSet):
@@ -40,7 +42,6 @@ class PedidoViewSet(viewsets.ModelViewSet):
     def items(self, request, pk=None):
         pedido = self.get_object()
         items = PedidoItem.objects.filter(pedido=pedido)
-        from .serializers import PedidoItemSerializer
         serializer = PedidoItemSerializer(items, many=True)
         return Response(serializer.data)
 
@@ -113,6 +114,44 @@ class FacturaViewSet(viewsets.ModelViewSet):
         except Exception as e:
             return Response({'error': str(e)}, status=400)
 
+    @action(detail=False, methods=['post'])
+    def crear_desde_albaran(self, request):
+        """Crear una factura a partir de un albaran existente"""
+        albaran_id = request.data.get('albaran_id')
+        if not albaran_id:
+            return Response({'error': 'El ID del albaran es requerido'}, status=400)
+        try:
+            albaran = Albaran.objects.get(id=albaran_id)
+            factura = Factura.objects.create(
+                albaran=albaran,
+                total=albaran.total
+            )
+            serializer = self.get_serializer(factura)
+            return Response(serializer.data, status=201)
+        except Albaran.DoesNotExist:
+            return Response({'error': 'El albaran no existe'}, status=404)
+        except Exception as e:
+            return Response({'error': str(e)}, status=400)
+
+    @action(detail=False, methods=['post'])
+    def crear_desde_ticket(self, request):
+        """Crear una factura a partir de un ticket existente"""
+        ticket_id = request.data.get('ticket_id')
+        if not ticket_id:
+            return Response({'error': 'El ID del ticket es requerido'}, status=400)
+        try:
+            ticket = Ticket.objects.get(id=ticket_id)
+            factura = Factura.objects.create(
+                ticket=ticket,
+                total=ticket.total
+            )
+            serializer = self.get_serializer(factura)
+            return Response(serializer.data, status=201)
+        except Ticket.DoesNotExist:
+            return Response({'error': 'El ticket no existe'}, status=404)
+        except Exception as e:
+            return Response({'error': str(e)}, status=400)
+
 class DepartamentoViewSet(viewsets.ModelViewSet):
     queryset = Departamento.objects.all()
     serializer_class = DepartamentoSerializer
@@ -124,6 +163,14 @@ class EmpleadoViewSet(viewsets.ModelViewSet):
 class ProyectoViewSet(viewsets.ModelViewSet):
     queryset = Proyecto.objects.all()
     serializer_class = ProyectoSerializer
+
+class AlbaranViewSet(viewsets.ModelViewSet):
+    queryset = Albaran.objects.all()
+    serializer_class = AlbaranSerializer
+
+class TicketViewSet(viewsets.ModelViewSet):
+    queryset = Ticket.objects.all()
+    serializer_class = TicketSerializer
 
 class ReportesView(APIView):
     def get(self, request, format=None, **kwargs):
@@ -177,13 +224,25 @@ class ReportesView(APIView):
             'id', 'pedido__cliente__nombre', 'total', 'fecha'
         )
         
+        # 7. Albaranes recientes
+        albaranes_recientes = Albaran.objects.all().order_by('-fecha')[:5].values(
+            'id', 'cliente__nombre', 'total', 'fecha'
+        )
+        
+        # 8. Tickets recientes
+        tickets_recientes = Ticket.objects.all().order_by('-fecha')[:5].values(
+            'id', 'cliente__nombre', 'total', 'fecha'
+        )
+
         return Response({
             'nomina_departamentos': nomina,
             'proyectos_por_estado': proyectos_estado,
             'empleados_por_antiguedad': empleados_antiguedad,
             'clientes_recientes': clientes_recientes,
             'ultimos_proyectos': ultimos_proyectos,
-            'facturas_recientes': facturas_recientes
+            'facturas_recientes': facturas_recientes,
+            'albaranes_recientes': albaranes_recientes,
+            'tickets_recientes': tickets_recientes
         })
     
     def get_proyectos_por_estado(self):

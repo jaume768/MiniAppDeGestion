@@ -84,3 +84,47 @@ class ProyectoSerializer(serializers.ModelSerializer):
     class Meta:
         model = Proyecto
         fields = '__all__'
+
+class AlbaranItemSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = AlbaranItem
+        fields = ['id', 'articulo', 'cantidad', 'precio_unitario']
+
+class AlbaranSerializer(serializers.ModelSerializer):
+    items = AlbaranItemSerializer(many=True)
+    class Meta:
+        model = Albaran
+        fields = ['id', 'cliente', 'fecha', 'total', 'items']
+
+    def create(self, validated_data):
+        items_data = validated_data.pop('items')
+        albaran = Albaran.objects.create(**validated_data)
+        total = 0
+        for item in items_data:
+            AlbaranItem.objects.create(albaran=albaran, **item)
+            total += item['precio_unitario'] * item['cantidad']
+        albaran.total = total
+        albaran.save()
+        return albaran
+
+class TicketItemSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = TicketItem
+        fields = ['id', 'articulo', 'cantidad', 'precio_unitario']
+
+class TicketSerializer(serializers.ModelSerializer):
+    items = TicketItemSerializer(many=True)
+    class Meta:
+        model = Ticket
+        fields = ['id', 'cliente', 'fecha', 'total', 'items']
+
+    def create(self, validated_data):
+        items_data = validated_data.pop('items')
+        ticket = Ticket.objects.create(**validated_data)
+        total = 0
+        for item in items_data:
+            TicketItem.objects.create(ticket=ticket, **item)
+            total += item['precio_unitario'] * item['cantidad']
+        ticket.total = total
+        ticket.save()
+        return ticket

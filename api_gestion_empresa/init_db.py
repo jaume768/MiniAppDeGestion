@@ -10,7 +10,8 @@ django.setup()
 
 from api.models import (
     Categoria, Articulo, Cliente, Presupuesto, PresupuestoItem,
-    Pedido, PedidoItem, Factura, Departamento, Empleado, Proyecto
+    Pedido, PedidoItem, Factura, Departamento, Empleado, Proyecto,
+    Albaran, AlbaranItem, Ticket, TicketItem
 )
 from django.utils import timezone
 from django.db import transaction
@@ -201,6 +202,48 @@ def run():
                 total=pedido.total
             )
             print(f"Factura creada: #{factura.id} -> {factura.total}€")
+
+                        # Crear albaran de ejemplo
+            albaran = Albaran.objects.create(
+                cliente=clientes[0],
+                fecha=hoy,
+                total=0
+            )
+            total_alb = 0
+            for art in seleccion:
+                cantidad = 1
+                precio_unitario = float(art.precio)
+                AlbaranItem.objects.create(
+                    albaran=albaran,
+                    articulo=art,
+                    cantidad=cantidad,
+                    precio_unitario=precio_unitario
+                )
+                total_alb += cantidad * precio_unitario
+            albaran.total = total_alb
+            albaran.save()
+            print(f"Albaran creado: #{albaran.id} -> {albaran.total}€")
+            
+            # Crear ticket de ejemplo
+            ticket = Ticket.objects.create(
+                cliente=clientes[0],
+                fecha=hoy,
+                total=0
+            )
+            total_ticket = 0
+            for art in seleccion:
+                cantidad = 1
+                precio_unitario = float(art.precio)
+                TicketItem.objects.create(
+                    ticket=ticket,
+                    articulo=art,
+                    cantidad=cantidad,
+                    precio_unitario=precio_unitario
+                )
+                total_ticket += cantidad * precio_unitario
+            ticket.total = total_ticket
+            ticket.save()
+            print(f"Ticket creado: #{ticket.id} -> {ticket.total}€")
 
             print('¡Datos iniciales insertados exitosamente!')
     except Exception as e:

@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { pedidosAPI, presupuestosAPI, facturasAPI, clientesAPI, articulosAPI } from '../../services/api';
+import { pedidosAPI, presupuestosAPI, facturasAPI, albaranesAPI, ticketsAPI, clientesAPI, articulosAPI } from '../../services/api';
 import styles from './ventas.module.css';
 import TableComponent from '../../components/TableComponent';
 
@@ -51,6 +51,42 @@ const IconTimes = () => (
 );
 
 export default function VentasPage() {
+  const [activeTab, setActiveTab] = useState('presupuestos');
+  const [showForm, setShowForm] = useState(false);
+  const [error, setError] = useState(null);
+  const [presupuestos, setPresupuestos] = useState([]);
+  const [pedidos, setPedidos] = useState([]);
+  const [facturas, setFacturas] = useState([]);
+  const [albaranes, setAlbaranes] = useState([]);
+  const [tickets, setTickets] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+        const [presData, pedData, facData, albData, tikData] = await Promise.all([
+          presupuestosAPI.getAll(),
+          pedidosAPI.getAll(),
+          facturasAPI.getAll(),
+          albaranesAPI.getAll(),
+          ticketsAPI.getAll(),
+        ]);
+        setPresupuestos(presData);
+        setPedidos(pedData);
+        setFacturas(facData);
+        setAlbaranes(albData);
+        setTickets(tikData);
+      } catch (err) {
+        console.error(err);
+        setError('Error al cargar datos');
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchData();
+  }, []);
+
 
   return (
     <div className="container">
@@ -117,7 +153,96 @@ export default function VentasPage() {
                 <span className="badge bg-primary">{facturas.length}</span>}
             </button>
           </li>
+          <li className="nav-item">
+            <button 
+              className={`nav-link ${activeTab === 'albaranes' ? 'active' : ''}`}
+              onClick={() => {
+                setActiveTab('albaranes');
+                setShowForm(false);
+              }}
+            >
+              <IconFileContract className="me-2" /> 
+              Albaranes {albaranes.length > 0 && 
+                <span className="badge bg-primary">{albaranes.length}</span>}
+            </button>
+          </li>
+          <li className="nav-item">
+            <button 
+              className={`nav-link ${activeTab === 'tickets' ? 'active' : ''}`}
+              onClick={() => {
+                setActiveTab('tickets');
+                setShowForm(false);
+              }}
+            >
+              <IconReceipt className="me-2" /> 
+              Tickets {tickets.length > 0 && 
+                <span className="badge bg-primary">{tickets.length}</span>}
+            </button>
+          </li>
         </ul>
+      </div>
+      {/* Contenido de pestañas */}
+      <div className="tab-content">
+        {activeTab === 'presupuestos' && (
+          <TableComponent
+            headers={[
+              { name: 'ID', key: 'id' },
+              { name: 'Cliente', key: 'cliente_nombre' },
+              { name: 'Fecha', key: 'fecha' },
+              { name: 'Total', key: 'total' }
+            ]}
+            data={presupuestos}
+            isLoading={loading}
+          />
+        )}
+        {activeTab === 'pedidos' && (
+          <TableComponent
+            headers={[
+              { name: 'ID', key: 'id' },
+              { name: 'Cliente', key: 'cliente_nombre' },
+              { name: 'Fecha', key: 'fecha' },
+              { name: 'Total', key: 'total' }
+            ]}
+            data={pedidos}
+            isLoading={loading}
+          />
+        )}
+        {activeTab === 'facturas' && (
+          <TableComponent
+            headers={[
+              { name: 'ID', key: 'id' },
+              { name: 'Cliente', key: 'cliente_nombre' },
+              { name: 'Fecha', key: 'fecha' },
+              { name: 'Total', key: 'total' }
+            ]}
+            data={facturas}
+            isLoading={loading}
+          />
+        )}
+        {activeTab === 'albaranes' && (
+          <TableComponent
+            headers={[
+              { name: 'ID', key: 'id' },
+              { name: 'Cliente', key: 'cliente_nombre' },
+              { name: 'Fecha', key: 'fecha' },
+              { name: 'Total', key: 'total' }
+            ]}
+            data={albaranes}
+            isLoading={loading}
+          />
+        )}
+        {activeTab === 'tickets' && (
+          <TableComponent
+            headers={[
+              { name: 'ID', key: 'id' },
+              { name: 'Cliente', key: 'cliente_nombre' },
+              { name: 'Fecha', key: 'fecha' },
+              { name: 'Total', key: 'total' }
+            ]}
+            data={tickets}
+            isLoading={loading}
+          />
+        )}
       </div>
     </div>  
   );

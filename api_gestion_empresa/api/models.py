@@ -57,7 +57,9 @@ class PedidoItem(models.Model):
     precio_unitario = models.DecimalField(max_digits=8, decimal_places=2)
 
 class Factura(models.Model):
-    pedido = models.OneToOneField(Pedido, on_delete=models.CASCADE, related_name='factura')
+    pedido = models.OneToOneField(Pedido, on_delete=models.CASCADE, related_name='factura', null=True, blank=True)
+    albaran = models.OneToOneField(Albaran, on_delete=models.CASCADE, related_name='factura', null=True, blank=True)
+    ticket = models.OneToOneField(Ticket, on_delete=models.CASCADE, related_name='factura', null=True, blank=True)
     fecha = models.DateField(auto_now_add=True)
     total = models.DecimalField(max_digits=10, decimal_places=2)
 
@@ -87,3 +89,31 @@ class Proyecto(models.Model):
     fecha_inicio = models.DateField()
     fecha_fin = models.DateField(null=True, blank=True)
     empleados = models.ManyToManyField(Empleado)
+
+class Albaran(models.Model):
+    cliente = models.ForeignKey(Cliente, on_delete=models.CASCADE, related_name='albaranes')
+    fecha = models.DateField(auto_now_add=True)
+    total = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+
+    def __str__(self):
+        return f"Albaran #{self.id} - {self.cliente.nombre}"
+
+class AlbaranItem(models.Model):
+    albaran = models.ForeignKey(Albaran, on_delete=models.CASCADE, related_name='items')
+    articulo = models.ForeignKey(Articulo, on_delete=models.PROTECT)
+    cantidad = models.PositiveIntegerField()
+    precio_unitario = models.DecimalField(max_digits=8, decimal_places=2)
+
+class Ticket(models.Model):
+    cliente = models.ForeignKey(Cliente, on_delete=models.CASCADE, related_name='tickets')
+    fecha = models.DateField(auto_now_add=True)
+    total = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+
+    def __str__(self):
+        return f"Ticket #{self.id} - {self.cliente.nombre}"
+
+class TicketItem(models.Model):
+    ticket = models.ForeignKey(Ticket, on_delete=models.CASCADE, related_name='items')
+    articulo = models.ForeignKey(Articulo, on_delete=models.PROTECT)
+    cantidad = models.PositiveIntegerField()
+    precio_unitario = models.DecimalField(max_digits=8, decimal_places=2)
