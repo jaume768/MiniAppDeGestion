@@ -133,26 +133,6 @@ export default function Sidebar() {
                 <span>Artículos</span>
               </Link>
             </li>
-            <li>
-              <Link 
-                href="/pages/proyectos" 
-                className={`${styles.navLink} ${isActive('/pages/proyectos') ? styles.active : ''}`}
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                <IconFolder className={styles.navIcon} />
-                <span>Proyectos</span>
-              </Link>
-            </li>
-            <li>
-              <Link 
-                href="/pages/ventas/presupuestos" 
-                className={`${styles.navLink} ${isActive('/pages/ventas/presupuestos') ? styles.active : ''}`}
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                <IconCart className={styles.navIcon} />
-                <span>Ventas</span>
-              </Link>
-            </li>
             </ul>
           </nav>
         </div>

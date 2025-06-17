@@ -199,7 +199,7 @@ export default function Home() {
         ) : (
           <div className={styles.statsGrid}>
             
-            <Link href="/pages/general/clientes" className={`${styles.statCard} ${styles.clientesCard}`}>
+            <Link href="/pages/general" className={`${styles.statCard} ${styles.clientesCard}`}>
               <div className={styles.statIconWrapper}>
                 <span className={styles.statIcon}>
                   <IconUsers />
@@ -211,7 +211,7 @@ export default function Home() {
               </div>
             </Link>
             
-            <Link href="/pages/general/empleados" className={`${styles.statCard} ${styles.empleadosCard}`}>
+            <Link href="/pages/general" className={`${styles.statCard} ${styles.empleadosCard}`}>
               <div className={styles.statIconWrapper}>
                 <span className={styles.statIcon}>
                   <IconUser />
