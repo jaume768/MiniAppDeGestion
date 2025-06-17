@@ -2,7 +2,7 @@
 
 .container {
   padding: 2rem;
-  max-width: 1200px;
+  max-width: 1500px;
   margin: 0 auto;
 }
 
@@ -55,6 +55,7 @@
   font-weight: 600;
   color: #555;
   transition: all 0.3s;
+  font-size: 1em;
   text-align: left;
   border-left: 3px solid transparent;
 }

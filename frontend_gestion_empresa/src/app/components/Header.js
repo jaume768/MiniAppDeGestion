@@ -133,6 +133,16 @@ export default function Sidebar() {
                 <span>Artículos</span>
               </Link>
             </li>
+            <li>
+              <Link 
+                href="/pages/ventas" 
+                className={`${styles.navLink} ${isActive('/pages/ventas') ? styles.active : ''}`}
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                <IconCart className={styles.navIcon} />
+                <span>Ventas</span>
+              </Link>
+            </li>
             </ul>
           </nav>
         </div>

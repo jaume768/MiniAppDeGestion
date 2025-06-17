@@ -62,7 +62,7 @@ export default function ArticulosListPage() {
                 <td>{articulo.id}</td>
                 <td>{articulo.nombre}</td>
                 <td>{articulo.descripcion}</td>
-                <td>{parseFloat(articulo.precio).toFixed(2)} €</td>
+                <td>{articulo.precio} €</td>
                 <td>{articulo.stock}</td>
                 <td>{articulo.categoria?.nombre || 'Sin categoría'}</td>
                 <td className={styles.actions}>
