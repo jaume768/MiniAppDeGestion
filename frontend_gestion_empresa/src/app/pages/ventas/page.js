@@ -7,10 +7,12 @@ import TablaPresupuestos from '../../components/ventas/TablaPresupuestos';
 import TablaPedidos from '../../components/ventas/TablaPedidos';
 import TablaFacturas from '../../components/ventas/TablaFacturas';
 import TablaTickets from '../../components/ventas/TablaTickets';
+import TablaAlbaranes from '../../components/ventas/TablaAlbaranes';
 import FormularioPresupuesto from '../../components/ventas/FormularioPresupuesto';
 import FormularioPedido from '../../components/ventas/FormularioPedido';
 import FormularioFactura from '../../components/ventas/FormularioFactura';
 import FormularioTicket from '../../components/ventas/FormularioTicket';
+import FormularioAlbaran from '../../components/ventas/FormularioAlbaran';
 import styles from '../section.module.css';
 
 export default function VentasPage() {
@@ -19,17 +21,19 @@ export default function VentasPage() {
   const [showFormPedidos, setShowFormPedidos] = useState(false);
   const [showFormFacturas, setShowFormFacturas] = useState(false);
   const [showFormTickets, setShowFormTickets] = useState(false);
+  const [showFormAlbaranes, setShowFormAlbaranes] = useState(false);
   const [presupuestoToEdit, setPresupuestoToEdit] = useState(null);
   const [pedidoToEdit, setPedidoToEdit] = useState(null);
   const [facturaToEdit, setFacturaToEdit] = useState(null);
   const [ticketToEdit, setTicketToEdit] = useState(null);
+  const [albaranToEdit, setAlbaranToEdit] = useState(null);
 
   const searchParams = useSearchParams();
 
   useEffect(() => {
     // Manejar la selección de la pestaña
     const tab = searchParams.get('tab');
-    if (tab === 'presupuestos' || tab === 'pedidos' || tab === 'facturas' || tab === 'tickets') {
+    if (tab === 'presupuestos' || tab === 'pedidos' || tab === 'facturas' || tab === 'tickets' || tab === 'albaranes') {
       setActiveTab(tab);
     }
 
@@ -87,6 +91,18 @@ export default function VentasPage() {
             }
           };
           fetchTicket();
+        } else if (tab === 'albaranes' || (!tab && activeTab === 'albaranes')) {
+          // Cargar albarán para editar
+          const fetchAlbaran = async () => {
+            try {
+              const data = await albaranesAPI.getById(editId);
+              setAlbaranToEdit(data);
+              setShowFormAlbaranes(true);
+            } catch (error) {
+              console.error('Error al cargar el albarán para editar:', error);
+            }
+          };
+          fetchAlbaran();
         }
       }
     }
@@ -132,6 +148,16 @@ export default function VentasPage() {
     setShowFormTickets(true);
   };
 
+  const handleNuevoAlbaran = () => {
+    setAlbaranToEdit(null);
+    setShowFormAlbaranes(true);
+  };
+
+  const handleEditAlbaran = (albaran) => {
+    setAlbaranToEdit(albaran);
+    setShowFormAlbaranes(true);
+  };
+
   const handlePresupuestoSuccess = (presupuesto) => {
     setShowFormPresupuestos(false);
     // Podríamos recargar los datos aquí si es necesario
@@ -156,6 +182,12 @@ export default function VentasPage() {
     alert(ticketToEdit ? 'Ticket actualizado correctamente' : 'Ticket creado correctamente');
   };
 
+  const handleAlbaranSuccess = (albaran) => {
+    setShowFormAlbaranes(false);
+    // Podríamos recargar los datos aquí si es necesario
+    alert(albaranToEdit ? 'Albarán actualizado correctamente' : 'Albarán creado correctamente');
+  };
+
   return (
     <div className={styles.container}>
       <div className={styles.header}>
@@ -175,6 +207,12 @@ export default function VentasPage() {
             onClick={() => setActiveTab('pedidos')}
           >
             Pedidos
+          </button>
+          <button
+            className={`${styles.tabButton} ${activeTab === 'albaranes' ? styles.activeTab : ''}`}
+            onClick={() => setActiveTab('albaranes')}
+          >
+            Albaranes
           </button>
           <button
             className={`${styles.tabButton} ${activeTab === 'tickets' ? styles.activeTab : ''}`}
@@ -254,6 +292,22 @@ export default function VentasPage() {
                 <TablaTickets 
                   onNuevoClick={handleNuevoTicket} 
                   onEditClick={handleEditTicket} 
+                />
+              )}
+            </div>
+          )}
+          {activeTab === 'albaranes' && (
+            <div className={styles.tabPanel}>
+              {showFormAlbaranes ? (
+                <FormularioAlbaran 
+                  albaran={albaranToEdit}
+                  onCancel={() => setShowFormAlbaranes(false)}
+                  onSuccess={handleAlbaranSuccess}
+                />
+              ) : (
+                <TablaAlbaranes 
+                  onNuevoClick={handleNuevoAlbaran} 
+                  onEditClick={handleEditAlbaran} 
                 />
               )}
             </div>
