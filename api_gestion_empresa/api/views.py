@@ -15,7 +15,8 @@ from .serializers import (
     CategoriaSerializer, ArticuloSerializer, ClienteSerializer,
     PresupuestoSerializer, PedidoSerializer, FacturaSerializer,
     DepartamentoSerializer, EmpleadoSerializer, ProyectoSerializer,
-    AlbaranSerializer, TicketSerializer, PedidoItemSerializer
+    AlbaranSerializer, TicketSerializer, PedidoItemSerializer,
+    AlbaranItemSerializer, TicketItemSerializer
 )
 
 class CategoriaViewSet(viewsets.ModelViewSet):
@@ -167,10 +168,24 @@ class ProyectoViewSet(viewsets.ModelViewSet):
 class AlbaranViewSet(viewsets.ModelViewSet):
     queryset = Albaran.objects.all()
     serializer_class = AlbaranSerializer
+    
+    @action(detail=True, methods=['get'])
+    def items(self, request, pk=None):
+        albaran = self.get_object()
+        items = AlbaranItem.objects.filter(albaran=albaran)
+        serializer = AlbaranItemSerializer(items, many=True)
+        return Response(serializer.data)
 
 class TicketViewSet(viewsets.ModelViewSet):
     queryset = Ticket.objects.all()
     serializer_class = TicketSerializer
+    
+    @action(detail=True, methods=['get'])
+    def items(self, request, pk=None):
+        ticket = self.get_object()
+        items = TicketItem.objects.filter(ticket=ticket)
+        serializer = TicketItemSerializer(items, many=True)
+        return Response(serializer.data)
 
 class ReportesView(APIView):
     def get(self, request, format=None, **kwargs):

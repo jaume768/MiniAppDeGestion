@@ -4,6 +4,7 @@ from .views import (
     CategoriaViewSet, ArticuloViewSet, ClienteViewSet,
     PresupuestoViewSet, PedidoViewSet, FacturaViewSet,
     DepartamentoViewSet, EmpleadoViewSet, ProyectoViewSet,
+    AlbaranViewSet, TicketViewSet,
     ReportesView
 )
 
@@ -17,6 +18,8 @@ router.register(r'facturas', FacturaViewSet)
 router.register(r'departamentos', DepartamentoViewSet)
 router.register(r'empleados', EmpleadoViewSet)
 router.register(r'proyectos', ProyectoViewSet)
+router.register(r'albaranes', AlbaranViewSet)
+router.register(r'tickets', TicketViewSet)
 
 # Combina las rutas del router con las rutas adicionales para ReportesView
 urlpatterns = [

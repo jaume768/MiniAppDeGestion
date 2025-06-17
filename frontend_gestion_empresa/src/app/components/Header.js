@@ -31,6 +31,18 @@ const IconFolder = () => (
   </svg>
 );
 
+const IconCreditCard = () => (
+  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" height="1em" width="1em">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+  </svg>
+);
+
+const IconPackage = () => (
+  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" height="1em" width="1em">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+  </svg>
+);
+
 const IconCart = () => (
   <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" height="1em" width="1em">
     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
@@ -93,22 +105,32 @@ export default function Sidebar() {
             </li>
             <li>
               <Link 
-                href="/pages/clientes" 
-                className={`${styles.navLink} ${isActive('/pages/clientes') ? styles.active : ''}`}
+                href="/pages/general" 
+                className={`${styles.navLink} ${isActive('/pages/general') ? styles.active : ''}`}
                 onClick={() => setMobileMenuOpen(false)}
               >
-                <IconUser className={styles.navIcon} />
-                <span>Clientes</span>
+                <IconUsers className={styles.navIcon} />
+                <span>General</span>
               </Link>
             </li>
             <li>
               <Link 
-                href="/pages/empleados" 
-                className={`${styles.navLink} ${isActive('/pages/empleados') ? styles.active : ''}`}
+                href="/pages/finanzas" 
+                className={`${styles.navLink} ${isActive('/pages/finanzas') ? styles.active : ''}`}
                 onClick={() => setMobileMenuOpen(false)}
               >
-                <IconUsers className={styles.navIcon} />
-                <span>Empleados</span>
+                <IconCreditCard className={styles.navIcon} />
+                <span>Finanzas</span>
+              </Link>
+            </li>
+            <li>
+              <Link 
+                href="/pages/articulos" 
+                className={`${styles.navLink} ${isActive('/pages/articulos') ? styles.active : ''}`}
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                <IconPackage className={styles.navIcon} />
+                <span>Artículos</span>
               </Link>
             </li>
             <li>

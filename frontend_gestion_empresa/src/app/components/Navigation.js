@@ -26,23 +26,31 @@ export default function Navigation() {
           </Link>
         </li>
         <li>
-          <Link href="/pages/clientes" className={`${styles.navLink} ${isActive('/pages/clientes') ? styles.active : ''}`}>
+          <Link href="/pages/general" className={`${styles.navLink} ${isActive('/pages/general') ? styles.active : ''}`}>
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={styles.icon}>
               <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
               <circle cx="12" cy="7" r="4"></circle>
             </svg>
-            Clientes
+            General
           </Link>
         </li>
         <li>
-          <Link href="/pages/empleados" className={`${styles.navLink} ${isActive('/pages/empleados') ? styles.active : ''}`}>
+          <Link href="/pages/finanzas" className={`${styles.navLink} ${isActive('/pages/finanzas') ? styles.active : ''}`}>
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={styles.icon}>
-              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
-              <circle cx="9" cy="7" r="4"></circle>
-              <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
-              <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+              <rect x="2" y="5" width="20" height="14" rx="2" ry="2"></rect>
+              <line x1="2" y1="10" x2="22" y2="10"></line>
             </svg>
-            Empleados
+            Finanzas
+          </Link>
+        </li>
+        <li>
+          <Link href="/pages/articulos" className={`${styles.navLink} ${isActive('/pages/articulos') ? styles.active : ''}`}>
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={styles.icon}>
+              <path d="M21 8v13H3V8"></path>
+              <path d="M1 3h22v5H1z"></path>
+              <path d="M10 12h4"></path>
+            </svg>
+            Artículos
           </Link>
         </li>
         <li>

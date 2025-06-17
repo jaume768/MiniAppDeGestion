@@ -122,7 +122,7 @@ export default function Home() {
             icono: '👥',
             titulo: 'Cliente registrado',
             meta: `${cliente.nombre} - Reciente`,
-            url: `/pages/clientes/${cliente.id}`
+            url: `/pages/general/clientes/${cliente.id}`
           });
         }
         
@@ -198,7 +198,8 @@ export default function Home() {
           </div>
         ) : (
           <div className={styles.statsGrid}>
-            <Link href="/pages/clientes" className={`${styles.statCard} ${styles.clientesCard}`}>
+            
+            <Link href="/pages/general/clientes" className={`${styles.statCard} ${styles.clientesCard}`}>
               <div className={styles.statIconWrapper}>
                 <span className={styles.statIcon}>
                   <IconUsers />
@@ -210,7 +211,7 @@ export default function Home() {
               </div>
             </Link>
             
-            <Link href="/pages/empleados" className={`${styles.statCard} ${styles.empleadosCard}`}>
+            <Link href="/pages/general/empleados" className={`${styles.statCard} ${styles.empleadosCard}`}>
               <div className={styles.statIconWrapper}>
                 <span className={styles.statIcon}>
                   <IconUser />

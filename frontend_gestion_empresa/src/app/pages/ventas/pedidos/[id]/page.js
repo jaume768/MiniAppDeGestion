@@ -1,5 +1,6 @@
 import PedidoDetalleClient from './PedidoDetalleClient';
 
-export default function PedidoDetallePage({ params }) {
-  return <PedidoDetalleClient id={params.id} />;
+export default async function PedidoDetallePage({ params }) {
+  const id = await params.id;
+  return <PedidoDetalleClient id={id} />;
 }

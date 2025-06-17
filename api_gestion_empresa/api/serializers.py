@@ -3,7 +3,8 @@ from .models import (
     Categoria, Articulo, Cliente,
     Presupuesto, PresupuestoItem,
     Pedido, PedidoItem, Factura,
-    Departamento, Empleado, Proyecto
+    Departamento, Empleado, Proyecto,
+    Albaran, AlbaranItem, Ticket, TicketItem
 )
 
 class CategoriaSerializer(serializers.ModelSerializer):
