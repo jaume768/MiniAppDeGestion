@@ -15,7 +15,8 @@ export default function FormularioTicket({ ticket, onCancel, onSuccess }) {
   const [nuevoItem, setNuevoItem] = useState({ 
     articulo: '', 
     cantidad: 1, 
-    precio: 0
+    precio_unitario: 0,
+    iva: 0
   });
   
   const [clientes, setClientes] = useState([]);
@@ -56,7 +57,26 @@ export default function FormularioTicket({ ticket, onCancel, onSuccess }) {
           
           // Cargar los items del ticket
           const itemsData = await ticketsAPI.getItems(ticket.id);
-          setItems(itemsData);
+          
+          // Procesar los items para calcular propiedades derivadas
+          const itemsConCalculos = itemsData.map(item => {
+            // Obtener el nombre del artículo
+            const articulo = articulosMap[item.articulo] || {};
+            
+            // Calcular los valores derivados
+            const subtotal = item.cantidad * item.precio_unitario;
+            const ivaAmount = subtotal * (item.iva / 100);
+            
+            return {
+              ...item,
+              nombre_articulo: articulo.nombre || 'Desconocido',
+              subtotal: subtotal,
+              ivaAmount: ivaAmount,
+              total: subtotal + ivaAmount
+            };
+          });
+          
+          setItems(itemsConCalculos);
         }
         
         setLoading(false);
@@ -83,11 +103,12 @@ export default function FormularioTicket({ ticket, onCancel, onSuccess }) {
     
     let updatedItem = { ...nuevoItem, [name]: value };
     
-    // Si cambia el artículo, actualizar el precio
+    // Si cambia el artículo, actualizar el precio y el IVA
     if (name === 'articulo' && value) {
       const articulo = articulosMap[value];
       if (articulo) {
-        updatedItem.precio = articulo.precio;
+        updatedItem.precio_unitario = articulo.precio;
+        updatedItem.iva = articulo.iva;
       }
     }
     
@@ -103,10 +124,16 @@ export default function FormularioTicket({ ticket, onCancel, onSuccess }) {
     const articulo = articulosMap[nuevoItem.articulo];
     
     // Agregar el item a la lista
+    const subtotal = nuevoItem.cantidad * nuevoItem.precio;
+    const ivaAmount = subtotal * (nuevoItem.iva / 100);
+    const total = subtotal + ivaAmount;
+    
     const newItem = {
       ...nuevoItem,
       nombre_articulo: articulo.nombre,
-      subtotal: nuevoItem.cantidad * nuevoItem.precio
+      subtotal: subtotal,
+      ivaAmount: ivaAmount,
+      total: total
     };
     
     setItems([...items, newItem]);
@@ -115,7 +142,8 @@ export default function FormularioTicket({ ticket, onCancel, onSuccess }) {
     setNuevoItem({
       articulo: '',
       cantidad: 1,
-      precio: 0
+      precio_unitario: 0,
+      iva: 0
     });
   };
 
@@ -125,10 +153,40 @@ export default function FormularioTicket({ ticket, onCancel, onSuccess }) {
     setItems(newItems);
   };
 
-  const calcularTotal = () => {
+  const calcularSubtotal = () => {
     return items.reduce((total, item) => {
-      return total + (item.cantidad * item.precio);
+      return total + (item.cantidad * item.precio_unitario);
     }, 0);
+  };
+  
+  const calcularIVA = () => {
+    return items.reduce((total, item) => {
+      const subtotal = item.cantidad * item.precio_unitario;
+      return total + (subtotal * (item.iva / 100));
+    }, 0);
+  };
+  
+  const calcularTotal = () => {
+    return calcularSubtotal() + calcularIVA();
+  };
+
+  const calcularTotales = () => {
+    let subtotal = 0;
+    let ivaTotal = 0;
+    
+    items.forEach(item => {
+      const itemSubtotal = item.cantidad * item.precio_unitario;
+      const itemIva = itemSubtotal * (item.iva / 100);
+      
+      subtotal += itemSubtotal;
+      ivaTotal += itemIva;
+    });
+    
+    return {
+      subtotal: Number(subtotal.toFixed(2)),
+      iva: Number(ivaTotal.toFixed(2)),
+      total: Number((subtotal + ivaTotal).toFixed(2))
+    };
   };
 
   const handleSubmit = async (e) => {
@@ -151,7 +209,8 @@ export default function FormularioTicket({ ticket, onCancel, onSuccess }) {
       const itemsFormateados = items.map(item => ({
         articulo: item.articulo,
         cantidad: item.cantidad,
-        precio_unitario: item.precio_unitario
+        precio_unitario: item.precio || item.precio_unitario,
+        iva: item.iva || 0
       }));
       
       if (ticket) {
@@ -161,6 +220,8 @@ export default function FormularioTicket({ ticket, onCancel, onSuccess }) {
         // 1. Actualizar datos principales del ticket
         await ticketsAPI.update(ticket.id, {
           ...formData,
+          subtotal: calcularSubtotal(),
+          iva: calcularIVA(),
           total: calcularTotal()
         });
         
@@ -176,10 +237,12 @@ export default function FormularioTicket({ ticket, onCancel, onSuccess }) {
         }
       } else {
         // Para crear un nuevo ticket, enviar todo junto como espera la API
-        // Esto reduce el número de llamadas a la API y soluciona el error 400
+        const totales = calcularTotales();
         const nuevoTicketData = {
           ...formData,
-          total: calcularTotal(),
+          subtotal: totales.subtotal,
+          iva: totales.iva,
+          total: totales.total,
           items: itemsFormateados
         };
         
@@ -286,6 +349,20 @@ export default function FormularioTicket({ ticket, onCancel, onSuccess }) {
                   className={styles.formControl}
                 />
               </div>
+              
+              <div className={styles.formGroup}>
+                <label htmlFor="iva">IVA (%):</label>
+                <input 
+                  type="number" 
+                  id="iva" 
+                  name="iva" 
+                  value={nuevoItem.iva} 
+                  onChange={handleItemChange}
+                  min="0"
+                  step="0.01"
+                  className={styles.formControl}
+                />
+              </div>
             </div>
             
             <button 
@@ -306,7 +383,10 @@ export default function FormularioTicket({ ticket, onCancel, onSuccess }) {
                 <th>Artículo</th>
                 <th>Cantidad</th>
                 <th>Precio (€)</th>
-                <th>Subtotal (€)</th>
+                <th>IVA (%)</th>
+                <th>Subtotal</th>
+                <th>IVA</th>
+                <th>Total</th>
                 <th>Acciones</th>
               </tr>
             </thead>
@@ -316,8 +396,11 @@ export default function FormularioTicket({ ticket, onCancel, onSuccess }) {
                   <tr key={index}>
                     <td>{item.nombre_articulo}</td>
                     <td>{item.cantidad}</td>
-                    <td>{item.precio}</td>
-                    <td>{item.subtotal}</td>
+                    <td>{item.precio_unitario.toFixed(2)} €</td>
+                    <td>{item.iva} %</td>
+                    <td>{item.subtotal.toFixed(2)} €</td>
+                    <td>{item.ivaAmount.toFixed(2)} €</td>
+                    <td>{item.total.toFixed(2)} €</td>
                     <td>
                       <button 
                         type="button"
@@ -335,15 +418,28 @@ export default function FormularioTicket({ ticket, onCancel, onSuccess }) {
                 ))
               ) : (
                 <tr>
-                  <td colSpan="5" className={styles.emptyMessage}>No hay artículos añadidos</td>
+                  <td colSpan="8" className={styles.emptyMessage}>No hay artículos añadidos</td>
                 </tr>
               )}
             </tbody>
             {items.length > 0 && (
               <tfoot>
                 <tr>
-                  <td colSpan="3" className={styles.totalLabel}>Total</td>
-                  <td colSpan="2" className={styles.totalValue}>{calcularTotal()} €</td>
+                  <td colSpan="4" className={styles.totalLabel}>Subtotal</td>
+                  <td className={styles.totalValue}>{calcularSubtotal().toFixed(2)} €</td>
+                  <td colSpan="2"></td>
+                </tr>
+                <tr>
+                  <td colSpan="4" className={styles.totalLabel}>IVA</td>
+                  <td></td>
+                  <td className={styles.totalValue}>{calcularIVA().toFixed(2)} €</td>
+                  <td></td>
+                </tr>
+                <tr>
+                  <td colSpan="4" className={styles.totalLabel}>Total</td>
+                  <td colSpan="1"></td>
+                  <td colSpan="1"></td>
+                  <td className={styles.totalValue}>{calcularTotales().total.toFixed(2)} €</td>
                 </tr>
               </tfoot>
             )}

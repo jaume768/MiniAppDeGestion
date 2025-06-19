@@ -13,6 +13,7 @@ class Articulo(models.Model):
     categoria = models.ForeignKey(Categoria, on_delete=models.CASCADE, related_name='articulos')
     precio = models.DecimalField(max_digits=8, decimal_places=2)
     stock = models.IntegerField(default=0)  # control de stock
+    iva = models.DecimalField(max_digits=5, decimal_places=2, default=21.00)  # porcentaje de IVA
 
     def __str__(self):
         return self.nombre
@@ -30,6 +31,8 @@ class Cliente(models.Model):
 class Presupuesto(models.Model):
     cliente = models.ForeignKey(Cliente, on_delete=models.CASCADE, related_name='presupuestos')
     fecha = models.DateField(auto_now_add=True)
+    subtotal = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    iva = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     total = models.DecimalField(max_digits=10, decimal_places=2, default=0)
 
     def __str__(self):
@@ -40,49 +43,74 @@ class PresupuestoItem(models.Model):
     articulo = models.ForeignKey(Articulo, on_delete=models.PROTECT)
     cantidad = models.PositiveIntegerField()
     precio_unitario = models.DecimalField(max_digits=8, decimal_places=2)
+    iva = models.DecimalField(max_digits=5, decimal_places=2, default=21.00)
 
 class Pedido(models.Model):
     cliente = models.ForeignKey(Cliente, on_delete=models.CASCADE, related_name='pedidos')
     fecha = models.DateField(auto_now_add=True)
+    subtotal = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    iva = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     total = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     entregado = models.BooleanField(default=False)
 
     def __str__(self):
         return f"Pedido #{self.id} - {self.cliente.nombre}"
+        
+    @property
+    def is_facturado(self):
+        """Verifica si este pedido ya ha sido convertido a factura"""
+        return hasattr(self, 'factura') and self.factura is not None
 
 class PedidoItem(models.Model):
     pedido = models.ForeignKey(Pedido, on_delete=models.CASCADE, related_name='items')
     articulo = models.ForeignKey(Articulo, on_delete=models.PROTECT)
     cantidad = models.PositiveIntegerField()
     precio_unitario = models.DecimalField(max_digits=8, decimal_places=2)
+    iva = models.DecimalField(max_digits=5, decimal_places=2, default=21.00)
 
 class Albaran(models.Model):
     cliente = models.ForeignKey(Cliente, on_delete=models.CASCADE, related_name='albaranes')
     fecha = models.DateField(auto_now_add=True)
+    subtotal = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    iva = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     total = models.DecimalField(max_digits=10, decimal_places=2, default=0)
 
     def __str__(self):
         return f"Albaran #{self.id} - {self.cliente.nombre}"
+        
+    @property
+    def is_facturado(self):
+        """Verifica si este albarán ya ha sido convertido a factura"""
+        return hasattr(self, 'factura') and self.factura is not None
 
 class AlbaranItem(models.Model):
     albaran = models.ForeignKey(Albaran, on_delete=models.CASCADE, related_name='items')
     articulo = models.ForeignKey(Articulo, on_delete=models.PROTECT)
     cantidad = models.PositiveIntegerField()
     precio_unitario = models.DecimalField(max_digits=8, decimal_places=2)
+    iva = models.DecimalField(max_digits=5, decimal_places=2, default=21.00)
 
 class Ticket(models.Model):
     cliente = models.ForeignKey(Cliente, on_delete=models.CASCADE, related_name='tickets')
     fecha = models.DateField(auto_now_add=True)
+    subtotal = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    iva = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     total = models.DecimalField(max_digits=10, decimal_places=2, default=0)
 
     def __str__(self):
         return f"Ticket #{self.id} - {self.cliente.nombre}"
+        
+    @property
+    def is_facturado(self):
+        """Verifica si este ticket ya ha sido convertido a factura"""
+        return hasattr(self, 'factura') and self.factura is not None
 
 class TicketItem(models.Model):
     ticket = models.ForeignKey(Ticket, on_delete=models.CASCADE, related_name='items')
     articulo = models.ForeignKey(Articulo, on_delete=models.PROTECT)
     cantidad = models.PositiveIntegerField()
     precio_unitario = models.DecimalField(max_digits=8, decimal_places=2)
+    iva = models.DecimalField(max_digits=5, decimal_places=2, default=21.00)
 
 
 class Factura(models.Model):
@@ -90,6 +118,8 @@ class Factura(models.Model):
     albaran = models.OneToOneField(Albaran, on_delete=models.CASCADE, related_name='factura', null=True, blank=True)
     ticket = models.OneToOneField(Ticket, on_delete=models.CASCADE, related_name='factura', null=True, blank=True)
     fecha = models.DateField(auto_now_add=True)
+    subtotal = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    iva = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     total = models.DecimalField(max_digits=10, decimal_places=2)
 
     def __str__(self):

@@ -16,7 +16,8 @@ export default function FormularioAlbaran({ albaran, onCancel, onSuccess }) {
     articulo: '', 
     cantidad: 1, 
     precio_unitario: 0,
-    descuento: 0 
+    descuento: 0,
+    iva: 0 
   });
   
   const [clientes, setClientes] = useState([]);
@@ -95,12 +96,13 @@ export default function FormularioAlbaran({ albaran, onCancel, onSuccess }) {
       newValue = parseFloat(value) || 0;
     }
     
-    // Si cambia el artículo, actualizar el precio con el del artículo
+    // Si cambia el artículo, actualizar el precio y el IVA con el del artículo
     if (name === 'articulo' && articulosMap[value]) {
       setNuevoItem({
         ...nuevoItem,
         articulo: value,
-        precio_unitario: articulosMap[value].precio_venta
+        precio_unitario: articulosMap[value].precio,
+        iva: articulosMap[value].iva
       });
     } else {
       setNuevoItem({
@@ -119,10 +121,16 @@ export default function FormularioAlbaran({ albaran, onCancel, onSuccess }) {
     const articulo = articulosMap[nuevoItem.articulo];
     
     // Agregar el item a la lista
+    const subtotal = (nuevoItem.cantidad * nuevoItem.precio_unitario) * (1 - (nuevoItem.descuento / 100));
+    const ivaAmount = subtotal * (nuevoItem.iva / 100);
+    const total = subtotal + ivaAmount;
+    
     const newItem = {
       ...nuevoItem,
       nombre_articulo: articulo.nombre,
-      subtotal: (nuevoItem.cantidad * nuevoItem.precio_unitario) * (1 - (nuevoItem.descuento / 100))
+      subtotal: subtotal,
+      ivaAmount: ivaAmount,
+      total: total
     };
     
     setItems([...items, newItem]);
@@ -132,7 +140,8 @@ export default function FormularioAlbaran({ albaran, onCancel, onSuccess }) {
       articulo: '',
       cantidad: 1,
       precio_unitario: 0,
-      descuento: 0
+      descuento: 0,
+      iva: 0
     });
   };
 
@@ -142,10 +151,40 @@ export default function FormularioAlbaran({ albaran, onCancel, onSuccess }) {
     setItems(newItems);
   };
 
-  const calcularTotal = () => {
+  const calcularSubtotal = () => {
     return items.reduce((total, item) => {
       return total + ((item.cantidad * item.precio_unitario) * (1 - (item.descuento / 100)));
     }, 0);
+  };
+  
+  const calcularIVA = () => {
+    return items.reduce((total, item) => {
+      const subtotal = (item.cantidad * item.precio_unitario) * (1 - (item.descuento / 100));
+      return total + (subtotal * (item.iva / 100));
+    }, 0);
+  };
+  
+  const calcularTotales = () => {
+    let subtotal = 0;
+    let ivaTotal = 0;
+    
+    items.forEach(item => {
+      const itemSubtotal = item.cantidad * item.precio_unitario;
+      const itemIva = itemSubtotal * (item.iva / 100);
+      
+      subtotal += itemSubtotal;
+      ivaTotal += itemIva;
+    });
+    
+    return {
+      subtotal: Number(subtotal.toFixed(2)),
+      iva: Number(ivaTotal.toFixed(2)),
+      total: Number((subtotal + ivaTotal).toFixed(2))
+    };
+  };
+  
+  const calcularTotal = () => {
+    return calcularSubtotal() + calcularIVA();
   };
 
   const handleSubmit = async (e) => {
@@ -169,7 +208,8 @@ export default function FormularioAlbaran({ albaran, onCancel, onSuccess }) {
         articulo: item.articulo,
         cantidad: item.cantidad,
         precio_unitario: item.precio_unitario,
-        descuento: item.descuento || 0
+        descuento: item.descuento || 0,
+        iva: item.iva || 0
       }));
       
       if (albaran) {
@@ -194,10 +234,12 @@ export default function FormularioAlbaran({ albaran, onCancel, onSuccess }) {
         }
       } else {
         // Para crear un nuevo albarán, enviar todo junto como espera la API
-        // Esto reduce el número de llamadas a la API y soluciona el error 400
+        const totales = calcularTotales();
         const nuevoAlbaranData = {
           ...formData,
-          total: calcularTotal(),
+          subtotal: totales.subtotal,
+          iva: totales.iva,
+          total: totales.total,
           items: itemsFormateados
         };
         
@@ -330,6 +372,19 @@ export default function FormularioAlbaran({ albaran, onCancel, onSuccess }) {
             </div>
             
             <div className={styles.formGroup}>
+              <label htmlFor="iva">IVA (%)</label>
+              <input 
+                type="number" 
+                id="iva" 
+                name="iva" 
+                min="0" 
+                step="0.01" 
+                value={nuevoItem.iva} 
+                onChange={handleItemChange}
+              />
+            </div>
+            
+            <div className={styles.formGroup}>
               <label>&nbsp;</label>
               <button 
                 type="button" 
@@ -352,7 +407,10 @@ export default function FormularioAlbaran({ albaran, onCancel, onSuccess }) {
                   <th>Cantidad</th>
                   <th>Precio unitario</th>
                   <th>Descuento</th>
+                  <th>IVA (%)</th>
                   <th>Subtotal</th>
+                  <th>IVA</th>
+                  <th>Total</th>
                   <th></th>
                 </tr>
               </thead>
@@ -363,7 +421,10 @@ export default function FormularioAlbaran({ albaran, onCancel, onSuccess }) {
                     <td>{item.cantidad}</td>
                     <td className={styles.moneyCell}>{formatCurrency(item.precio_unitario)}</td>
                     <td>{item.descuento}%</td>
+                    <td>{item.iva}%</td>
                     <td className={styles.moneyCell}>{formatCurrency(item.subtotal)}</td>
+                    <td className={styles.moneyCell}>{formatCurrency(item.ivaAmount)}</td>
+                    <td className={styles.moneyCell}>{formatCurrency(item.total)}</td>
                     <td>
                       <button 
                         type="button" 
@@ -380,8 +441,23 @@ export default function FormularioAlbaran({ albaran, onCancel, onSuccess }) {
               </tbody>
               <tfoot>
                 <tr>
-                  <td colSpan="4" className={styles.tableTotal}>Total:</td>
-                  <td className={styles.moneyCell}><strong>{formatCurrency(calcularTotal())}</strong></td>
+                  <td colSpan="5" className={styles.tableTotal}>Subtotal:</td>
+                  <td className={styles.moneyCell}><strong>{formatCurrency(calcularSubtotal())}</strong></td>
+                  <td colSpan="2"></td>
+                  <td></td>
+                </tr>
+                <tr>
+                  <td colSpan="5" className={styles.tableTotal}>IVA:</td>
+                  <td></td>
+                  <td className={styles.moneyCell}><strong>{formatCurrency(calcularIVA())}</strong></td>
+                  <td colSpan="1"></td>
+                  <td></td>
+                </tr>
+                <tr>
+                  <td colSpan="5" className={styles.tableTotal}>Total:</td>
+                  <td colSpan="1"></td>
+                  <td colSpan="1"></td>
+                  <td className={styles.moneyCell}><strong>{formatCurrency(calcularTotales().total)}</strong></td>
                   <td></td>
                 </tr>
               </tfoot>

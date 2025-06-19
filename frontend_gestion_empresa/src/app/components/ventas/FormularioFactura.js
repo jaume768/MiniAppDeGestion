@@ -91,11 +91,12 @@ export default function FormularioFactura({ factura, onCancel, onSuccess }) {
     
     let updatedItem = { ...nuevoItem, [name]: value };
     
-    // Si cambia el artículo, actualizar el precio unitario
+    // Si cambia el artículo, actualizar el precio unitario y el IVA
     if (name === 'articulo' && value) {
       const articulo = articulosMap[value];
       if (articulo) {
         updatedItem.precio_unitario = articulo.precio;
+        updatedItem.iva = articulo.iva;
       }
     }
     
@@ -144,16 +145,34 @@ export default function FormularioFactura({ factura, onCancel, onSuccess }) {
     setItems(newItems);
   };
 
-  const calcularTotal = () => {
-    return items.reduce((total, item) => total + item.subtotal, 0);
+  // Función única para calcular todos los totales
+  const calcularTotales = () => {
+    let baseImponible = 0;
+    let ivaTotal = 0;
+    
+    items.forEach(item => {
+      baseImponible += item.importe_base;
+      ivaTotal += item.importe_iva;
+    });
+    
+    return {
+      baseImponible: Number(baseImponible.toFixed(2)),
+      iva: Number(ivaTotal.toFixed(2)),
+      total: Number((baseImponible + ivaTotal).toFixed(2))
+    };
   };
 
+  // Mantenemos las funciones individuales para compatibilidad con código existente
   const calcularBaseImponible = () => {
-    return items.reduce((total, item) => total + item.importe_base, 0);
+    return calcularTotales().baseImponible;
   };
 
   const calcularTotalIva = () => {
-    return items.reduce((total, item) => total + item.importe_iva, 0);
+    return calcularTotales().iva;
+  };
+  
+  const calcularTotal = () => {
+    return calcularTotales().total;
   };
 
   const handleSubmit = async (e) => {
@@ -210,9 +229,9 @@ export default function FormularioFactura({ factura, onCancel, onSuccess }) {
         // Esto reduce el número de llamadas a la API y soluciona el error 400
         const nuevaFacturaData = {
           ...formData,
-          base_imponible: calcularBaseImponible(),
-          iva: calcularTotalIva(),
-          total: calcularTotal(),
+          base_imponible: calcularTotales().baseImponible,
+          iva: calcularTotales().iva,
+          total: calcularTotales().total,
           items: itemsFormateados
         };
         
@@ -434,9 +453,9 @@ export default function FormularioFactura({ factura, onCancel, onSuccess }) {
                     <td>{item.precio_unitario}</td>
                     <td>{item.descuento}%</td>
                     <td>{item.iva}%</td>
-                    <td>{item.importe_base}</td>
-                    <td>{item.importe_iva}</td>
-                    <td>{item.subtotal}</td>
+                    <td>{item.importe_base.toFixed(2)}</td>
+                    <td>{item.importe_iva.toFixed(2)}</td>
+                    <td>{item.subtotal.toFixed(2)}</td>
                     <td>
                       <button 
                         type="button"
@@ -462,9 +481,9 @@ export default function FormularioFactura({ factura, onCancel, onSuccess }) {
               <tfoot>
                 <tr>
                   <td colSpan="5" className={styles.totalLabel}>Totales</td>
-                  <td className={styles.totalValue}>{calcularBaseImponible()} €</td>
-                  <td className={styles.totalValue}>{calcularTotalIva()} €</td>
-                  <td className={styles.totalValue}>{calcularTotal()} €</td>
+                  <td className={styles.totalValue}>{calcularTotales().baseImponible.toFixed(2)} €</td>
+                  <td className={styles.totalValue}>{calcularTotales().iva.toFixed(2)} €</td>
+                  <td className={styles.totalValue}>{calcularTotales().total.toFixed(2)} €</td>
                   <td></td>
                 </tr>
               </tfoot>

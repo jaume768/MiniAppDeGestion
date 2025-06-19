@@ -31,29 +31,29 @@ def run():
             # Categorías reales
             categorias_info = {
                 'Electrónica': [
-                    ('Smartphone X', 'Smartphone de última generación', 799.99),
-                    ('Televisor 42" LED', 'Televisor LED Full HD de 42 pulgadas', 499.99),
-                    ('Auriculares Bluetooth', 'Auriculares inalámbricos con cancelación de ruido', 129.99),
+                    ('Smartphone X', 'Smartphone de última generación', 799.99, 21.00),
+                    ('Televisor 42" LED', 'Televisor LED Full HD de 42 pulgadas', 499.99, 21.00),
+                    ('Auriculares Bluetooth', 'Auriculares inalámbricos con cancelación de ruido', 129.99, 21.00),
                 ],
                 'Muebles': [
-                    ('Mesa de comedor', 'Mesa extensible para 6 personas', 249.99),
-                    ('Silla ergonómica', 'Silla de oficina con soporte lumbar', 179.99),
-                    ('Armario de madera', 'Armario ropero de pino macizo', 399.99),
+                    ('Mesa de comedor', 'Mesa extensible para 6 personas', 249.99, 21.00),
+                    ('Silla ergonómica', 'Silla de oficina con soporte lumbar', 179.99, 21.00),
+                    ('Armario de madera', 'Armario ropero de pino macizo', 399.99, 21.00),
                 ],
                 'Papelería': [
-                    ('Cuaderno premium', 'Cuaderno A5 con tapas duras', 9.99),
-                    ('Bolígrafo gel', 'Pack de 5 bolígrafos de tinta gel', 4.99),
-                    ('Carpeta A4', 'Carpeta clasificadora de 6 anillas', 6.49),
+                    ('Cuaderno premium', 'Cuaderno A5 con tapas duras', 9.99, 10.00),
+                    ('Bolígrafo gel', 'Pack de 5 bolígrafos de tinta gel', 4.99, 10.00),
+                    ('Carpeta A4', 'Carpeta clasificadora de 6 anillas', 6.49, 10.00),
                 ],
                 'Ropa': [
-                    ('Camiseta algodón', 'Camiseta básica de algodón 100%', 14.99),
-                    ('Pantalón vaquero', 'Jeans clásico azul', 39.99),
-                    ('Sudadera con capucha', 'Sudadera con bolsillo frontal', 29.99),
+                    ('Camiseta algodón', 'Camiseta básica de algodón 100%', 14.99, 21.00),
+                    ('Pantalón vaquero', 'Jeans clásico azul', 39.99, 21.00),
+                    ('Sudadera con capucha', 'Sudadera con bolsillo frontal', 29.99, 21.00),
                 ],
                 'Hogar': [
-                    ('Set de cuchillos', 'Set de 6 cuchillos de acero inoxidable', 59.99),
-                    ('Aspiradora Dyson', 'Aspiradora sin cable, alta potencia', 299.99),
-                    ('Lámpara de mesa', 'Lámpara de escritorio LED ajustable', 24.99),
+                    ('Set de cuchillos', 'Set de 6 cuchillos de acero inoxidable', 59.99, 21.00),
+                    ('Aspiradora Dyson', 'Aspiradora sin cable, alta potencia', 299.99, 21.00),
+                    ('Lámpara de mesa', 'Lámpara de escritorio LED ajustable', 24.99, 21.00),
                 ],
             }
 
@@ -65,15 +65,16 @@ def run():
 
             articulos = []
             for cat in categorias:
-                for nombre_art, descripcion, precio in categorias_info[cat.nombre]:
+                for nombre_art, descripcion, precio, iva in categorias_info[cat.nombre]:
                     art = Articulo.objects.create(
                         nombre=nombre_art,
                         descripcion=descripcion,
                         precio=precio,
-                        categoria=cat
+                        categoria=cat,
+                        iva=iva
                     )
                     articulos.append(art)
-                    print(f"Artículo creado: {art.nombre}")
+                    print(f"Artículo creado: {art.nombre}, IVA: {art.iva}%")
 
             # Clientes reales
             clientes_data = [

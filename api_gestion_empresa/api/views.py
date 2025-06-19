@@ -1,7 +1,8 @@
-from rest_framework import viewsets
+from rest_framework import viewsets, status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.decorators import action
+from rest_framework.exceptions import PermissionDenied
 from django.db.models import Sum, Count, ExpressionWrapper, DurationField, F
 from django.utils import timezone
 from datetime import date
@@ -34,10 +35,41 @@ class ClienteViewSet(viewsets.ModelViewSet):
 class PresupuestoViewSet(viewsets.ModelViewSet):
     queryset = Presupuesto.objects.all()
     serializer_class = PresupuestoSerializer
+    
+    def update(self, request, *args, **kwargs):
+        presupuesto = self.get_object()
+        if presupuesto.is_facturado:
+            raise PermissionDenied("No se puede modificar un presupuesto que ya ha sido facturado")
+        return super().update(request, *args, **kwargs)
+    
+    def destroy(self, request, *args, **kwargs):
+        presupuesto = self.get_object()
+        if presupuesto.is_facturado:
+            raise PermissionDenied("No se puede eliminar un presupuesto que ya ha sido facturado")
+        return super().destroy(request, *args, **kwargs)
+        
+    @action(detail=True, methods=['get'])
+    def items(self, request, pk=None):
+        presupuesto = self.get_object()
+        items = presupuesto.items.all()
+        serializer = PresupuestoItemSerializer(items, many=True)
+        return Response(serializer.data)
 
 class PedidoViewSet(viewsets.ModelViewSet):
     queryset = Pedido.objects.all()
     serializer_class = PedidoSerializer
+    
+    def update(self, request, *args, **kwargs):
+        pedido = self.get_object()
+        if pedido.is_facturado:
+            raise PermissionDenied("No se puede modificar un pedido que ya ha sido facturado")
+        return super().update(request, *args, **kwargs)
+    
+    def destroy(self, request, *args, **kwargs):
+        pedido = self.get_object()
+        if pedido.is_facturado:
+            raise PermissionDenied("No se puede eliminar un pedido que ya ha sido facturado")
+        return super().destroy(request, *args, **kwargs)
     
     @action(detail=True, methods=['get'])
     def items(self, request, pk=None):
@@ -169,6 +201,18 @@ class AlbaranViewSet(viewsets.ModelViewSet):
     queryset = Albaran.objects.all()
     serializer_class = AlbaranSerializer
     
+    def update(self, request, *args, **kwargs):
+        albaran = self.get_object()
+        if albaran.is_facturado:
+            raise PermissionDenied("No se puede modificar un albarán que ya ha sido facturado")
+        return super().update(request, *args, **kwargs)
+    
+    def destroy(self, request, *args, **kwargs):
+        albaran = self.get_object()
+        if albaran.is_facturado:
+            raise PermissionDenied("No se puede eliminar un albarán que ya ha sido facturado")
+        return super().destroy(request, *args, **kwargs)
+    
     @action(detail=True, methods=['get'])
     def items(self, request, pk=None):
         albaran = self.get_object()
@@ -179,6 +223,18 @@ class AlbaranViewSet(viewsets.ModelViewSet):
 class TicketViewSet(viewsets.ModelViewSet):
     queryset = Ticket.objects.all()
     serializer_class = TicketSerializer
+    
+    def update(self, request, *args, **kwargs):
+        ticket = self.get_object()
+        if ticket.is_facturado:
+            raise PermissionDenied("No se puede modificar un ticket que ya ha sido facturado")
+        return super().update(request, *args, **kwargs)
+    
+    def destroy(self, request, *args, **kwargs):
+        ticket = self.get_object()
+        if ticket.is_facturado:
+            raise PermissionDenied("No se puede eliminar un ticket que ya ha sido facturado")
+        return super().destroy(request, *args, **kwargs)
     
     @action(detail=True, methods=['get'])
     def items(self, request, pk=None):

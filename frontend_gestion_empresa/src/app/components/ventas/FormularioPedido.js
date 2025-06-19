@@ -5,6 +5,8 @@ import { pedidosAPI, clientesAPI, articulosAPI } from '@/app/services/api';
 import styles from './Tablas.module.css';
 
 export default function FormularioPedido({ pedido, onCancel, onSuccess }) {
+  // Comprobar si el pedido ya está facturado
+  const [esFacturado, setEsFacturado] = useState(false);
   const [formData, setFormData] = useState({
     cliente: '',
     fecha: new Date().toISOString().split('T')[0],
@@ -17,7 +19,8 @@ export default function FormularioPedido({ pedido, onCancel, onSuccess }) {
   const [nuevoItem, setNuevoItem] = useState({ 
     articulo: '', 
     cantidad: 1, 
-    precio_unitario: 0
+    precio_unitario: 0,
+    iva: 0
   });
   
   const [clientes, setClientes] = useState([]);
@@ -47,6 +50,11 @@ export default function FormularioPedido({ pedido, onCancel, onSuccess }) {
         });
         setArticulosMap(artMap);
         
+        // Comprobar si el pedido está facturado
+        if (pedido && pedido.is_facturado) {
+          setEsFacturado(true);
+        }
+        
         // Si estamos editando, cargar los datos del pedido
         if (pedido) {
           const pedidoCompleto = await pedidosAPI.getById(pedido.id);
@@ -60,7 +68,26 @@ export default function FormularioPedido({ pedido, onCancel, onSuccess }) {
           
           // Cargar los items del pedido
           const itemsData = await pedidosAPI.getItems(pedido.id);
-          setItems(itemsData);
+          
+          // Procesar los items para calcular propiedades derivadas
+          const itemsConCalculos = itemsData.map(item => {
+            // Obtener el nombre del artículo
+            const articulo = articulosMap[item.articulo] || {};
+            
+            // Calcular los valores derivados
+            const subtotal = item.cantidad * item.precio_unitario;
+            const ivaAmount = subtotal * (item.iva / 100);
+            
+            return {
+              ...item,
+              nombre_articulo: articulo.nombre || 'Desconocido',
+              subtotal: subtotal,
+              ivaAmount: ivaAmount,
+              total: subtotal + ivaAmount
+            };
+          });
+          
+          setItems(itemsConCalculos);
         }
         
         setLoading(false);
@@ -87,11 +114,12 @@ export default function FormularioPedido({ pedido, onCancel, onSuccess }) {
     
     let updatedItem = { ...nuevoItem, [name]: value };
     
-    // Si cambia el artículo, actualizar el precio unitario
+    // Si cambia el artículo, actualizar el precio unitario y el IVA
     if (name === 'articulo' && value) {
       const articulo = articulosMap[value];
       if (articulo) {
         updatedItem.precio_unitario = articulo.precio;
+        updatedItem.iva = articulo.iva;
       }
     }
     
@@ -107,10 +135,14 @@ export default function FormularioPedido({ pedido, onCancel, onSuccess }) {
     const articulo = articulosMap[nuevoItem.articulo];
     
     // Agregar el item a la lista
+    const subtotal = nuevoItem.cantidad * nuevoItem.precio_unitario;
+    const ivaAmount = subtotal * (nuevoItem.iva / 100);
     const newItem = {
       ...nuevoItem,
       nombre_articulo: articulo.nombre,
-      subtotal: nuevoItem.cantidad * nuevoItem.precio_unitario
+      subtotal: subtotal,
+      ivaAmount: ivaAmount,
+      total: subtotal + ivaAmount
     };
     
     setItems([...items, newItem]);
@@ -119,7 +151,8 @@ export default function FormularioPedido({ pedido, onCancel, onSuccess }) {
     setNuevoItem({
       articulo: '',
       cantidad: 1,
-      precio_unitario: 0
+      precio_unitario: 0,
+      iva: 0
     });
   };
 
@@ -129,14 +162,33 @@ export default function FormularioPedido({ pedido, onCancel, onSuccess }) {
     setItems(newItems);
   };
 
-  const calcularTotal = () => {
-    return items.reduce((total, item) => {
-      return total + (item.cantidad * item.precio_unitario);
-    }, 0);
+  const calcularTotales = () => {
+    let subtotal = 0;
+    let ivaTotal = 0;
+    
+    items.forEach(item => {
+      const itemSubtotal = item.cantidad * item.precio_unitario;
+      const itemIva = itemSubtotal * (item.iva / 100);
+      
+      subtotal += itemSubtotal;
+      ivaTotal += itemIva;
+    });
+    
+    return {
+      subtotal: Number(subtotal.toFixed(2)),
+      iva: Number(ivaTotal.toFixed(2)),
+      total: Number((subtotal + ivaTotal).toFixed(2))
+    };
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    // No permitir guardar si el pedido está facturado
+    if (esFacturado) {
+      setError("No se puede modificar un pedido que ya ha sido facturado");
+      return;
+    }
     
     if (!formData.cliente) {
       alert('Debe seleccionar un cliente');
@@ -149,14 +201,15 @@ export default function FormularioPedido({ pedido, onCancel, onSuccess }) {
     }
     
     setSaving(true);
+    setError(null);
     
     try {
       // Preparar los items con la estructura que espera la API
       const itemsFormateados = items.map(item => ({
         articulo: item.articulo,
         cantidad: item.cantidad,
-        precio_unitario: item.precio_unitario
-        // Nota: descuento no se incluye porque el modelo de PedidoItem en el backend no lo tiene
+        precio_unitario: item.precio_unitario,
+        iva: item.iva
       }));
       
       if (pedido) {
@@ -164,9 +217,12 @@ export default function FormularioPedido({ pedido, onCancel, onSuccess }) {
         // porque la API no soporta actualización completa
         
         // 1. Actualizar datos principales del pedido
+        const totales = calcularTotales();
         await pedidosAPI.update(pedido.id, {
           ...formData,
-          total: calcularTotal()
+          subtotal: totales.subtotal,
+          iva: totales.iva,
+          total: totales.total
         });
         
         // 2. Eliminar items anteriores
@@ -181,10 +237,13 @@ export default function FormularioPedido({ pedido, onCancel, onSuccess }) {
         }
       } else {
         // Para crear un nuevo pedido, enviar todo junto como espera la API
-        // Esto reduce el número de llamadas a la API y soluciona el error 400
+        // Incluimos subtotal e iva además del total para que sea aceptado por el backend
+        const totales = calcularTotales();
         const nuevoPedidoData = {
           ...formData,
-          total: calcularTotal(),
+          subtotal: totales.subtotal,
+          iva: totales.iva,
+          total: totales.total,
           items: itemsFormateados
         };
         
@@ -207,7 +266,15 @@ export default function FormularioPedido({ pedido, onCancel, onSuccess }) {
     <div className={styles.formContainer}>
       <h2>{pedido ? 'Editar Pedido' : 'Nuevo Pedido'}</h2>
       
+      {esFacturado && (
+        <div className={styles.facturadoWarning}>
+          <p><strong>¡Atención!</strong> Este pedido ya ha sido facturado y no puede ser modificado.</p>
+        </div>
+      )}
+      
       <form onSubmit={handleSubmit} className={styles.form}>
+        {error && <div className={styles.error}>{error}</div>}
+        
         <div className={styles.formGroup}>
           <label htmlFor="cliente">Cliente:</label>
           <select 
@@ -216,6 +283,7 @@ export default function FormularioPedido({ pedido, onCancel, onSuccess }) {
             value={formData.cliente} 
             onChange={handleInputChange}
             required
+            disabled={esFacturado}
           >
             <option value="">Seleccione un cliente</option>
             {clientes.map(cliente => (
@@ -257,6 +325,7 @@ export default function FormularioPedido({ pedido, onCancel, onSuccess }) {
             value={formData.estado} 
             onChange={handleInputChange}
             required
+            disabled={esFacturado}
           >
             <option value="Pendiente">Pendiente</option>
             <option value="En proceso">En proceso</option>
@@ -282,6 +351,7 @@ export default function FormularioPedido({ pedido, onCancel, onSuccess }) {
                   value={nuevoItem.articulo} 
                   onChange={handleItemChange}
                   className={styles.formControl}
+                  disabled={esFacturado}
                 >
                   <option value="">Seleccione un artículo</option>
                   {articulos.map(articulo => (
@@ -302,6 +372,7 @@ export default function FormularioPedido({ pedido, onCancel, onSuccess }) {
                   onChange={handleItemChange}
                   min="1"
                   className={styles.formControl}
+                  disabled={esFacturado}
                 />
               </div>
             </div>
@@ -318,6 +389,21 @@ export default function FormularioPedido({ pedido, onCancel, onSuccess }) {
                   min="0"
                   step="0.01"
                   className={styles.formControl}
+                  disabled={esFacturado}
+                />
+              </div>
+              <div className={styles.formGroup}>
+                <label htmlFor="iva">IVA (%):</label>
+                <input 
+                  type="number" 
+                  id="iva" 
+                  name="iva" 
+                  value={nuevoItem.iva} 
+                  onChange={handleItemChange}
+                  min="0"
+                  step="0.01"
+                  className={styles.formControl}
+                  disabled={esFacturado}
                 />
               </div>
             </div>
@@ -326,6 +412,7 @@ export default function FormularioPedido({ pedido, onCancel, onSuccess }) {
               type="button" 
               onClick={handleAddItem}
               className={styles.actionButton}
+              disabled={esFacturado}
             >
               Añadir Artículo
             </button>
@@ -340,7 +427,10 @@ export default function FormularioPedido({ pedido, onCancel, onSuccess }) {
                 <th>Artículo</th>
                 <th>Cantidad</th>
                 <th>Precio (€)</th>
+                <th>IVA (%)</th>
                 <th>Subtotal (€)</th>
+                <th>IVA (€)</th>
+                <th>Total (€)</th>
                 <th>Acciones</th>
               </tr>
             </thead>
@@ -351,12 +441,16 @@ export default function FormularioPedido({ pedido, onCancel, onSuccess }) {
                     <td>{item.nombre_articulo}</td>
                     <td>{item.cantidad}</td>
                     <td>{item.precio_unitario}</td>
-                    <td>{item.subtotal}</td>
+                    <td>{item.iva}</td>
+                    <td>{item.subtotal.toFixed(2)}</td>
+                    <td>{item.ivaAmount.toFixed(2)}</td>
+                    <td>{item.total.toFixed(2)}</td>
                     <td>
                       <button 
                         type="button"
                         onClick={() => handleRemoveItem(index)}
                         className={styles.actionIcon}
+                        disabled={esFacturado}
                       >
                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
                           <path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0V6z"/>
@@ -369,15 +463,15 @@ export default function FormularioPedido({ pedido, onCancel, onSuccess }) {
                 ))
               ) : (
                 <tr>
-                  <td colSpan="5" className={styles.emptyMessage}>No hay artículos añadidos</td>
+                  <td colSpan="8" className={styles.emptyMessage}>No hay artículos añadidos</td>
                 </tr>
               )}
             </tbody>
             {items.length > 0 && (
               <tfoot>
                 <tr>
-                  <td colSpan="3" className={styles.totalLabel}>Total</td>
-                  <td colSpan="2" className={styles.totalValue}>{calcularTotal()} €</td>
+                  <td colSpan="6" className={styles.totalLabel}>Total (Base + IVA)</td>
+                  <td colSpan="2" className={styles.totalValue}>{calcularTotales().total.toFixed(2)} €</td>
                 </tr>
               </tfoot>
             )}

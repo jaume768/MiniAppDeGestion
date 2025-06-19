@@ -44,9 +44,28 @@
   background-color: #f3f4f6;
 }
 
+/* Estilos para filas facturadas */
+.facturadoRow {
+  background-color: rgba(200, 230, 201, 0.3);
+}
+
+/* Etiqueta de facturado */
+.facturadoTag {
+  display: inline-block;
+  margin-left: 8px;
+  padding: 2px 6px;
+  font-size: 11px;
+  background-color: #4caf50;
+  color: white;
+  border-radius: 4px;
+  font-weight: 500;
+}
+
+/* Estilos para acciones */
 .actions {
   display: flex;
   gap: 8px;
+  flex-wrap: wrap;
 }
 
 .actionIcon {

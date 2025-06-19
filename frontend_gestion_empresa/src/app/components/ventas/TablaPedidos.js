@@ -84,9 +84,29 @@ export default function TablaPedidos({ onNuevoClick, onEditClick }) {
       try {
         await pedidosAPI.marcarEntregado(pedidoId);
         alert('Pedido marcado como entregado correctamente');
-        // Recargar los pedidos
-        const data = await pedidosAPI.getAll();
-        setPedidos(data);
+        
+        // Recargar los pedidos y procesar datos de cliente y fechas
+        try {
+          const data = await pedidosAPI.getAll();
+          
+          // Obtener nombres de clientes para los pedidos
+          const clientesData = await clientesAPI.getAll();
+          const clientesMap = {};
+          clientesData.forEach(cliente => {
+            clientesMap[cliente.id] = cliente.nombre;
+          });
+          
+          // Añadir nombres de clientes a los pedidos y formatear fechas
+          const pedidosConClientes = data.map(pedido => ({
+            ...pedido,
+            cliente_nombre: clientesMap[pedido.cliente] || 'Cliente desconocido',
+            fecha_formateada: new Date(pedido.fecha).toLocaleDateString()
+          }));
+          
+          setPedidos(pedidosConClientes);
+        } catch (err) {
+          console.error('Error al recargar los pedidos:', err);
+        }
       } catch (error) {
         console.error('Error al marcar pedido como entregado:', error);
         alert('Error al marcar pedido como entregado');
@@ -99,9 +119,29 @@ export default function TablaPedidos({ onNuevoClick, onEditClick }) {
       try {
         await facturasAPI.crearDesdePedido(pedidoId);
         alert('Pedido convertido a factura correctamente');
-        // Recargar los pedidos
-        const data = await pedidosAPI.getAll();
-        setPedidos(data);
+        
+        // Recargar los pedidos y procesar datos de cliente y fechas
+        try {
+          const data = await pedidosAPI.getAll();
+          
+          // Obtener nombres de clientes para los pedidos
+          const clientesData = await clientesAPI.getAll();
+          const clientesMap = {};
+          clientesData.forEach(cliente => {
+            clientesMap[cliente.id] = cliente.nombre;
+          });
+          
+          // Añadir nombres de clientes a los pedidos y formatear fechas
+          const pedidosConClientes = data.map(pedido => ({
+            ...pedido,
+            cliente_nombre: clientesMap[pedido.cliente] || 'Cliente desconocido',
+            fecha_formateada: new Date(pedido.fecha).toLocaleDateString()
+          }));
+          
+          setPedidos(pedidosConClientes);
+        } catch (err) {
+          console.error('Error al recargar los pedidos:', err);
+        }
       } catch (error) {
         console.error('Error al convertir pedido a factura:', error);
         alert('Error al convertir pedido a factura');
@@ -161,44 +201,64 @@ export default function TablaPedidos({ onNuevoClick, onEditClick }) {
             </tr>
           ) : (
             pedidos.map(pedido => (
-              <tr key={pedido.id}>
+              <tr key={pedido.id} className={pedido.is_facturado ? styles.facturadoRow : ''}>
                 <td>{pedido.id}</td>
                 <td>{pedido.cliente_nombre}</td>
                 <td>{pedido.fecha_formateada}</td>
                 <td>{pedido.total ? `${pedido.total} €` : '0.00 €'}</td>
-                <td>{pedido.estado}</td>
+                <td>
+                  {pedido.estado}
+                  {pedido.is_facturado && (
+                    <span className={styles.facturadoTag}>Facturado</span>
+                  )}
+                </td>
                 <td className={styles.actions}>
-                  <button 
-                    onClick={() => onEditClick(pedido)}
-                    className={styles.actionIcon}
-                  >
-                    <IconEdit /> Editar
-                  </button>
+                  {/* Botón Editar - Oculto si ya está facturado */}
+                  {!pedido.is_facturado && (
+                    <button 
+                      onClick={() => onEditClick(pedido)}
+                      className={styles.actionIcon}
+                    >
+                      <IconEdit /> Editar
+                    </button>
+                  )}
+                  
+                  {/* Botón Entregar - Visible siempre, pero disabled si está entregado */}
                   <button 
                     onClick={() => handleMarcarEntregado(pedido.id)}
                     className={styles.actionIcon}
-                    disabled={pedido.estado === 'Entregado'}
+                    disabled={pedido.estado === 'Entregado' || pedido.is_facturado}
                   >
                     <IconEye /> Entregar
                   </button>
-                  <button 
-                    onClick={() => handleConvertirAFactura(pedido.id)}
-                    className={styles.actionIcon}
-                  >
-                    <IconConvert /> A Factura
-                  </button>
+                  
+                  {/* Botón A Factura - Oculto si ya está facturado */}
+                  {!pedido.is_facturado && (
+                    <button 
+                      onClick={() => handleConvertirAFactura(pedido.id)}
+                      className={styles.actionIcon}
+                    >
+                      <IconConvert /> A Factura
+                    </button>
+                  )}
+                  
+                  {/* Botón PDF - Siempre visible */}
                   <button 
                     onClick={() => handleGenerarPDF(pedido.id)}
                     className={styles.actionIcon}
                   >
                     <IconPdf /> PDF
                   </button>
-                  <button 
-                    onClick={() => handleDelete(pedido.id)}
-                    className={styles.actionIcon}
-                  >
-                    <IconTrash /> Eliminar
-                  </button>
+                  
+                  {/* Botón Eliminar - Oculto si ya está facturado */}
+                  {!pedido.is_facturado && (
+                    <button 
+                      onClick={() => handleDelete(pedido.id)}
+                      className={styles.actionIcon}
+                    >
+                      <IconTrash /> Eliminar
+                    </button>
+                  )}
                 </td>
               </tr>
             ))

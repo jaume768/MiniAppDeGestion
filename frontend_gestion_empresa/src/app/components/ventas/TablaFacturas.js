@@ -105,18 +105,7 @@ export default function TablaFacturas({ onNuevoClick, onEditClick }) {
     }
   };
 
-  const handleDelete = async (id) => {
-    if (confirm('¿Está seguro de eliminar esta factura?')) {
-      try {
-        await facturasAPI.delete(id);
-        setFacturas(facturas.filter(factura => factura.id !== id));
-        alert('Factura eliminada correctamente');
-      } catch (error) {
-        console.error('Error al eliminar factura:', error);
-        alert('Error al eliminar factura');
-      }
-    }
-  };
+  // Las facturas no se pueden eliminar
 
   if (loading) return <div className={styles.loading}>Cargando facturas...</div>;
   if (error) return <div className={styles.error}>{error}</div>;
@@ -154,12 +143,6 @@ export default function TablaFacturas({ onNuevoClick, onEditClick }) {
                 <td>{factura.estado}</td>
                 <td className={styles.actions}>
                   <button 
-                    onClick={() => onEditClick(factura)}
-                    className={styles.actionIcon}
-                  >
-                    <IconEdit /> Editar
-                  </button>
-                  <button 
                     onClick={() => handleMarcarPagada(factura.id)}
                     className={styles.actionIcon}
                     disabled={factura.estado === 'Pagada'}
@@ -171,12 +154,6 @@ export default function TablaFacturas({ onNuevoClick, onEditClick }) {
                     className={styles.actionIcon}
                   >
                     <IconPdf /> PDF
-                  </button>
-                  <button 
-                    onClick={() => handleDelete(factura.id)}
-                    className={styles.actionIcon}
-                  >
-                    <IconTrash /> Eliminar
                   </button>
                 </td>
               </tr>

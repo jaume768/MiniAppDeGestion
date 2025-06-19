@@ -16,7 +16,8 @@ export default function FormularioPresupuesto({ presupuesto, onCancel, onSuccess
     articulo: '', 
     cantidad: 1, 
     precio: 0,
-    descuento: 0 
+    descuento: 0,
+    iva: 0 
   });
   
   const [clientes, setClientes] = useState([]);
@@ -57,7 +58,26 @@ export default function FormularioPresupuesto({ presupuesto, onCancel, onSuccess
           
           // Cargar los items del presupuesto
           const itemsData = await presupuestosAPI.getItems(presupuesto.id);
-          setItems(itemsData);
+          
+          // Procesar los items para calcular propiedades derivadas
+          const itemsConCalculos = itemsData.map(item => {
+            // Obtener el nombre del artículo
+            const articulo = articulosMap[item.articulo] || {};
+            
+            // Calcular los valores derivados
+            const subtotal = item.cantidad * item.precio_unitario;
+            const ivaAmount = subtotal * (item.iva / 100);
+            
+            return {
+              ...item,
+              nombre_articulo: articulo.nombre || 'Desconocido',
+              subtotal: subtotal,
+              ivaAmount: ivaAmount,
+              total: subtotal + ivaAmount
+            };
+          });
+          
+          setItems(itemsConCalculos);
         }
         
         setLoading(false);
@@ -84,11 +104,12 @@ export default function FormularioPresupuesto({ presupuesto, onCancel, onSuccess
     
     let updatedItem = { ...nuevoItem, [name]: value };
     
-    // Si cambia el artículo, actualizar el precio
+    // Si cambia el artículo, actualizar el precio y el IVA
     if (name === 'articulo' && value) {
       const articulo = articulosMap[value];
       if (articulo) {
         updatedItem.precio = articulo.precio;
+        updatedItem.iva = articulo.iva;
       }
     }
     
@@ -104,10 +125,14 @@ export default function FormularioPresupuesto({ presupuesto, onCancel, onSuccess
     const articulo = articulosMap[nuevoItem.articulo];
     
     // Agregar el item a la lista
+    const subtotal = (nuevoItem.cantidad * nuevoItem.precio) * (1 - (nuevoItem.descuento / 100));
+    const ivaAmount = subtotal * (nuevoItem.iva / 100);
     const newItem = {
       ...nuevoItem,
       nombre_articulo: articulo.nombre,
-      subtotal: (nuevoItem.cantidad * nuevoItem.precio) * (1 - (nuevoItem.descuento / 100))
+      subtotal: subtotal,
+      ivaAmount: ivaAmount,
+      total: subtotal + ivaAmount
     };
     
     setItems([...items, newItem]);
@@ -117,7 +142,8 @@ export default function FormularioPresupuesto({ presupuesto, onCancel, onSuccess
       articulo: '',
       cantidad: 1,
       precio: 0,
-      descuento: 0
+      descuento: 0,
+      iva: 0
     });
   };
 
@@ -127,10 +153,23 @@ export default function FormularioPresupuesto({ presupuesto, onCancel, onSuccess
     setItems(newItems);
   };
 
-  const calcularTotal = () => {
-    return items.reduce((total, item) => {
-      return total + ((item.cantidad * item.precio) * (1 - (item.descuento / 100)));
-    }, 0);
+  const calcularTotales = () => {
+    let subtotal = 0;
+    let ivaTotal = 0;
+    
+    items.forEach(item => {
+      const itemSubtotal = item.cantidad * item.precio;
+      const itemIva = itemSubtotal * (item.iva / 100);
+      
+      subtotal += itemSubtotal;
+      ivaTotal += itemIva;
+    });
+    
+    return {
+      subtotal: Number(subtotal.toFixed(2)),
+      iva: Number(ivaTotal.toFixed(2)),
+      total: Number((subtotal + ivaTotal).toFixed(2))
+    };
   };
 
   const handleSubmit = async (e) => {
@@ -153,7 +192,8 @@ export default function FormularioPresupuesto({ presupuesto, onCancel, onSuccess
       const itemsFormateados = items.map(item => ({
         articulo: item.articulo,
         cantidad: item.cantidad,
-        precio_unitario: item.precio_unitario
+        precio_unitario: item.precio,
+        iva: item.iva
       }));
       
       if (presupuesto) {
@@ -181,7 +221,9 @@ export default function FormularioPresupuesto({ presupuesto, onCancel, onSuccess
         // Esto reduce el número de llamadas a la API y soluciona el error 400
         const nuevoPresupuestoData = {
           ...formData,
-          total: calcularTotal(),
+          subtotal: calcularTotales().subtotal,
+          iva: calcularTotales().iva,
+          total: calcularTotales().total,
           items: itemsFormateados
         };
         
@@ -305,6 +347,22 @@ export default function FormularioPresupuesto({ presupuesto, onCancel, onSuccess
               </div>
             </div>
             
+            <div className={styles.formRow}>
+              <div className={styles.formGroup}>
+                <label htmlFor="iva">IVA (%):</label>
+                <input 
+                  type="number" 
+                  id="iva" 
+                  name="iva" 
+                  value={nuevoItem.iva} 
+                  onChange={handleItemChange}
+                  min="0"
+                  step="0.01"
+                  className={styles.formControl}
+                />
+              </div>
+            </div>
+            
             <button 
               type="button" 
               onClick={handleAddItem}
@@ -324,7 +382,10 @@ export default function FormularioPresupuesto({ presupuesto, onCancel, onSuccess
                 <th>Cantidad</th>
                 <th>Precio (€)</th>
                 <th>Descuento (%)</th>
+                <th>IVA (%)</th>
                 <th>Subtotal (€)</th>
+                <th>IVA (€)</th>
+                <th>Total (€)</th>
                 <th>Acciones</th>
               </tr>
             </thead>
@@ -336,7 +397,10 @@ export default function FormularioPresupuesto({ presupuesto, onCancel, onSuccess
                     <td>{item.cantidad}</td>
                     <td>{item.precio}</td>
                     <td>{item.descuento}%</td>
-                    <td>{item.subtotal}</td>
+                    <td>{item.iva}%</td>
+                    <td>{item.subtotal.toFixed(2)}</td>
+                    <td>{item.ivaAmount.toFixed(2)}</td>
+                    <td>{item.total.toFixed(2)}</td>
                     <td>
                       <button 
                         type="button"
@@ -354,15 +418,15 @@ export default function FormularioPresupuesto({ presupuesto, onCancel, onSuccess
                 ))
               ) : (
                 <tr>
-                  <td colSpan="6" className={styles.emptyMessage}>No hay artículos añadidos</td>
+                  <td colSpan="9" className={styles.emptyMessage}>No hay artículos añadidos</td>
                 </tr>
               )}
             </tbody>
             {items.length > 0 && (
               <tfoot>
                 <tr>
-                  <td colSpan="4" className={styles.totalLabel}>Total</td>
-                  <td colSpan="2" className={styles.totalValue}>{calcularTotal()} €</td>
+                  <td colSpan="7" className={styles.totalLabel}>Total (Base + IVA)</td>
+                  <td colSpan="2" className={styles.totalValue}>{calcularTotales().total.toFixed(2)} €</td>
                 </tr>
               </tfoot>
             )}
