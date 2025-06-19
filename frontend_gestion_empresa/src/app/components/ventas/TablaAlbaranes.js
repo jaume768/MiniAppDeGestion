@@ -207,14 +207,6 @@ export default function TablaAlbaranes({ onNuevoClick, onEditClick }) {
                     </button>
                   )}
                   
-                  {/* Botón Ver Detalle - Siempre visible */}
-                  <button 
-                    onClick={() => handleVerDetalle(albaran.id)}
-                    className={styles.actionIcon}
-                  >
-                    <IconEye /> Ver
-                  </button>
-                  
                   {/* Botón A Factura - Oculto si ya está facturado */}
                   {!albaran.is_facturado && (
                     <button 

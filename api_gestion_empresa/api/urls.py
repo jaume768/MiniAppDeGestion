@@ -45,5 +45,5 @@ urlpatterns = [
     path('facturas/crear-desde-pedido/', FacturaViewSet.as_view({'post': 'crear_desde_pedido'}), name='factura_desde_pedido'),
     path('facturas/crear-desde-albaran/', FacturaViewSet.as_view({'post': 'crear_desde_albaran'}), name='factura_desde_albaran'),
     path('presupuestos/<int:presupuesto_id>/generar-pdf/', PresupuestoViewSet.as_view({'get': 'generar_pdf'}), name='generar_pdf_presupuesto'),
-    path('facturas/<int:factura_id>/generar-pdf/', FacturaViewSet.as_view({'get': 'generar_pdf'}), name='generar_pdf_factura'),
+    path('facturas/<int:pk>/generar-pdf/', FacturaViewSet.as_view({'get': 'generar_pdf'}), name='generar_pdf_factura'),
 ]

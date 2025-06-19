@@ -19,6 +19,16 @@ from .serializers import (
     AlbaranSerializer, TicketSerializer, PedidoItemSerializer,
     AlbaranItemSerializer, TicketItemSerializer
 )
+from django.http import HttpResponse
+from reportlab.lib.pagesizes import A4
+from reportlab.pdfgen import canvas
+from reportlab.lib import colors
+from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer, Image
+from reportlab.lib.units import cm, mm
+from io import BytesIO
+import os
+from decimal import Decimal
 
 class CategoriaViewSet(viewsets.ModelViewSet):
     queryset = Categoria.objects.all()
@@ -109,6 +119,158 @@ class PedidoViewSet(viewsets.ModelViewSet):
 class FacturaViewSet(viewsets.ModelViewSet):
     queryset = Factura.objects.all()
     serializer_class = FacturaSerializer
+    
+    @action(detail=True, methods=['get'], url_path='generar-pdf')
+    def generar_pdf(self, request, pk=None):
+        """Generar un PDF para la factura (debugged y con Decimal correcto)"""
+        try:
+            # 1. Obtener la factura
+            factura = self.get_object()
+            print("DEBUG: Factura obtenida:", factura, "ID:", getattr(factura, 'id', None))
+
+            # 2. Determinar cliente según origen
+            if factura.pedido:
+                cliente = factura.pedido.cliente
+            elif factura.albaran:
+                cliente = factura.albaran.cliente
+            elif factura.ticket:
+                cliente = factura.ticket.cliente
+            else:
+                print("DEBUG: Factura sin origen válido, pk recibido =", pk)
+                return Response({'error': 'Factura sin origen válido'}, status=400)
+            print("DEBUG: Cliente:", cliente.nombre, cliente.direccion, cliente.telefono, cliente.email)
+
+            # 3. Preparar buffer y documento
+            buffer = BytesIO()
+            doc = SimpleDocTemplate(
+                buffer, pagesize=A4,
+                rightMargin=72, leftMargin=72,
+                topMargin=72, bottomMargin=72
+            )
+            elements = []
+
+            # 4. Cargar estilos
+            styles = getSampleStyleSheet()
+            print("DEBUG: Estilos disponibles:", list(styles.byName.keys()))
+            title_style    = styles['Heading1']
+            subtitle_style = styles['Heading2']
+            normal_style   = styles['Normal']
+
+            # 5. Título y fecha
+            elements.append(Paragraph(f"FACTURA #{factura.id}", title_style))
+            elements.append(Spacer(1, 12))
+            fecha = factura.fecha.strftime("%d/%m/%Y") if factura.fecha else "Sin fecha"
+            elements.append(Paragraph(f"Fecha: {fecha}", normal_style))
+            elements.append(Spacer(1, 12))
+
+            # 6. Datos del cliente
+            elements.append(Paragraph("Datos del Cliente:", subtitle_style))
+            elements.append(Paragraph(f"Cliente: {cliente.nombre}", normal_style))
+            elements.append(Paragraph(f"Dirección: {cliente.direccion or 'N/A'}", normal_style))
+            elements.append(Paragraph(f"Teléfono: {cliente.telefono or 'N/A'}", normal_style))
+            elements.append(Paragraph(f"Email: {cliente.email or 'N/A'}", normal_style))
+            elements.append(Spacer(1, 24))
+
+            # 7. Obtener items
+            if factura.pedido:
+                items = factura.pedido.items.all()
+            elif factura.albaran:
+                items = factura.albaran.items.all()
+            else:
+                items = factura.ticket.items.all() if factura.ticket else []
+            print("DEBUG: número de items:", items.count() if hasattr(items, 'count') else len(items))
+
+            # 8. Tabla de ítems
+            elements.append(Paragraph("Detalle de Productos:", subtitle_style))
+            data = [['Concepto', 'Cantidad', 'Precio Unitario', 'IVA (%)', 'Descuento (%)', 'Subtotal']]
+            subtotal_general = Decimal('0')
+            iva_general      = Decimal('0')
+
+            for item in items:
+                precio = Decimal(item.precio_unitario)
+                iva_pct = Decimal(item.iva)
+                descuento_pct = Decimal(getattr(item, 'descuento', 0))
+                cantidad = item.cantidad
+
+                precio_desc = precio * (Decimal('1') - descuento_pct / Decimal('100'))
+                subtotal_linea = precio_desc * cantidad
+                iva_linea = subtotal_linea * (iva_pct / Decimal('100'))
+
+                subtotal_general += subtotal_linea
+                iva_general += iva_linea
+
+                data.append([
+                    item.articulo.nombre,
+                    str(cantidad),
+                    f"{precio:.2f} €",
+                    f"{iva_pct} %",
+                    f"{descuento_pct} %",
+                    f"{subtotal_linea:.2f} €"
+                ])
+
+            print("DEBUG: data table:", data)
+            col_widths = [
+                doc.width * 0.3, doc.width * 0.1,
+                doc.width * 0.15, doc.width * 0.15,
+                doc.width * 0.15, doc.width * 0.15
+            ]
+            print("DEBUG: col_widths:", col_widths)
+
+            table = Table(data, colWidths=col_widths)
+            table.setStyle(TableStyle([
+                ('BACKGROUND', (0, 0), (-1, 0), colors.grey),
+                ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+                ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+                ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+                ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
+                ('BACKGROUND', (0, 1), (-1, -1), colors.beige),
+                ('GRID', (0, 0), (-1, -1), 1, colors.black),
+            ]))
+            elements.append(table)
+            elements.append(Spacer(1, 12))
+
+            # 9. Totales
+            total_general = subtotal_general + iva_general
+            totals_data = [
+                ['Subtotal', f"{subtotal_general:.2f} €"],
+                ['IVA',      f"{iva_general:.2f} €"],
+                ['TOTAL',    f"{total_general:.2f} €"],
+            ]
+            print("DEBUG: totals_data:", totals_data)
+            totals_table = Table(totals_data, colWidths=[doc.width*0.5, doc.width*0.5], hAlign='RIGHT')
+            totals_table.setStyle(TableStyle([
+                ('ALIGN', (0, 0), (-1, -1), 'RIGHT'),
+                ('FONTNAME', (0, 2), (-1, 2), 'Helvetica-Bold'),
+                ('LINEBELOW', (0, 0), (-1, 1), 1, colors.grey),
+                ('LINEBELOW', (0, 2), (-1, 2), 1.5, colors.black),
+            ]))
+            elements.append(totals_table)
+            elements.append(Spacer(1, 36))
+
+            # 10. Notas finales
+            elements.append(Paragraph("Gracias por confiar en nosotros.", normal_style))
+
+            # 11. Construir PDF
+            try:
+                doc.build(elements)
+            except Exception as build_err:
+                print("DEBUG: Error en doc.build():", build_err)
+                raise
+
+            # 12. Devolver
+            pdf_bytes = buffer.getvalue()
+            buffer.close()
+            print("DEBUG: PDF bytes length:", len(pdf_bytes))
+
+            response = HttpResponse(pdf_bytes, content_type='application/pdf')
+            response['Content-Disposition'] = f'inline; filename="Factura_{factura.id}.pdf"'
+            return response
+
+        except Exception as e:
+            print("DEBUG: Excepción final en generar_pdf():", e, type(e))
+            return Response({'error': str(e)}, status=500)
+
+
     
     @action(detail=False, methods=['post'])
     def crear_desde_pedido(self, request):

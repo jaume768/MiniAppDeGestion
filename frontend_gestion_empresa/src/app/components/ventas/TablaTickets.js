@@ -137,12 +137,6 @@ export default function TablaTickets({ onNuevoClick, onEditClick }) {
                     <IconEdit /> Editar
                   </button>
                   <button 
-                    onClick={() => handleVerDetalle(ticket.id)}
-                    className={styles.actionIcon}
-                  >
-                    <IconEye /> Ver
-                  </button>
-                  <button 
                     onClick={() => handleGenerarPDF(ticket.id)}
                     className={styles.actionIcon}
                   >

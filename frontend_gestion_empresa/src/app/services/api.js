@@ -11,30 +11,36 @@ const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/a
 async function fetchAPI(endpoint, options = {}) {
   const url = `${API_BASE_URL}${endpoint}`;
   
+  // Extraigo responseType antes de nada
+  const isBlob = options.responseType === 'blob';
+  // Y quito responseType de las opciones de fetch
+  const { responseType, ...userOptions } = options;
+
   // Configuración por defecto
   const defaultOptions = {
-    headers: {
-      'Content-Type': 'application/json',
-    },
+    // Solo ponemos JSON header si NO es blob y si realmente vamos a enviar un body JSON
+    headers: isBlob ? {} : { 'Content-Type': 'application/json' },
   };
-  
-  // Combinar opciones por defecto con las proporcionadas
+
   const fetchOptions = {
     ...defaultOptions,
-    ...options,
+    ...userOptions,
   };
 
   try {
     const response = await fetch(url, fetchOptions);
-    
-    // Manejar códigos de error HTTP
+
     if (!response.ok) {
       throw new Error(`Error API: ${response.status} ${response.statusText}`);
     }
-    
-    // Parsear respuesta JSON
-    const data = await response.json();
-    return data;
+
+    if (isBlob) {
+      // Si pedimos blob (PDF), lo leemos como blob
+      return await response.blob();
+    } else {
+      // Si no, JSON
+      return await response.json();
+    }
   } catch (error) {
     console.error('Error al realizar petición a la API:', error);
     throw error;
