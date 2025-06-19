@@ -81,9 +81,33 @@ class PedidoSerializer(serializers.ModelSerializer):
         return pedido
 
 class FacturaSerializer(serializers.ModelSerializer):
+    # Añadir campos adicionales para cliente
+    cliente = serializers.SerializerMethodField()
+    cliente_nombre = serializers.SerializerMethodField()
+    
     class Meta:
         model = Factura
         fields = '__all__'
+    
+    def get_cliente(self, obj):
+        """Devuelve el ID del cliente del documento origen"""
+        if obj.pedido:
+            return obj.pedido.cliente.id
+        elif obj.albaran:
+            return obj.albaran.cliente.id
+        elif obj.ticket:
+            return obj.ticket.cliente.id
+        return None
+    
+    def get_cliente_nombre(self, obj):
+        """Devuelve el nombre del cliente del documento origen"""
+        if obj.pedido:
+            return obj.pedido.cliente.nombre
+        elif obj.albaran:
+            return obj.albaran.cliente.nombre
+        elif obj.ticket:
+            return obj.ticket.cliente.nombre
+        return None
 
 class DepartamentoSerializer(serializers.ModelSerializer):
     class Meta:

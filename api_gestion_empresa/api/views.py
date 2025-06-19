@@ -77,6 +77,34 @@ class PedidoViewSet(viewsets.ModelViewSet):
         items = PedidoItem.objects.filter(pedido=pedido)
         serializer = PedidoItemSerializer(items, many=True)
         return Response(serializer.data)
+        
+    @action(detail=False, methods=['post'])
+    def crear_desde_presupuesto(self, request):
+        """Crear un pedido a partir de un presupuesto existente"""
+        presupuesto_id = request.data.get('presupuesto_id')
+        
+        if not presupuesto_id:
+            return Response({'error': 'El ID del presupuesto es requerido'}, status=400)
+            
+        try:
+            presupuesto = Presupuesto.objects.get(id=presupuesto_id)
+            
+            # Crear el pedido a partir del presupuesto
+            pedido = Pedido.objects.create(
+                cliente=presupuesto.cliente,
+                total=presupuesto.total
+            )
+            
+            # Opcionalmente, podrías copiar los artículos del presupuesto al pedido
+            # Esta parte dependerá de la estructura de tus modelos
+            
+            serializer = self.get_serializer(pedido)
+            return Response(serializer.data, status=201)
+            
+        except Presupuesto.DoesNotExist:
+            return Response({'error': 'El presupuesto no existe'}, status=404)
+        except Exception as e:
+            return Response({'error': str(e)}, status=400)
 
 class FacturaViewSet(viewsets.ModelViewSet):
     queryset = Factura.objects.all()

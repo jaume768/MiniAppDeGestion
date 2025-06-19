@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from 'react';
-import { albaranesAPI, clientesAPI } from '@/app/services/api';
+import { albaranesAPI, clientesAPI, facturasAPI } from '@/app/services/api';
 import { useRouter } from 'next/navigation';
 import styles from './Tablas.module.css';
 
@@ -80,18 +80,33 @@ export default function TablaAlbaranes({ onNuevoClick, onEditClick }) {
   };
 
   const handleConvertirAFactura = async (albaranId) => {
-    let facturasAPIModule;
-    if (!window.facturasAPI) {
-      // Si facturasAPI no está disponible en el componente, importar de api.js
-      facturasAPIModule = await import('@/app/services/api');
-    }
-    
     if (confirm('¿Está seguro de convertir este albarán en factura?')) {
       try {
-        const apiToUse = window.facturasAPI || facturasAPIModule?.facturasAPI;
-        await apiToUse.crearDesdeAlbaran(albaranId);
+        await facturasAPI.crearDesdeAlbaran(albaranId);
         alert('Albarán convertido a factura correctamente');
-        // No es necesario recargar los albaranes ya que siguen existiendo
+        
+        // Recargar los albaranes y procesar datos de cliente y fechas
+        try {
+          const data = await albaranesAPI.getAll();
+          
+          // Obtener nombres de clientes para los albaranes
+          const clientesData = await clientesAPI.getAll();
+          const clientesMap = {};
+          clientesData.forEach(cliente => {
+            clientesMap[cliente.id] = cliente.nombre;
+          });
+          
+          // Añadir nombres de clientes a los albaranes y formatear fechas
+          const albaranesConClientes = data.map(albaran => ({
+            ...albaran,
+            cliente_nombre: clientesMap[albaran.cliente] || 'Cliente desconocido',
+            fecha_formateada: new Date(albaran.fecha).toLocaleDateString()
+          }));
+          
+          setAlbaranes(albaranesConClientes);
+        } catch (err) {
+          console.error('Error al recargar los albaranes:', err);
+        }
       } catch (error) {
         console.error('Error al convertir albarán a factura:', error);
         alert('Error al convertir albarán a factura');
@@ -103,7 +118,29 @@ export default function TablaAlbaranes({ onNuevoClick, onEditClick }) {
     if (window.confirm('¿Está seguro de eliminar este albarán?')) {
       try {
         await albaranesAPI.delete(id);
-        setAlbaranes(albaranes.filter(albaran => albaran.id !== id));
+        
+        // Recargar los albaranes y procesar datos de cliente y fechas
+        try {
+          const data = await albaranesAPI.getAll();
+          
+          // Obtener nombres de clientes para los albaranes
+          const clientesData = await clientesAPI.getAll();
+          const clientesMap = {};
+          clientesData.forEach(cliente => {
+            clientesMap[cliente.id] = cliente.nombre;
+          });
+          
+          // Añadir nombres de clientes a los albaranes y formatear fechas
+          const albaranesConClientes = data.map(albaran => ({
+            ...albaran,
+            cliente_nombre: clientesMap[albaran.cliente] || 'Cliente desconocido',
+            fecha_formateada: new Date(albaran.fecha).toLocaleDateString()
+          }));
+          
+          setAlbaranes(albaranesConClientes);
+        } catch (err) {
+          console.error('Error al recargar los albaranes:', err);
+        }
       } catch (error) {
         console.error('Error al eliminar albarán:', error);
         alert('No se pudo eliminar el albarán');
@@ -111,9 +148,13 @@ export default function TablaAlbaranes({ onNuevoClick, onEditClick }) {
     }
   };
 
-  const formatCurrency = (value) => {
-    if (value === null || value === undefined) return '-';
-    return new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' }).format(value);
+  const handleGenerarPDF = async (id) => {
+    try {
+      window.open(`${process.env.NEXT_PUBLIC_API_URL}/albaranes/${id}/pdf/`, '_blank');
+    } catch (error) {
+      console.error('Error al generar PDF:', error);
+      alert('Error al generar PDF del albarán');
+    }
   };
 
   if (loading) return <div className={styles.loading}>Cargando albaranes...</div>;
@@ -126,68 +167,87 @@ export default function TablaAlbaranes({ onNuevoClick, onEditClick }) {
         <button onClick={onNuevoClick} className={styles.actionButton}>Nuevo Albarán</button>
       </div>
       
-      {albaranes.length > 0 ? (
-        <div>
-          <table className={styles.table}>
-          <thead>
+      <table className={styles.table}>
+        <thead>
+          <tr>
+            <th>Nº</th>
+            <th>Cliente</th>
+            <th>Fecha</th>
+            <th>Total</th>
+            <th>Estado</th>
+            <th className={styles.actionColumn}>Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          {albaranes.length === 0 ? (
             <tr>
-              <th>Nº</th>
-              <th>Cliente</th>
-              <th>Fecha</th>
-              <th>Total</th>
-              <th className={styles.actionColumn}>Acciones</th>
+              <td colSpan="6" className={styles.emptyMessage}>No hay albaranes disponibles</td>
             </tr>
-          </thead>
-          <tbody>
-            {albaranes.map(albaran => (
-              <tr key={albaran.id}>
+          ) : (
+            albaranes.map(albaran => (
+              <tr key={albaran.id} className={albaran.is_facturado ? styles.facturadoRow : ''}>
                 <td>{albaran.id}</td>
                 <td>{albaran.cliente_nombre}</td>
                 <td>{albaran.fecha_formateada}</td>
-                <td className={styles.moneyCell}>{formatCurrency(albaran.total)}</td>
+                <td>{albaran.total ? `${albaran.total} €` : '0.00 €'}</td>
+                <td>
+                  {albaran.estado || 'Pendiente'}
+                  {albaran.is_facturado && (
+                    <span className={styles.facturadoTag}>Facturado</span>
+                  )}
+                </td>
                 <td className={styles.actions}>
+                  {/* Botón Editar - Oculto si ya está facturado */}
+                  {!albaran.is_facturado && (
+                    <button 
+                      onClick={() => onEditClick(albaran)}
+                      className={styles.actionIcon}
+                    >
+                      <IconEdit /> Editar
+                    </button>
+                  )}
+                  
+                  {/* Botón Ver Detalle - Siempre visible */}
                   <button 
-                    className={styles.actionIcon} 
-                    onClick={() => handleVerDetalle(albaran.id)} 
-                    title="Ver detalle"
+                    onClick={() => handleVerDetalle(albaran.id)}
+                    className={styles.actionIcon}
                   >
                     <IconEye /> Ver
                   </button>
+                  
+                  {/* Botón A Factura - Oculto si ya está facturado */}
+                  {!albaran.is_facturado && (
+                    <button 
+                      onClick={() => handleConvertirAFactura(albaran.id)}
+                      className={styles.actionIcon}
+                    >
+                      <IconConvert /> A Factura
+                    </button>
+                  )}
+                  
+                  {/* Botón PDF - Siempre visible */}
                   <button 
-                    className={styles.actionIcon} 
-                    onClick={() => onEditClick(albaran)} 
-                    title="Editar"
+                    onClick={() => handleGenerarPDF(albaran.id)}
+                    className={styles.actionIcon}
                   >
-                    <IconEdit /> Editar
+                    <IconPdf /> PDF
                   </button>
-                  <button 
-                    className={styles.actionIcon} 
-                    onClick={() => handleConvertirAFactura(albaran.id)} 
-                    title="Convertir a factura"
-                  >
-                    <IconConvert /> A factura
-                  </button>
-                  <button 
-                    className={styles.actionIcon} 
-                    onClick={() => handleDelete(albaran.id)}
-                    title="Eliminar"
-                  >
-                    <IconTrash /> Eliminar
-                  </button>
+                  
+                  {/* Botón Eliminar - Oculto si ya está facturado */}
+                  {!albaran.is_facturado && (
+                    <button 
+                      onClick={() => handleDelete(albaran.id)}
+                      className={styles.actionIcon}
+                    >
+                      <IconTrash /> Eliminar
+                    </button>
+                  )}
                 </td>
               </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-      ) : (
-        <div className={styles.emptyMessage}>
-          No hay albaranes registrados. 
-          <button className={styles.linkButton} onClick={onNuevoClick}>
-            Crear albarán
-          </button>
-        </div>
-      )}
+            ))
+          )}
+        </tbody>
+      </table>
     </div>
   );
 }

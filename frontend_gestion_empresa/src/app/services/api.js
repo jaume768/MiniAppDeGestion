@@ -153,6 +153,10 @@ export const facturasAPI = {
     method: 'POST', 
     body: JSON.stringify({ pedido_id: pedidoId }) 
   }),
+  crearDesdeAlbaran: (albaranId) => fetchAPI('/facturas/crear_desde_albaran/', { 
+    method: 'POST', 
+    body: JSON.stringify({ albaran_id: albaranId }) 
+  }),
   update: (id, data) => fetchAPI(`/facturas/${id}/`, { method: 'PUT', body: JSON.stringify(data) }),
   delete: (id) => fetchAPI(`/facturas/${id}/`, { method: 'DELETE' }),
   getItems: (id) => fetchAPI(`/facturas/${id}/items/`),

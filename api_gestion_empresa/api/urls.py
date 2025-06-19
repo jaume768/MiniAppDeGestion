@@ -39,10 +39,11 @@ urlpatterns = [
     path('empleados/por-departamento/<int:departamento_id>/', ReportesView.as_view(), name='empleados_por_departamento'),
     
     # Otras rutas específicas
-    path('presupuestos/<int:presupuesto_id>/items/', ReportesView.as_view(), name='presupuesto_items'),
-    path('pedidos/crear-desde-presupuesto/', ReportesView.as_view(), name='pedido_desde_presupuesto'),
-    path('facturas/crear-desde-presupuesto/', ReportesView.as_view(), name='factura_desde_presupuesto'),
-    path('facturas/crear-desde-pedido/', ReportesView.as_view(), name='factura_desde_pedido'),
-    path('presupuestos/<int:presupuesto_id>/generar-pdf/', ReportesView.as_view(), name='generar_pdf_presupuesto'),
-    path('facturas/<int:factura_id>/generar-pdf/', ReportesView.as_view(), name='generar_pdf_factura'),
+    path('presupuestos/<int:presupuesto_id>/items/', PresupuestoViewSet.as_view({'get': 'get_items'}), name='presupuesto_items'),
+    path('pedidos/crear-desde-presupuesto/', PedidoViewSet.as_view({'post': 'crear_desde_presupuesto'}), name='pedido_desde_presupuesto'),
+    path('facturas/crear-desde-presupuesto/', FacturaViewSet.as_view({'post': 'crear_desde_presupuesto'}), name='factura_desde_presupuesto'),
+    path('facturas/crear-desde-pedido/', FacturaViewSet.as_view({'post': 'crear_desde_pedido'}), name='factura_desde_pedido'),
+    path('facturas/crear-desde-albaran/', FacturaViewSet.as_view({'post': 'crear_desde_albaran'}), name='factura_desde_albaran'),
+    path('presupuestos/<int:presupuesto_id>/generar-pdf/', PresupuestoViewSet.as_view({'get': 'generar_pdf'}), name='generar_pdf_presupuesto'),
+    path('facturas/<int:factura_id>/generar-pdf/', FacturaViewSet.as_view({'get': 'generar_pdf'}), name='generar_pdf_factura'),
 ]
