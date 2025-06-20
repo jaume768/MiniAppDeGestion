@@ -1,22 +1,15 @@
-"""
-Views modulares para la API de gestión empresarial.
-
-"""
-
-# Importar todas las vistas desde los módulos específicos
-from .views.base_views import (
+# Importaciones desde los módulos específicos
+from .base_views import (
     CategoriaViewSet, ArticuloViewSet, ClienteViewSet,
     DepartamentoViewSet, EmpleadoViewSet, ProyectoViewSet
 )
-
-from .views.sales_views import (
+from .sales_views import (
     PresupuestoViewSet, PedidoViewSet, AlbaranViewSet, TicketViewSet
 )
+from .invoice_views import FacturaViewSet
+from .reports_views import ReportesView
 
-from .views.invoice_views import FacturaViewSet
-
-from .views.reports_views import ReportesView
-
+# Exportar todas las vistas para mantener la compatibilidad
 __all__ = [
     'CategoriaViewSet', 'ArticuloViewSet', 'ClienteViewSet',
     'PresupuestoViewSet', 'PedidoViewSet', 'FacturaViewSet',
