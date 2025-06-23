@@ -40,7 +40,12 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'rest_framework',    # Django REST Framework
     'corsheaders',      # CORS Headers
-    'api',
+    # Apps modulares
+    'core',             # Cliente y modelos base
+    'products',         # Artículos, Marcas, Categorías
+    'sales',           # Documentos de venta
+    'hr',              # Recursos humanos
+    'projects',        # Gestión de proyectos
 ]
 
 MIDDLEWARE = [

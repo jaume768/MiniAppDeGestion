@@ -8,11 +8,15 @@ if env_key not in os.environ:
     os.environ.setdefault(env_key, 'gestion_empresa.settings')
 django.setup()
 
-from api.models import (
-    Categoria, Marca, Articulo, Cliente, Presupuesto, PresupuestoItem,
-    Pedido, PedidoItem, Factura, Departamento, Empleado, Proyecto,
-    Albaran, AlbaranItem, Ticket, TicketItem
+# Importaciones modulares
+from core.models import Cliente
+from products.models import Categoria, Marca, Articulo
+from sales.models import (
+    Presupuesto, PresupuestoItem, Pedido, PedidoItem, 
+    Albaran, AlbaranItem, Ticket, TicketItem, Factura
 )
+from hr.models import Departamento, Empleado
+from projects.models import Proyecto
 from django.utils import timezone
 from django.db import transaction
 

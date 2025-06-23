@@ -16,8 +16,23 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
+from rest_framework.routers import DefaultRouter
+from core.reports import ReportsViewSet
+
+# Router para reportes centralizados
+reports_router = DefaultRouter()
+reports_router.register(r'reportes', ReportsViewSet, basename='reportes')
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('api/', include('api.urls')),
+    # URLs de apps modulares
+    path('', include('core.urls')),
+    path('', include('products.urls')),
+    path('', include('sales.urls')),
+    path('', include('hr.urls')),
+    path('', include('projects.urls')),
+    # Reportes centralizados
+    path('api/', include(reports_router.urls)),
+    # App legacy (temporalmente desactivada para verificar estructura modular)
+    # path('api/', include('api.urls')),
 ]
