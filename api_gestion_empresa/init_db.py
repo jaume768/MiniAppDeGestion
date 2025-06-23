@@ -9,7 +9,7 @@ if env_key not in os.environ:
 django.setup()
 
 from api.models import (
-    Categoria, Articulo, Cliente, Presupuesto, PresupuestoItem,
+    Categoria, Marca, Articulo, Cliente, Presupuesto, PresupuestoItem,
     Pedido, PedidoItem, Factura, Departamento, Empleado, Proyecto,
     Albaran, AlbaranItem, Ticket, TicketItem
 )
@@ -28,32 +28,55 @@ def run():
         with transaction.atomic():
             print("Iniciando carga de datos iniciales...")
 
-            # Categorías reales
+            # Crear marcas primero
+            print("Creando marcas...")
+            marcas_data = [
+                ('Samsung', 'Empresa coreana de electrónicos', 'Corea del Sur'),
+                ('Apple', 'Empresa americana de tecnología', 'Estados Unidos'),
+                ('Sony', 'Empresa japonesa de electrónicos', 'Japón'),
+                ('IKEA', 'Empresa sueca de muebles', 'Suecia'),
+                ('HP', 'Empresa americana de computadoras', 'Estados Unidos'),
+                ('Nike', 'Empresa americana de deportes', 'Estados Unidos'),
+                ('Adidas', 'Empresa alemana de deportes', 'Alemania'),
+                ('Zara', 'Empresa española de moda', 'España'),
+                ('Moleskine', 'Empresa italiana de papelería', 'Italia'),
+                ('Staedtler', 'Empresa alemana de papelería', 'Alemania'),
+            ]
+            
+            marcas_objs = {}
+            for nombre, descripcion, pais in marcas_data:
+                marca = Marca.objects.create(
+                    nombre=nombre,
+                    descripcion=descripcion,
+                    pais_origen=pais
+                )
+                marcas_objs[nombre] = marca
+                print(f"  Marca creada: {marca.nombre}")
+
+            # Categorías y productos con marca y modelo
             categorias_info = {
                 'Electrónica': [
-                    ('Smartphone X', 'Smartphone de última generación', 799.99, 21.00),
-                    ('Televisor 42" LED', 'Televisor LED Full HD de 42 pulgadas', 499.99, 21.00),
-                    ('Auriculares Bluetooth', 'Auriculares inalámbricos con cancelación de ruido', 129.99, 21.00),
+                    ('Smartphone Galaxy S24', 'Smartphone de última generación con cámara de 200MP', 799.99, 21.00, 'Samsung', 'Galaxy S24'),
+                    ('iPhone 15 Pro', 'iPhone con chip A17 Pro y titanio', 1199.99, 21.00, 'Apple', 'iPhone 15 Pro'),
+                    ('Televisor BRAVIA', 'Televisor OLED 4K de 55 pulgadas', 1299.99, 21.00, 'Sony', 'BRAVIA XR-55A80L'),
+                    ('Auriculares WH-1000XM5', 'Auriculares inalámbricos con cancelación de ruido', 399.99, 21.00, 'Sony', 'WH-1000XM5'),
+                    ('Laptop Pavilion', 'Laptop con procesador Intel Core i7', 899.99, 21.00, 'HP', 'Pavilion 15'),
                 ],
                 'Muebles': [
-                    ('Mesa de comedor', 'Mesa extensible para 6 personas', 249.99, 21.00),
-                    ('Silla ergonómica', 'Silla de oficina con soporte lumbar', 179.99, 21.00),
-                    ('Armario de madera', 'Armario ropero de pino macizo', 399.99, 21.00),
+                    ('Mesa LACK', 'Mesa de centro minimalista', 49.99, 21.00, 'IKEA', 'LACK'),
+                    ('Silla MARKUS', 'Silla de oficina ergonómica', 179.99, 21.00, 'IKEA', 'MARKUS'),
+                    ('Armario PAX', 'Sistema de armario modular', 399.99, 21.00, 'IKEA', 'PAX'),
                 ],
                 'Papelería': [
-                    ('Cuaderno premium', 'Cuaderno A5 con tapas duras', 9.99, 10.00),
-                    ('Bolígrafo gel', 'Pack de 5 bolígrafos de tinta gel', 4.99, 10.00),
-                    ('Carpeta A4', 'Carpeta clasificadora de 6 anillas', 6.49, 10.00),
+                    ('Cuaderno Classic', 'Cuaderno con tapa dura y hojas punteadas', 24.99, 10.00, 'Moleskine', 'Classic Large'),
+                    ('Lápices Mars Lumograph', 'Set de lápices profesionales para dibujo', 15.99, 10.00, 'Staedtler', 'Mars Lumograph'),
+                    ('Bolígrafos Pigment Liner', 'Set de rotuladores de precisión', 12.49, 10.00, 'Staedtler', 'Pigment Liner'),
                 ],
                 'Ropa': [
-                    ('Camiseta algodón', 'Camiseta básica de algodón 100%', 14.99, 21.00),
-                    ('Pantalón vaquero', 'Jeans clásico azul', 39.99, 21.00),
-                    ('Sudadera con capucha', 'Sudadera con bolsillo frontal', 29.99, 21.00),
-                ],
-                'Hogar': [
-                    ('Set de cuchillos', 'Set de 6 cuchillos de acero inoxidable', 59.99, 21.00),
-                    ('Aspiradora Dyson', 'Aspiradora sin cable, alta potencia', 299.99, 21.00),
-                    ('Lámpara de mesa', 'Lámpara de escritorio LED ajustable', 24.99, 21.00),
+                    ('Camiseta Air Force 1', 'Camiseta deportiva de algodón', 29.99, 21.00, 'Nike', 'Air Force 1'),
+                    ('Zapatillas Stan Smith', 'Zapatillas clásicas de cuero blanco', 89.99, 21.00, 'Adidas', 'Stan Smith'),
+                    ('Pantalón TRF', 'Pantalón vaquero de corte slim', 39.99, 21.00, 'Zara', 'TRF Slim'),
+                    ('Sudadera Trefoil', 'Sudadera con capucha y logo Trefoil', 59.99, 21.00, 'Adidas', 'Trefoil Hoodie'),
                 ],
             }
 
@@ -65,13 +88,16 @@ def run():
 
             articulos = []
             for cat in categorias:
-                for nombre_art, descripcion, precio, iva in categorias_info[cat.nombre]:
+                for nombre_art, descripcion, precio, iva, marca_nombre, modelo in categorias_info[cat.nombre]:
+                    marca = marcas_objs[marca_nombre]
                     art = Articulo.objects.create(
                         nombre=nombre_art,
                         descripcion=descripcion,
                         precio=precio,
                         categoria=cat,
-                        iva=iva
+                        iva=iva,
+                        marca=marca,
+                        modelo=modelo
                     )
                     articulos.append(art)
                     print(f"Artículo creado: {art.nombre}, IVA: {art.iva}%")
@@ -204,7 +230,7 @@ def run():
             )
             print(f"Factura creada: #{factura.id} -> {factura.total}€")
 
-                        # Crear albaran de ejemplo
+            # Crear albaran de ejemplo
             albaran = Albaran.objects.create(
                 cliente=clientes[0],
                 fecha=hoy,

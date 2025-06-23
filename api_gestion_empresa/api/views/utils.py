@@ -112,29 +112,40 @@ class PDFGenerator:
         return elements
     
     def _generar_tabla_items(self, items, doc):
-        """Generar la tabla de items y totales."""
+        """Generar la tabla de items y totales con desglose por IVA."""
         elements = []
         
         # Encabezado de la tabla
         elements.append(Paragraph("Detalle de Productos:", self.subtitle_style))
         data = [['Concepto', 'Cantidad', 'Precio Unitario', 'IVA (%)', 'Descuento (%)', 'Subtotal']]
         
-        subtotal_general = Decimal('0')
-        iva_general = Decimal('0')
+        # Diccionario para agrupar por IVA
+        iva_groups = {}
+        total_unidades = 0
 
-        # Procesar cada item
+        # Procesar cada item y agrupar por IVA
         for item in items:
             precio = Decimal(item.precio_unitario)
             iva_pct = Decimal(item.iva)
             descuento_pct = Decimal(getattr(item, 'descuento', 0))
             cantidad = item.cantidad
 
+            total_unidades += cantidad
             precio_desc = precio * (Decimal('1') - descuento_pct / Decimal('100'))
             subtotal_linea = precio_desc * cantidad
-            iva_linea = subtotal_linea * (iva_pct / Decimal('100'))
 
-            subtotal_general += subtotal_linea
-            iva_general += iva_linea
+            # Agrupar por porcentaje de IVA
+            if iva_pct not in iva_groups:
+                iva_groups[iva_pct] = {
+                    'base_imponible': Decimal('0'),
+                    'cuota_iva': Decimal('0'),
+                    'items': []
+                }
+            
+            iva_linea = subtotal_linea * (iva_pct / Decimal('100'))
+            iva_groups[iva_pct]['base_imponible'] += subtotal_linea
+            iva_groups[iva_pct]['cuota_iva'] += iva_linea
+            iva_groups[iva_pct]['items'].append(item)
 
             data.append([
                 item.articulo.nombre,
@@ -145,7 +156,7 @@ class PDFGenerator:
                 f"{subtotal_linea:.2f} €"
             ])
 
-        # Configurar tabla
+        # Configurar tabla de productos
         col_widths = [
             doc.width * 0.3, doc.width * 0.1,
             doc.width * 0.15, doc.width * 0.15,
@@ -163,24 +174,80 @@ class PDFGenerator:
             ('GRID', (0, 0), (-1, -1), 1, colors.black),
         ]))
         elements.append(table)
+        elements.append(Spacer(1, 20))
+
+        # Crear tabla de resumen por IVA como en la imagen
+        elements.append(Paragraph(f"Total Unidades: {total_unidades}", self.normal_style))
         elements.append(Spacer(1, 12))
 
-        # Tabla de totales
-        total_general = subtotal_general + iva_general
-        totals_data = [
-            ['Subtotal', f"{subtotal_general:.2f} €"],
-            ['IVA', f"{iva_general:.2f} €"],
-            ['TOTAL', f"{total_general:.2f} €"],
-        ]
+        # Calcular totales generales
+        subtotal_general = sum(group['base_imponible'] for group in iva_groups.values())
+        iva_total_general = sum(group['cuota_iva'] for group in iva_groups.values())
+        total_factura = subtotal_general + iva_total_general
+
+        # Crear tabla de desglose por IVA
+        summary_data = [['SUBTOTAL', 'BASE IMPONIBLE', '% I.V.A.', 'CUOTA IVA', '% R.E.', 'CUOTA R.E.']]
         
-        totals_table = Table(totals_data, colWidths=[doc.width*0.5, doc.width*0.5], hAlign='RIGHT')
-        totals_table.setStyle(TableStyle([
-            ('ALIGN', (0, 0), (-1, -1), 'RIGHT'),
-            ('FONTNAME', (0, 2), (-1, 2), 'Helvetica-Bold'),
-            ('LINEBELOW', (0, 0), (-1, 1), 1, colors.grey),
-            ('LINEBELOW', (0, 2), (-1, 2), 1.5, colors.black),
+        # Añadir primera fila con subtotal
+        summary_data.append([
+            f"{subtotal_general:.2f}",
+            "",
+            "",
+            "",
+            "",
+            ""
+        ])
+        
+        # Añadir filas por cada tipo de IVA
+        for iva_pct in sorted(iva_groups.keys()):
+            group = iva_groups[iva_pct]
+            summary_data.append([
+                "",
+                f"{group['base_imponible']:.2f}",
+                f"{iva_pct:.2f}",
+                f"{group['cuota_iva']:.2f}",
+                "",  # % R.E. (Recargo de Equivalencia) - normalmente vacío
+                ""   # CUOTA R.E. - normalmente vacío
+            ])
+
+        # Configurar la tabla de resumen
+        summary_col_widths = [doc.width/6] * 6
+        summary_table = Table(summary_data, colWidths=summary_col_widths)
+        summary_table.setStyle(TableStyle([
+            # Encabezado
+            ('BACKGROUND', (0, 0), (-1, 0), colors.lightgrey),
+            ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+            ('FONTSIZE', (0, 0), (-1, 0), 9),
+            ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+            ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+            ('GRID', (0, 0), (-1, -1), 1, colors.black),
+            # Primera fila (subtotal)
+            ('BACKGROUND', (0, 1), (0, 1), colors.lightblue),
+            ('FONTNAME', (0, 1), (0, 1), 'Helvetica-Bold'),
+            # Resto de filas
+            ('BACKGROUND', (0, 2), (-1, -1), colors.white),
+            ('FONTSIZE', (0, 1), (-1, -1), 8),
         ]))
-        elements.append(totals_table)
+        
+        elements.append(summary_table)
+        elements.append(Spacer(1, 12))
+
+        # Total final de la factura (como en la imagen)
+        total_final_data = [['TOTAL FACTURA']]
+        total_final_data.append([f"{total_factura:.2f}"])
+        
+        total_final_table = Table(total_final_data, colWidths=[doc.width*0.3], hAlign='RIGHT')
+        total_final_table.setStyle(TableStyle([
+            ('BACKGROUND', (0, 0), (-1, 0), colors.grey),
+            ('FONTNAME', (0, 0), (-1, -1), 'Helvetica-Bold'),
+            ('FONTSIZE', (0, 0), (-1, -1), 12),
+            ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+            ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+            ('GRID', (0, 0), (-1, -1), 2, colors.black),
+            ('BACKGROUND', (0, 1), (-1, 1), colors.white),
+        ]))
+        
+        elements.append(total_final_table)
         elements.append(Spacer(1, 36))
         
         return elements

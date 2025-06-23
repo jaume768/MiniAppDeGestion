@@ -1,17 +1,29 @@
-# Importaciones desde los módulos específicos
+"""
+Importaciones centralizadas para mantener compatibilidad con urls.py
+"""
+
+# Importar desde los módulos modularizados
 from .base_views import (
-    CategoriaViewSet, ArticuloViewSet, ClienteViewSet,
-    DepartamentoViewSet, EmpleadoViewSet, ProyectoViewSet
+    CategoriaViewSet,
+    MarcaViewSet,
+    ArticuloViewSet,
+    ClienteViewSet,
+    DepartamentoViewSet,
+    EmpleadoViewSet,
+    ProyectoViewSet
 )
 from .sales_views import (
-    PresupuestoViewSet, PedidoViewSet, AlbaranViewSet, TicketViewSet
+    PresupuestoViewSet,
+    PedidoViewSet,
+    AlbaranViewSet,
+    TicketViewSet
 )
 from .invoice_views import FacturaViewSet
 from .reports_views import ReportesView
 
-# Exportar todas las vistas para mantener la compatibilidad
+# Exportaciones para mantener compatibilidad
 __all__ = [
-    'CategoriaViewSet', 'ArticuloViewSet', 'ClienteViewSet',
+    'CategoriaViewSet', 'MarcaViewSet', 'ArticuloViewSet', 'ClienteViewSet',
     'PresupuestoViewSet', 'PedidoViewSet', 'FacturaViewSet',
     'DepartamentoViewSet', 'EmpleadoViewSet', 'ProyectoViewSet',
     'AlbaranViewSet', 'TicketViewSet', 'ReportesView'

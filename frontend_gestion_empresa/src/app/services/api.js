@@ -116,6 +116,15 @@ export const articulosAPI = {
   delete: (id) => fetchAPI(`/articulos/${id}/`, { method: 'DELETE' }),
 };
 
+// Marcas
+export const marcasAPI = {
+  getAll: () => fetchAPI('/marcas/'),
+  getById: (id) => fetchAPI(`/marcas/${id}/`),
+  create: (data) => fetchAPI('/marcas/', { method: 'POST', body: JSON.stringify(data) }),
+  update: (id, data) => fetchAPI(`/marcas/${id}/`, { method: 'PUT', body: JSON.stringify(data) }),
+  delete: (id) => fetchAPI(`/marcas/${id}/`, { method: 'DELETE' }),
+};
+
 // Presupuestos
 export const presupuestosAPI = {
   getAll: () => fetchAPI('/presupuestos/'),
@@ -211,6 +220,7 @@ export default {
   reportes: reportesAPI,
   categorias: categoriasAPI,
   articulos: articulosAPI,
+  marcas: marcasAPI,
   presupuestos: presupuestosAPI,
   pedidos: pedidosAPI,
   facturas: facturasAPI,

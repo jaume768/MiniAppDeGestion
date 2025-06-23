@@ -7,16 +7,36 @@ class Categoria(models.Model):
     def __str__(self):
         return self.nombre
 
+class Marca(models.Model):
+    nombre = models.CharField(max_length=100, unique=True)
+    descripcion = models.TextField(blank=True)
+    pais_origen = models.CharField(max_length=50, blank=True)
+
+    def __str__(self):
+        return self.nombre
+
+    class Meta:
+        ordering = ['nombre']
+
 class Articulo(models.Model):
     nombre = models.CharField(max_length=100)
     descripcion = models.TextField(blank=True)
     categoria = models.ForeignKey(Categoria, on_delete=models.CASCADE, related_name='articulos')
+    marca = models.ForeignKey(Marca, on_delete=models.CASCADE, related_name='articulos', null=True, blank=True)
+    modelo = models.CharField(max_length=100, blank=True)
     precio = models.DecimalField(max_digits=8, decimal_places=2)
     stock = models.IntegerField(default=0)  # control de stock
     iva = models.DecimalField(max_digits=5, decimal_places=2, default=21.00)  # porcentaje de IVA
 
     def __str__(self):
+        if self.marca and self.modelo:
+            return f"{self.marca.nombre} {self.modelo} - {self.nombre}"
+        elif self.marca:
+            return f"{self.marca.nombre} - {self.nombre}"
         return self.nombre
+
+    class Meta:
+        ordering = ['marca__nombre', 'modelo', 'nombre']
 
 class Cliente(models.Model):
     nombre = models.CharField(max_length=100)
@@ -148,4 +168,3 @@ class Proyecto(models.Model):
     fecha_inicio = models.DateField()
     fecha_fin = models.DateField(null=True, blank=True)
     empleados = models.ManyToManyField(Empleado)
-

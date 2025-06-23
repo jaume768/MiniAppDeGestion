@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from .models import (
-    Categoria, Articulo, Cliente,
+    Categoria, Marca, Articulo, Cliente,
     Presupuesto, PresupuestoItem,
     Pedido, PedidoItem, Factura,
     Departamento, Empleado, Proyecto,
@@ -12,10 +12,24 @@ class CategoriaSerializer(serializers.ModelSerializer):
         model = Categoria
         fields = '__all__'
 
+class MarcaSerializer(serializers.ModelSerializer):
+    articulos_count = serializers.SerializerMethodField()
+    
+    class Meta:
+        model = Marca
+        fields = ['id', 'nombre', 'descripcion', 'pais_origen', 'articulos_count']
+        
+    def get_articulos_count(self, obj):
+        return obj.articulos.count()
+
 class ArticuloSerializer(serializers.ModelSerializer):
+    categoria_nombre = serializers.CharField(source='categoria.nombre', read_only=True)
+    marca_nombre = serializers.CharField(source='marca.nombre', read_only=True)
+    
     class Meta:
         model = Articulo
-        fields = '__all__'
+        fields = ['id', 'nombre', 'descripcion', 'categoria', 'categoria_nombre', 
+                 'marca', 'marca_nombre', 'modelo', 'precio', 'stock', 'iva']
 
 class ClienteSerializer(serializers.ModelSerializer):
     class Meta:
