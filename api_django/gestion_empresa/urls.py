@@ -31,8 +31,6 @@ urlpatterns = [
     path('', include('sales.urls')),
     path('', include('hr.urls')),
     path('', include('projects.urls')),
-    # Reportes centralizados
+    # Reportes
     path('api/', include(reports_router.urls)),
-    # App legacy (temporalmente desactivada para verificar estructura modular)
-    # path('api/', include('api.urls')),
 ]
