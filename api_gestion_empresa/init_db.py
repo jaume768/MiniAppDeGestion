@@ -185,6 +185,7 @@ def run():
             # Crear un presupuesto de ejemplo
             seleccion = articulos[:3]
             presupuesto = Presupuesto.objects.create(
+                numero='PRES-001',
                 cliente=clientes[0],
                 fecha=hoy,
                 total=0
@@ -206,6 +207,7 @@ def run():
 
             # Crear pedido de ejemplo
             pedido = Pedido.objects.create(
+                numero='PED-001',
                 cliente=clientes[0],
                 fecha=hoy,
                 total=0,
@@ -228,6 +230,8 @@ def run():
 
             # Factura
             factura = Factura.objects.create(
+                numero='FAC-001',
+                cliente=clientes[0],
                 pedido=pedido,
                 fecha=hoy,
                 total=pedido.total
@@ -236,6 +240,7 @@ def run():
 
             # Crear albaran de ejemplo
             albaran = Albaran.objects.create(
+                numero='ALB-001',
                 cliente=clientes[0],
                 fecha=hoy,
                 total=0
@@ -257,6 +262,7 @@ def run():
             
             # Crear ticket de ejemplo
             ticket = Ticket.objects.create(
+                numero='TIC-001',
                 cliente=clientes[0],
                 fecha=hoy,
                 total=0

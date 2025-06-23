@@ -47,11 +47,10 @@ class PDFDocumentGenerator:
         # Datos del cliente
         elems.extend([
             Paragraph("Datos del Cliente:", subtitle),
-            Paragraph(f"Nombre: {self.documento.cliente.nombre} {self.documento.cliente.apellido}", normal),
+            Paragraph(f"Nombre: {self.documento.cliente.nombre}", normal),
             Paragraph(f"Email: {self.documento.cliente.email}", normal),
             Paragraph(f"Teléfono: {self.documento.cliente.telefono}", normal),
             Paragraph(f"Dirección: {self.documento.cliente.direccion}", normal),
-            Paragraph(f"{self.documento.cliente.ciudad}, {self.documento.cliente.codigo_postal} - {self.documento.cliente.pais}", normal),
             Spacer(1, 24),
         ])
         
@@ -74,7 +73,7 @@ class PDFDocumentGenerator:
         for item in items:
             precio = Decimal(str(item.precio_unitario))
             cantidad = item.cantidad
-            iva_pct = Decimal(str(item.iva))
+            iva_pct = Decimal(str(item.iva_porcentaje))
             
             # Cálculos
             subtotal_item = precio * cantidad
@@ -180,7 +179,7 @@ class PDFDocumentGenerator:
         # Agrupar por tipo de IVA
         iva_groups = {}
         for item in items:
-            iva_rate = float(item.iva)
+            iva_rate = float(item.iva_porcentaje)
             if iva_rate not in iva_groups:
                 iva_groups[iva_rate] = {
                     'subtotal': Decimal('0'),
@@ -189,14 +188,14 @@ class PDFDocumentGenerator:
                 }
             
             subtotal_item = Decimal(str(item.precio_unitario)) * item.cantidad
-            cuota_iva = subtotal_item * Decimal(str(item.iva)) / 100
+            cuota_iva = subtotal_item * Decimal(str(item.iva_porcentaje)) / 100
             total_item = subtotal_item + cuota_iva
             
             iva_groups[iva_rate]['subtotal'] += subtotal_item
             iva_groups[iva_rate]['cuota_iva'] += cuota_iva
             iva_groups[iva_rate]['total'] += total_item
         
-        if len(iva_groups) > 1:  # Solo mostrar si hay múltiples tipos de IVA
+        if len(iva_groups) >= 1:  # Mostrar siempre el desglose de IVA
             styles = getSampleStyleSheet()
             elems.append(Spacer(1, 20))
             elems.append(Paragraph("Desglose por Tipo de IVA:", styles['Heading3']))

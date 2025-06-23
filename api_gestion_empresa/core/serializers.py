@@ -5,7 +5,6 @@ from .models import Cliente
 class BaseDocumentSerializer(serializers.ModelSerializer):
     """Serializer base para documentos comerciales"""
     items = serializers.SerializerMethodField()
-    is_facturado = serializers.ReadOnlyField()
     
     def get_items(self, obj):
         """Devuelve los items del documento usando el serializer específico"""
@@ -24,7 +23,7 @@ class BaseDocumentSerializer(serializers.ModelSerializer):
             item_model.objects.create(**item_data)
         
         # Calcular totales
-        documento.calcular_totales()
+        documento.calculate_totals()
         return documento
     
     def update(self, instance, validated_data):
@@ -34,7 +33,7 @@ class BaseDocumentSerializer(serializers.ModelSerializer):
         
         if items_data is not None:
             # Eliminar items existentes
-            instance.items.all().delete()
+            instance.get_items().delete()
             
             # Crear nuevos items
             item_model = self.get_item_model()
@@ -43,7 +42,7 @@ class BaseDocumentSerializer(serializers.ModelSerializer):
                 item_model.objects.create(**item_data)
             
             # Recalcular totales
-            instance.calcular_totales()
+            instance.calculate_totals()
         
         return instance
     
@@ -59,11 +58,11 @@ class BaseDocumentSerializer(serializers.ModelSerializer):
 class BaseItemSerializer(serializers.ModelSerializer):
     """Serializer base para items de documentos"""
     subtotal = serializers.ReadOnlyField()
-    importe_iva = serializers.ReadOnlyField()
+    iva_amount = serializers.ReadOnlyField()
     total = serializers.ReadOnlyField()
     
     class Meta:
-        fields = ['id', 'articulo', 'cantidad', 'precio_unitario', 'iva', 'subtotal', 'importe_iva', 'total']
+        fields = ['id', 'articulo', 'cantidad', 'precio_unitario', 'iva_porcentaje', 'subtotal', 'iva_amount', 'total']
 
 
 class ClienteSerializer(serializers.ModelSerializer):

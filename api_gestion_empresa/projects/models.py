@@ -1,4 +1,5 @@
 from django.db import models
+from hr.models import Empleado
 
 # Create your models here.
 
@@ -16,6 +17,7 @@ class Proyecto(models.Model):
         ('cancelado', 'Cancelado'),
     ]
     estado = models.CharField(max_length=20, choices=estado_choices, default='planificado')
+    empleados = models.ManyToManyField(Empleado, blank=True, related_name='proyectos')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

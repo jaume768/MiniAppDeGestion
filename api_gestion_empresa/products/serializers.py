@@ -11,7 +11,7 @@ class CategoriaSerializer(serializers.ModelSerializer):
         fields = ['id', 'nombre', 'descripcion', 'articulos_count']
     
     def get_articulos_count(self, obj):
-        return obj.articulos.count()
+        return obj.articulo_set.count()
 
 
 class MarcaSerializer(serializers.ModelSerializer):
@@ -23,7 +23,7 @@ class MarcaSerializer(serializers.ModelSerializer):
         fields = ['id', 'nombre', 'descripcion', 'pais_origen', 'articulos_count']
         
     def get_articulos_count(self, obj):
-        return obj.articulos.count()
+        return obj.articulo_set.count()
 
 
 class ArticuloSerializer(serializers.ModelSerializer):

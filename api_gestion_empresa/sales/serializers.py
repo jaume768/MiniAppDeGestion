@@ -32,11 +32,11 @@ class TicketItemSerializer(BaseItemSerializer):
 
 # Serializers para Documentos
 class PresupuestoSerializer(BaseDocumentSerializer):
-    items = PresupuestoItemSerializer(many=True)
+    items = PresupuestoItemSerializer(source='presupuestoitem_set', many=True, read_only=True)
     
     class Meta:
         model = Presupuesto
-        fields = ['id', 'cliente', 'fecha', 'subtotal', 'iva', 'total', 'items', 'is_facturado']
+        fields = ['id', 'numero', 'cliente', 'fecha', 'observaciones', 'subtotal', 'iva', 'total', 'items']
     
     def get_item_model(self):
         return PresupuestoItem
@@ -46,11 +46,11 @@ class PresupuestoSerializer(BaseDocumentSerializer):
 
 
 class PedidoSerializer(BaseDocumentSerializer):
-    items = PedidoItemSerializer(many=True)
+    items = PedidoItemSerializer(source='pedidoitem_set', many=True, read_only=True)
     
     class Meta:
         model = Pedido
-        fields = ['id', 'cliente', 'fecha', 'subtotal', 'iva', 'total', 'entregado', 'items', 'is_facturado']
+        fields = ['id', 'numero', 'cliente', 'fecha', 'observaciones', 'subtotal', 'iva', 'total', 'entregado', 'items']
     
     def get_item_model(self):
         return PedidoItem
@@ -60,11 +60,11 @@ class PedidoSerializer(BaseDocumentSerializer):
 
 
 class AlbaranSerializer(BaseDocumentSerializer):
-    items = AlbaranItemSerializer(many=True)
+    items = AlbaranItemSerializer(source='albaranitem_set', many=True, read_only=True)
     
     class Meta:
         model = Albaran
-        fields = ['id', 'cliente', 'fecha', 'subtotal', 'iva', 'total', 'items', 'is_facturado']
+        fields = ['id', 'numero', 'cliente', 'fecha', 'observaciones', 'subtotal', 'iva', 'total', 'items']
     
     def get_item_model(self):
         return AlbaranItem
@@ -74,11 +74,11 @@ class AlbaranSerializer(BaseDocumentSerializer):
 
 
 class TicketSerializer(BaseDocumentSerializer):
-    items = TicketItemSerializer(many=True)
+    items = TicketItemSerializer(source='ticketitem_set', many=True, read_only=True)
     
     class Meta:
         model = Ticket
-        fields = ['id', 'cliente', 'fecha', 'subtotal', 'iva', 'total', 'items', 'is_facturado']
+        fields = ['id', 'numero', 'cliente', 'fecha', 'observaciones', 'subtotal', 'iva', 'total', 'items']
     
     def get_item_model(self):
         return TicketItem
@@ -89,19 +89,11 @@ class TicketSerializer(BaseDocumentSerializer):
 
 class FacturaSerializer(serializers.ModelSerializer):
     """Serializer para Factura"""
-    cliente = serializers.SerializerMethodField()
-    cliente_nombre = serializers.SerializerMethodField()
+    cliente_nombre = serializers.CharField(source='cliente.nombre', read_only=True)
+    pedido_numero = serializers.CharField(source='pedido.numero', read_only=True)
     
     class Meta:
         model = Factura
-        fields = ['id', 'pedido', 'albaran', 'ticket', 'presupuesto', 'fecha', 'subtotal', 'iva', 'total', 'cliente', 'cliente_nombre']
-    
-    def get_cliente(self, obj):
-        """Devuelve el ID del cliente del documento origen"""
-        cliente = obj.cliente
-        return cliente.id if cliente else None
-    
-    def get_cliente_nombre(self, obj):
-        """Devuelve el nombre del cliente del documento origen"""
-        cliente = obj.cliente
-        return cliente.nombre if cliente else None
+        fields = ['id', 'numero', 'cliente', 'cliente_nombre', 'pedido', 'pedido_numero', 
+                 'documento_origen', 'fecha', 'observaciones', 'subtotal', 'iva', 'total',
+                 'created_at', 'updated_at']

@@ -36,20 +36,5 @@ services:
       - DATABASE_USER=gestion_user
       - DATABASE_PASSWORD=gestion_pass123
 
-  frontend:
-    build:
-      context: ./frontend_gestion_empresa
-      dockerfile: Dockerfile
-    container_name: frontend-gestion
-    volumes:
-      - ./frontend_gestion_empresa:/app    # hot reload para el código de frontend
-      - /app/node_modules                  # evita que los node_modules locales interfieran con los del contenedor
-    ports:
-      - "3000:3000"                      # puerto para acceder al frontend
-    environment:
-      - NEXT_PUBLIC_API_URL=http://localhost:8000/api  # URL de la API para las peticiones desde el frontend
-    depends_on:
-      - api
-
 volumes:
   mysql_data:

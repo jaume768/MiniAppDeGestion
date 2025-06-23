@@ -31,6 +31,7 @@ class PresupuestoItem(AbstractBaseItem):
 class Pedido(AbstractBaseDocument):
     """Modelo de Pedido"""
     numero = models.CharField(max_length=20, unique=True)
+    entregado = models.BooleanField(default=False)
     
     class Meta:
         db_table = 'api_pedido'
@@ -101,6 +102,7 @@ class Factura(AbstractBaseDocument):
     """Modelo de Factura - hereda de AbstractBaseDocument"""
     numero = models.CharField(max_length=20, unique=True)
     documento_origen = models.CharField(max_length=50, blank=True, null=True)
+    pedido = models.ForeignKey(Pedido, on_delete=models.SET_NULL, null=True, blank=True, related_name='facturas')
     
     class Meta:
         db_table = 'api_factura'

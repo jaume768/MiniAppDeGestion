@@ -11,7 +11,7 @@ class DepartamentoSerializer(serializers.ModelSerializer):
         fields = ['id', 'nombre', 'descripcion', 'empleados_count']
     
     def get_empleados_count(self, obj):
-        return obj.empleados.count()
+        return obj.empleado_set.count()
 
 
 class EmpleadoSerializer(serializers.ModelSerializer):
