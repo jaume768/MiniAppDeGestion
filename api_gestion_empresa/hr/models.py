@@ -11,7 +11,6 @@ class Departamento(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
-        db_table = 'api_departamento'  # Mantener tabla original
         ordering = ['nombre']
 
     def __str__(self):
@@ -33,7 +32,6 @@ class Empleado(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
-        db_table = 'api_empleado'  # Mantener tabla original
         ordering = ['apellidos', 'nombre']
 
     def __str__(self):

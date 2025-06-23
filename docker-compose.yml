@@ -36,5 +36,20 @@ services:
       - DATABASE_USER=gestion_user
       - DATABASE_PASSWORD=gestion_pass123
 
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    container_name: phpmyadmin
+    restart: always
+    environment:
+      PMA_HOST: db
+      MYSQL_ROOT_PASSWORD: root_pass123
+      MYSQL_DATABASE: gestion_empresa
+      MYSQL_USER: gestion_user
+      MYSQL_PASSWORD: gestion_pass123
+    ports:
+      - "8080:80"
+    depends_on:
+      - db   
+
 volumes:
   mysql_data:

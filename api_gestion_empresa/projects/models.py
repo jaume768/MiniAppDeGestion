@@ -22,7 +22,6 @@ class Proyecto(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
-        db_table = 'api_proyecto'  # Mantener tabla original
         ordering = ['-fecha_inicio', 'nombre']
 
     def __str__(self):

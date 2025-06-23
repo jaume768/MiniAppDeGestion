@@ -14,7 +14,6 @@ class Cliente(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
-        db_table = 'api_cliente'  # Mantener tabla original para migración
         ordering = ['nombre']
 
     def __str__(self):

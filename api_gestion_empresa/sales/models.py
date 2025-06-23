@@ -10,7 +10,6 @@ class Presupuesto(AbstractBaseDocument):
     numero = models.CharField(max_length=20, unique=True)
     
     class Meta:
-        db_table = 'api_presupuesto'  # Mantener tabla original
         ordering = ['-fecha', '-numero']
     
     def get_items(self):
@@ -23,9 +22,6 @@ class Presupuesto(AbstractBaseDocument):
 class PresupuestoItem(AbstractBaseItem):
     """Items de Presupuesto"""
     presupuesto = models.ForeignKey(Presupuesto, on_delete=models.CASCADE)
-    
-    class Meta:
-        db_table = 'api_presupuestoitem'
 
 
 class Pedido(AbstractBaseDocument):
@@ -34,7 +30,6 @@ class Pedido(AbstractBaseDocument):
     entregado = models.BooleanField(default=False)
     
     class Meta:
-        db_table = 'api_pedido'
         ordering = ['-fecha', '-numero']
     
     def get_items(self):
@@ -47,9 +42,6 @@ class Pedido(AbstractBaseDocument):
 class PedidoItem(AbstractBaseItem):
     """Items de Pedido"""
     pedido = models.ForeignKey(Pedido, on_delete=models.CASCADE)
-    
-    class Meta:
-        db_table = 'api_pedidoitem'
 
 
 class Albaran(AbstractBaseDocument):
@@ -57,7 +49,6 @@ class Albaran(AbstractBaseDocument):
     numero = models.CharField(max_length=20, unique=True)
     
     class Meta:
-        db_table = 'api_albaran'
         ordering = ['-fecha', '-numero']
     
     def get_items(self):
@@ -70,9 +61,6 @@ class Albaran(AbstractBaseDocument):
 class AlbaranItem(AbstractBaseItem):
     """Items de Albarán"""
     albaran = models.ForeignKey(Albaran, on_delete=models.CASCADE)
-    
-    class Meta:
-        db_table = 'api_albaranitem'
 
 
 class Ticket(AbstractBaseDocument):
@@ -80,7 +68,6 @@ class Ticket(AbstractBaseDocument):
     numero = models.CharField(max_length=20, unique=True)
     
     class Meta:
-        db_table = 'api_ticket'
         ordering = ['-fecha', '-numero']
     
     def get_items(self):
@@ -93,9 +80,6 @@ class Ticket(AbstractBaseDocument):
 class TicketItem(AbstractBaseItem):
     """Items de Ticket"""
     ticket = models.ForeignKey(Ticket, on_delete=models.CASCADE)
-    
-    class Meta:
-        db_table = 'api_ticketitem'
 
 
 class Factura(AbstractBaseDocument):
@@ -105,7 +89,6 @@ class Factura(AbstractBaseDocument):
     pedido = models.ForeignKey(Pedido, on_delete=models.SET_NULL, null=True, blank=True, related_name='facturas')
     
     class Meta:
-        db_table = 'api_factura'
         ordering = ['-fecha', '-numero']
     
     def get_items(self):
@@ -118,9 +101,6 @@ class Factura(AbstractBaseDocument):
 class FacturaItem(AbstractBaseItem):
     """Items de Factura"""
     factura = models.ForeignKey(Factura, on_delete=models.CASCADE)
-    
-    class Meta:
-        db_table = 'api_facturaitem'
 
 
 # Señales para recalcular totales automáticamente

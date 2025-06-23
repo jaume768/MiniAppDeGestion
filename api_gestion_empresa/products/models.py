@@ -11,7 +11,6 @@ class Categoria(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
-        db_table = 'api_categoria'  # Mantener tabla original
         ordering = ['nombre']
 
     def __str__(self):
@@ -28,7 +27,6 @@ class Marca(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
-        db_table = 'api_marca'  # Mantener tabla original
         ordering = ['nombre']
 
     def __str__(self):
@@ -50,7 +48,6 @@ class Articulo(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
-        db_table = 'api_articulo'  # Mantener tabla original
         ordering = ['nombre']
 
     def __str__(self):
