@@ -19,12 +19,12 @@ services:
   
   api:
     build:
-      context: ./api_gestion_empresa
+      context: ./api_django
       dockerfile: Dockerfile
     container_name: api-gestion
     command: sh -c "chmod +x entrypoint.sh && ./entrypoint.sh python manage.py runserver 0.0.0.0:8000"
     volumes:
-      - ./api_gestion_empresa:/app         # hot reload: cualquier cambio en el código se refleja inmediatamente
+      - ./api_django:/app         # hot reload: cualquier cambio en el código se refleja inmediatamente
     ports:
       - "8000:8000"
     depends_on:
