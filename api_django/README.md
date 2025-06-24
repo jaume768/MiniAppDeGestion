@@ -379,18 +379,7 @@ if (pm.response.code === 200) {
 
 ---
 
-#### **Test 4: 👤 Perfil del Usuario Autenticado**
-
-```http
-GET {{base_url}}/api/auth/me/
-Authorization: Bearer {{access_token}}
-```
-
-**Resultado Esperado**: Datos completos del usuario con su empresa y permisos.
-
----
-
-#### **Test 5: 📦 Listar Productos (Filtrados por Empresa)**
+#### **Test 4: 📦 Listar Productos (Filtrados por Empresa)**
 
 ```http
 GET {{base_url}}/api/products/articulos/
@@ -401,7 +390,7 @@ Authorization: Bearer {{access_token}}
 
 ---
 
-#### **Test 6: ➕ Crear Nuevo Cliente**
+#### **Test 5: ➕ Crear Nuevo Cliente**
 
 ```http
 POST {{base_url}}/api/core/clientes/
@@ -433,7 +422,7 @@ if (pm.response.code === 201) {
 
 ---
 
-#### **Test 7: 💰 Crear Presupuesto con Items**
+#### **Test 6: 💰 Crear Presupuesto con Items**
 
 ```http
 POST {{base_url}}/api/sales/presupuestos/
@@ -474,7 +463,7 @@ if (pm.response.code === 201) {
 
 ---
 
-#### **Test 8: 📄 Generar PDF del Presupuesto**
+#### **Test 7: 📄 Generar PDF del Presupuesto**
 
 ```http
 GET {{base_url}}/api/sales/presupuestos/{{presupuesto_id}}/ver_pdf/
@@ -485,7 +474,7 @@ Authorization: Bearer {{access_token}}
 
 ---
 
-#### **Test 9: 🔄 Convertir Presupuesto a Factura**
+#### **Test 8: 🔄 Convertir Presupuesto a Factura**
 
 ```http
 POST {{base_url}}/api/sales/presupuestos/{{presupuesto_id}}/convertir_a_factura/
@@ -511,7 +500,7 @@ if (pm.response.code === 201) {
 
 ---
 
-#### **Test 10: 🔐 Test de Aislamiento Multi-Tenant**
+#### **Test 9: 🔐 Test de Aislamiento Multi-Tenant**
 
 **Paso 1**: Login como admin de otra empresa:
 ```http
@@ -624,12 +613,16 @@ if (pm.response.code >= 400) {
 - 🌐 **Multi-idioma**: Soporte i18n para diferentes regiones
 - 🔐 **2FA**: Autenticación de dos factores
 - 📧 **Email Integration**: Envío automático de PDFs
+- 📊 **Exportación de docuemntos a Excel/CSV/XLSX**: Capacidad de exportar articulos, persupuestos... a Excel/CSV/XLSX
+- 📊 **Importación de docuemntos desde Excel/CSV/XLSX**: Capacidad de importar articulos, persupuestos... desde Excel/CSV/XLSX
+- 📊 **Capacidad de analizar un pdf de factura y extraer los datos relevantes**: Poder analizar un pdf de factura y extraer los datos relevantes para crear una factura de compra en el sistema
+- 🔐 **Envio a Verifactu**: Capacidad de enviar una factura a Verifactu para su validación.
+
 
 ### **Mejoras Técnicas**
-- ⚡ **Caching Redis**: Cache distribuido por tenant
 - 🔍 **Elasticsearch**: Búsqueda avanzada de documentos
 - 📊 **Monitoring**: Prometheus + Grafana
 - 🧪 **Test Coverage**: 100% cobertura de pruebas
-- 📦 **CI/CD Pipeline**: Deploy automático con Docker
+- 📚 **Documentación completa de la API**: Falta poner OpenAPI
 
 ---
