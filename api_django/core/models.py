@@ -1,11 +1,12 @@
 from django.db import models
 from decimal import Decimal
+from tenants.models import TenantModelMixin
 
 
-class Cliente(models.Model):
+class Cliente(TenantModelMixin, models.Model):
     """Modelo Cliente - común a varias apps"""
     nombre = models.CharField(max_length=200)
-    email = models.EmailField(unique=True)
+    email = models.EmailField(unique=False)
     telefono = models.CharField(max_length=20, blank=True, null=True)
     direccion = models.TextField(blank=True, null=True)
     cif = models.CharField(max_length=20, blank=True, null=True)
@@ -15,12 +16,13 @@ class Cliente(models.Model):
 
     class Meta:
         ordering = ['nombre']
+        unique_together = ['empresa', 'email']  # Email único por empresa
 
     def __str__(self):
         return self.nombre
 
 
-class AbstractBaseDocument(models.Model):
+class AbstractBaseDocument(TenantModelMixin, models.Model):
     """Modelo base abstracto para documentos (Presupuesto, Pedido, etc.)"""
     cliente = models.ForeignKey('core.Cliente', on_delete=models.CASCADE)
     fecha = models.DateField()

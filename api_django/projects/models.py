@@ -1,9 +1,10 @@
 from django.db import models
 from hr.models import Empleado
+from tenants.models import TenantModelMixin
 
 # Create your models here.
 
-class Proyecto(models.Model):
+class Proyecto(TenantModelMixin, models.Model):
     """Modelo de Proyecto"""
     nombre = models.CharField(max_length=200)
     descripcion = models.TextField(blank=True, null=True)
@@ -23,6 +24,7 @@ class Proyecto(models.Model):
 
     class Meta:
         ordering = ['-fecha_inicio', 'nombre']
+        unique_together = ['empresa', 'nombre']  # Nombre único por empresa
 
     def __str__(self):
         return self.nombre

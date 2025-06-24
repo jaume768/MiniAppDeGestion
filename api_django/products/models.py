@@ -1,8 +1,9 @@
 from django.db import models
+from tenants.models import TenantModelMixin
 
 # Create your models here.
 
-class Categoria(models.Model):
+class Categoria(TenantModelMixin, models.Model):
     """Modelo de Categoría de productos"""
     nombre = models.CharField(max_length=100)
     descripcion = models.TextField(blank=True, null=True)
@@ -12,12 +13,13 @@ class Categoria(models.Model):
 
     class Meta:
         ordering = ['nombre']
+        unique_together = ['empresa', 'nombre']  # Nombre único por empresa
 
     def __str__(self):
         return self.nombre
 
 
-class Marca(models.Model):
+class Marca(TenantModelMixin, models.Model):
     """Modelo de Marca de productos"""
     nombre = models.CharField(max_length=100)
     descripcion = models.TextField(blank=True, null=True)
@@ -28,12 +30,13 @@ class Marca(models.Model):
 
     class Meta:
         ordering = ['nombre']
+        unique_together = ['empresa', 'nombre']  # Nombre único por empresa
 
     def __str__(self):
         return self.nombre
 
 
-class Articulo(models.Model):
+class Articulo(TenantModelMixin, models.Model):
     """Modelo de Artículo/Producto"""
     nombre = models.CharField(max_length=200)
     descripcion = models.TextField(blank=True, null=True)
@@ -49,6 +52,7 @@ class Articulo(models.Model):
 
     class Meta:
         ordering = ['nombre']
+        unique_together = ['empresa', 'nombre']  # Nombre único por empresa
 
     def __str__(self):
         return self.nombre

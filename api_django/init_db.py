@@ -1,6 +1,9 @@
 import os
 import django
 import sys
+from django.db import transaction
+from django.test import RequestFactory
+from tenants.middleware import ThreadLocalMiddleware
 
 # Configurar Django
 env_key = 'DJANGO_SETTINGS_MODULE'
@@ -8,7 +11,14 @@ if env_key not in os.environ:
     os.environ.setdefault(env_key, 'gestion_empresa.settings')
 django.setup()
 
+# Crear request mock para el contexto de tenants
+factory = RequestFactory()
+mock_request = factory.get('/')
+thread_local_middleware = ThreadLocalMiddleware(lambda r: None)
+thread_local_middleware.process_request(mock_request)
+
 # Importaciones modulares
+from accounts.models import Empresa, CustomUser
 from core.models import Cliente
 from products.models import Categoria, Marca, Articulo
 from sales.models import (
@@ -18,273 +28,305 @@ from sales.models import (
 from hr.models import Departamento, Empleado
 from projects.models import Proyecto
 from django.utils import timezone
-from django.db import transaction
+from datetime import date, timedelta
+
+
+def create_superuser_and_empresas():
+    """Crear superusuario y empresas de ejemplo"""
+    print("Creando superusuario y empresas...")
+    
+    # Crear superusuario
+    if not CustomUser.objects.filter(is_superuser=True).exists():
+        superuser = CustomUser.objects.create_superuser(
+            username='admin',
+            email='admin@minigestion.com',
+            password='admin123',
+            first_name='Super',
+            last_name='Admin',
+            role='superadmin'
+        )
+        print(f"✓ Superusuario creado: {superuser.username}")
+    
+    # Crear empresas de ejemplo
+    empresas_data = [
+        {
+            'nombre': 'TecnoSoluciones S.L.',
+            'cif': 'B12345678',
+            'direccion': 'Calle Tecnología, 123, 28001 Madrid',
+            'telefono': '+34 91 123 45 67',
+            'email': 'info@tecnosoluciones.com',
+            'web': 'https://www.tecnosoluciones.com',
+            'plan': 'premium',
+            'max_usuarios': 25,
+            'admin_data': {
+                'username': 'admin_tecno',
+                'email': 'admin@tecnosoluciones.com',
+                'password': 'tecno123',
+                'first_name': 'Carlos',
+                'last_name': 'García'
+            }
+        },
+        {
+            'nombre': 'Comercial López e Hijos S.A.',
+            'cif': 'A87654321',
+            'direccion': 'Avenida Comercio, 456, 08001 Barcelona',
+            'telefono': '+34 93 987 65 43',
+            'email': 'contacto@lopezehijos.com',
+            'web': 'https://www.lopezehijos.com',
+            'plan': 'basico',
+            'max_usuarios': 5,
+            'admin_data': {
+                'username': 'admin_lopez',
+                'email': 'admin@lopezehijos.com',
+                'password': 'lopez123',
+                'first_name': 'María',
+                'last_name': 'López'
+            }
+        }
+    ]
+    
+    empresas_created = {}
+    
+    for empresa_data in empresas_data:
+        admin_data = empresa_data.pop('admin_data')
+        
+        empresa, created = Empresa.objects.get_or_create(
+            cif=empresa_data['cif'],
+            defaults=empresa_data
+        )
+        
+        if created:
+            print(f"✓ Empresa creada: {empresa.nombre}")
+            
+            # Crear usuario administrador de la empresa
+            admin_user = CustomUser.objects.create_user(
+                username=admin_data['username'],
+                email=admin_data['email'],
+                password=admin_data['password'],
+                first_name=admin_data['first_name'],
+                last_name=admin_data['last_name'],
+                empresa=empresa,
+                role='admin',
+                can_manage_users=True,
+                can_manage_settings=True,
+                can_view_reports=True
+            )
+            print(f"✓ Admin de empresa creado: {admin_user.username}")
+            
+            # Crear algunos usuarios de ejemplo para cada empresa
+            usuarios_data = [
+                {
+                    'username': f'ventas_{empresa.cif[-3:].lower()}',
+                    'email': f'ventas@{empresa.email.split("@")[1]}',
+                    'password': 'ventas123',
+                    'first_name': 'Ana',
+                    'last_name': 'Martín',
+                    'role': 'empleado',
+                    'cargo': 'Vendedora',
+                    'can_view_reports': True
+                },
+                {
+                    'username': f'almacen_{empresa.cif[-3:].lower()}',
+                    'email': f'almacen@{empresa.email.split("@")[1]}',
+                    'password': 'almacen123',
+                    'first_name': 'Pedro',
+                    'last_name': 'Ruiz',
+                    'role': 'empleado',
+                    'cargo': 'Encargado de Almacén'
+                }
+            ]
+            
+            for user_data in usuarios_data:
+                if empresa.can_add_user():
+                    user = CustomUser.objects.create_user(
+                        empresa=empresa,
+                        **user_data
+                    )
+                    print(f"✓ Usuario creado: {user.username}")
+        
+        empresas_created[empresa.cif] = empresa
+    
+    return empresas_created
+
+
+def create_sample_data_for_empresa(empresa):
+    """Crear datos de ejemplo para una empresa específica"""
+    print(f"\nCreando datos de ejemplo para {empresa.nombre}...")
+    
+    # Establecer la empresa actual en el contexto del thread
+    from tenants.middleware import set_current_tenant
+    set_current_tenant(empresa)
+    
+    try:
+        # Crear marcas
+        print("Creando marcas...")
+        marcas_data = [
+            ('Samsung', 'Empresa coreana de electrónicos', 'Corea del Sur'),
+            ('Apple', 'Empresa americana de tecnología', 'Estados Unidos'),
+            ('Sony', 'Empresa japonesa de electrónicos', 'Japón'),
+            ('IKEA', 'Empresa sueca de muebles', 'Suecia'),
+            ('HP', 'Empresa americana de computadoras', 'Estados Unidos'),
+        ]
+        
+        marcas_objs = {}
+        for nombre, descripcion, pais in marcas_data:
+            marca, created = Marca.objects.get_or_create(
+                nombre=nombre,
+                empresa=empresa,
+                defaults={
+                    'descripcion': descripcion,
+                    'pais_origen': pais,
+                }
+            )
+            marcas_objs[nombre] = marca
+            if created:
+                print(f"✓ Marca: {nombre}")
+        
+        # Crear categorías
+        print("Creando categorías...")
+        categorias_data = [
+            ('Electrónicos', 'Dispositivos electrónicos y tecnología'),
+            ('Muebles', 'Muebles para hogar y oficina'),
+            ('Deportes', 'Artículos deportivos y fitness'),
+            ('Papelería', 'Material de oficina y papelería'),
+            ('Ropa', 'Prendas de vestir y accesorios'),
+        ]
+        
+        categorias_objs = {}
+        for nombre, descripcion in categorias_data:
+            categoria, created = Categoria.objects.get_or_create(
+                nombre=nombre,
+                empresa=empresa,
+                defaults={
+                    'descripcion': descripcion,
+                }
+            )
+            categorias_objs[nombre] = categoria
+            if created:
+                print(f"✓ Categoría: {nombre}")
+        
+        # Crear artículos
+        print("Creando artículos...")
+        articulos_data = [
+            ('iPhone 15 Pro', 'Smartphone Apple iPhone 15 Pro 128GB', 'Electrónicos', 'Apple', 999.99, 50),
+            ('Galaxy S24', 'Samsung Galaxy S24 256GB', 'Electrónicos', 'Samsung', 849.99, 30),
+            ('MacBook Air M2', 'Portátil Apple MacBook Air con chip M2', 'Electrónicos', 'Apple', 1199.99, 15),
+            ('Escritorio BEKANT', 'Mesa de escritorio IKEA BEKANT 160x80cm', 'Muebles', 'IKEA', 129.99, 25),
+            ('Silla MARKUS', 'Silla de oficina IKEA MARKUS ergonómica', 'Muebles', 'IKEA', 199.99, 20),
+        ]
+        
+        for nombre, descripcion, cat_nombre, marca_nombre, precio, stock in articulos_data:
+            articulo, created = Articulo.objects.get_or_create(
+                nombre=nombre,
+                empresa=empresa,
+                defaults={
+                    'descripcion': descripcion,
+                    'categoria': categorias_objs[cat_nombre],
+                    'marca': marcas_objs[marca_nombre],
+                    'precio': precio,
+                    'stock': stock,
+                }
+            )
+            if created:
+                print(f"✓ Artículo: {nombre}")
+        
+        # Crear clientes
+        print("Creando clientes...")
+        clientes_data = [
+            ('Empresa ABC S.L.', 'B11111111', 'Calle Principal, 1', '+34 91 111 11 11', 'info@abc.com'),
+            ('Distribuciones XYZ', 'B22222222', 'Avenida Central, 25', '+34 93 222 22 22', 'contacto@xyz.com'),
+            ('Comercial 123', 'B33333333', 'Plaza Mayor, 10', '+34 95 333 33 33', 'ventas@123.com'),
+        ]
+        
+        for nombre, cif, direccion, telefono, email in clientes_data:
+            cliente, created = Cliente.objects.get_or_create(
+                cif=cif,
+                empresa=empresa,
+                defaults={
+                    'nombre': nombre,
+                    'direccion': direccion,
+                    'telefono': telefono,
+                    'email': email,
+                }
+            )
+            if created:
+                print(f"✓ Cliente: {nombre}")
+        
+        # Crear departamentos
+        print("Creando departamentos...")
+        departamentos_data = [
+            ('Ventas', 'Departamento de ventas y atención al cliente'),
+            ('Almacén', 'Gestión de inventario y logística'),
+            ('Administración', 'Contabilidad y administración'),
+            ('IT', 'Tecnologías de la información'),
+        ]
+        
+        for nombre, descripcion in departamentos_data:
+            departamento, created = Departamento.objects.get_or_create(
+                nombre=nombre,
+                empresa=empresa,
+                defaults={
+                    'descripcion': descripcion,
+                }
+            )
+            if created:
+                print(f"✓ Departamento: {nombre}")
+        
+        print(f"✓ Datos de ejemplo creados para {empresa.nombre}")
+        
+    finally:
+        # Limpiar el contexto del thread
+        set_current_tenant(None)
 
 
 def run():
-    """Inserta datos iniciales en la base de datos con nombres reales"""
+    """Inserta datos iniciales en la base de datos con multi-tenancy"""
     # Evitar duplicados
-    if Categoria.objects.exists():
-        print("Ya existen datos en la base de datos. Omitiendo inicialización.")
+    if CustomUser.objects.exists():
+        print("Ya existen usuarios en la base de datos. Omitiendo inicialización.")
         return
 
     try:
         with transaction.atomic():
-            print("Iniciando carga de datos iniciales...")
-
-            # Crear marcas primero
-            print("Creando marcas...")
-            marcas_data = [
-                ('Samsung', 'Empresa coreana de electrónicos', 'Corea del Sur'),
-                ('Apple', 'Empresa americana de tecnología', 'Estados Unidos'),
-                ('Sony', 'Empresa japonesa de electrónicos', 'Japón'),
-                ('IKEA', 'Empresa sueca de muebles', 'Suecia'),
-                ('HP', 'Empresa americana de computadoras', 'Estados Unidos'),
-                ('Nike', 'Empresa americana de deportes', 'Estados Unidos'),
-                ('Adidas', 'Empresa alemana de deportes', 'Alemania'),
-                ('Zara', 'Empresa española de moda', 'España'),
-                ('Moleskine', 'Empresa italiana de papelería', 'Italia'),
-                ('Staedtler', 'Empresa alemana de papelería', 'Alemania'),
-            ]
+            print("Iniciando carga de datos iniciales con multi-tenancy...")
             
-            marcas_objs = {}
-            for nombre, descripcion, pais in marcas_data:
-                marca = Marca.objects.create(
-                    nombre=nombre,
-                    descripcion=descripcion,
-                    pais_origen=pais
-                )
-                marcas_objs[nombre] = marca
-                print(f"  Marca creada: {marca.nombre}")
-
-            # Categorías y productos con marca y modelo
-            categorias_info = {
-                'Electrónica': [
-                    ('Smartphone Galaxy S24', 'Smartphone de última generación con cámara de 200MP', 799.99, 21.00, 'Samsung', 'Galaxy S24'),
-                    ('iPhone 15 Pro', 'iPhone con chip A17 Pro y titanio', 1199.99, 21.00, 'Apple', 'iPhone 15 Pro'),
-                    ('Televisor BRAVIA', 'Televisor OLED 4K de 55 pulgadas', 1299.99, 21.00, 'Sony', 'BRAVIA XR-55A80L'),
-                    ('Auriculares WH-1000XM5', 'Auriculares inalámbricos con cancelación de ruido', 399.99, 21.00, 'Sony', 'WH-1000XM5'),
-                    ('Laptop Pavilion', 'Laptop con procesador Intel Core i7', 899.99, 21.00, 'HP', 'Pavilion 15'),
-                ],
-                'Muebles': [
-                    ('Mesa LACK', 'Mesa de centro minimalista', 49.99, 21.00, 'IKEA', 'LACK'),
-                    ('Silla MARKUS', 'Silla de oficina ergonómica', 179.99, 21.00, 'IKEA', 'MARKUS'),
-                    ('Armario PAX', 'Sistema de armario modular', 399.99, 21.00, 'IKEA', 'PAX'),
-                ],
-                'Papelería': [
-                    ('Cuaderno Classic', 'Cuaderno con tapa dura y hojas punteadas', 24.99, 10.00, 'Moleskine', 'Classic Large'),
-                    ('Lápices Mars Lumograph', 'Set de lápices profesionales para dibujo', 15.99, 10.00, 'Staedtler', 'Mars Lumograph'),
-                    ('Bolígrafos Pigment Liner', 'Set de rotuladores de precisión', 12.49, 10.00, 'Staedtler', 'Pigment Liner'),
-                ],
-                'Ropa': [
-                    ('Camiseta Air Force 1', 'Camiseta deportiva de algodón', 29.99, 21.00, 'Nike', 'Air Force 1'),
-                    ('Zapatillas Stan Smith', 'Zapatillas clásicas de cuero blanco', 89.99, 21.00, 'Adidas', 'Stan Smith'),
-                    ('Pantalón TRF', 'Pantalón vaquero de corte slim', 39.99, 21.00, 'Zara', 'TRF Slim'),
-                    ('Sudadera Trefoil', 'Sudadera con capucha y logo Trefoil', 59.99, 21.00, 'Adidas', 'Trefoil Hoodie'),
-                ],
-            }
-
-            categorias = []
-            for nombre, articulos in categorias_info.items():
-                cat = Categoria.objects.create(nombre=nombre)
-                categorias.append(cat)
-                print(f"Categoría creada: {cat.nombre}")
-
-            articulos = []
-            for cat in categorias:
-                for nombre_art, descripcion, precio, iva, marca_nombre, modelo in categorias_info[cat.nombre]:
-                    marca = marcas_objs[marca_nombre]
-                    art = Articulo.objects.create(
-                        nombre=nombre_art,
-                        descripcion=descripcion,
-                        precio=precio,
-                        categoria=cat,
-                        iva=iva,
-                        marca=marca,
-                        modelo=modelo
-                    )
-                    articulos.append(art)
-                    print(f"Artículo creado: {art.nombre}, IVA: {art.iva}%")
-
-            # Clientes reales
-            clientes_data = [
-                ('Acme S.A.', 'contacto@acme.com', 'Calle Mayor, 1, Madrid', '910000001'),
-                ('Global Tech SL', 'info@globaltech.es', 'Av. de América, 15, Madrid', '910000002'),
-                ('Soluciones Innovadoras SA', 'ventas@solinnov.com', 'Calle Alcalá, 99, Madrid', '910000003'),
-            ]
-            clientes = []
-            for nombre, email, direccion, telefono in clientes_data:
-                cli = Cliente.objects.create(
-                    nombre=nombre,
-                    email=email,
-                    direccion=direccion,
-                    telefono=telefono
-                )
-                clientes.append(cli)
-                print(f"Cliente creado: {cli.nombre}")
-
-            # Departamentos reales
-            departamentos_data = [
-                ('Ventas', 'Departamento encargado de las ventas y atención al cliente'),
-                ('Recursos Humanos', 'Gestión de personal y nóminas'),
-            ]
-            departamentos = []
-            for nombre, descripcion in departamentos_data:
-                dept = Departamento.objects.create(nombre=nombre, descripcion=descripcion)
-                departamentos.append(dept)
-                print(f"Departamento creado: {dept.nombre}")
-
-            # Empleados reales
-            empleados_data = {
-                'Ventas': [
-                    ('Luis Gómez', 'Ejecutivo de Ventas', 1200.00),
-                    ('Ana Torres', 'Coordinadora de Ventas', 1400.00),
-                    ('David Martínez', 'Asesor Comercial', 1100.00),
-                    ('Laura Rodríguez', 'Gestora de Cuentas', 1300.00),
-                ],
-                'Recursos Humanos': [
-                    ('Sofía Fernández', 'Responsable de RRHH', 1500.00),
-                    ('Carlos Sánchez', 'Técnico de Nóminas', 1350.00),
-                    ('Elena Díaz', 'Recruiter', 1250.00),
-                    ('Miguel García', 'Formador Interno', 1280.00),
-                ],
-            }
-            empleados = []
-            hoy = timezone.now().date()
-            for dept in departamentos:
-                for nombre_emp, puesto, salario in empleados_data[dept.nombre]:
-                    emp = Empleado.objects.create(
-                        nombre=nombre_emp,
-                        puesto=puesto,
-                        departamento=dept,
-                        salario=salario,
-                        fecha_contratacion=hoy
-                    )
-                    empleados.append(emp)
-                    print(f"Empleado creado: {emp.nombre}")
-
-            # Proyectos reales
-            proyectos_data = [
-                ('Implementación ERP', 'Instalación y configuración de nuevo sistema ERP', 'PLAN'),
-                ('Campaña Marketing Verano', 'Lanzamiento de la campaña de verano en redes sociales', 'PLAN'),
-            ]
-            proyectos = []
-            for idx, (nombre, descripcion, estado) in enumerate(proyectos_data):
-                proy = Proyecto.objects.create(
-                    nombre=nombre,
-                    descripcion=descripcion,
-                    estado=estado,
-                    fecha_inicio=hoy,
-                    fecha_fin=hoy + timezone.timedelta(days=30)
-                )
-                # Asignar dos empleados por proyecto
-                proy.empleados.set(empleados[idx*2:(idx*2+2)])
-                proyectos.append(proy)
-                print(f"Proyecto creado: {proy.nombre}")
-
-            # Crear un presupuesto de ejemplo
-            seleccion = articulos[:3]
-            presupuesto = Presupuesto.objects.create(
-                numero='PRES-001',
-                cliente=clientes[0],
-                fecha=hoy,
-                total=0
-            )
-            total_pres = 0
-            for art in seleccion:
-                cantidad = 2
-                precio_unitario = float(art.precio)
-                PresupuestoItem.objects.create(
-                    presupuesto=presupuesto,
-                    articulo=art,
-                    cantidad=cantidad,
-                    precio_unitario=precio_unitario
-                )
-                total_pres += cantidad * precio_unitario
-            presupuesto.total = total_pres
-            presupuesto.save()
-            print(f"Presupuesto creado: #{presupuesto.id} -> {presupuesto.total}€")
-
-            # Crear pedido de ejemplo
-            pedido = Pedido.objects.create(
-                numero='PED-001',
-                cliente=clientes[0],
-                fecha=hoy,
-                total=0,
-                entregado=False
-            )
-            total_ped = 0
-            for art in seleccion:
-                cantidad = 2
-                precio_unitario = float(art.precio)
-                PedidoItem.objects.create(
-                    pedido=pedido,
-                    articulo=art,
-                    cantidad=cantidad,
-                    precio_unitario=precio_unitario
-                )
-                total_ped += cantidad * precio_unitario
-            pedido.total = total_ped
-            pedido.save()
-            print(f"Pedido creado: #{pedido.id} -> {pedido.total}€")
-
-            # Factura
-            factura = Factura.objects.create(
-                numero='FAC-001',
-                cliente=clientes[0],
-                pedido=pedido,
-                fecha=hoy,
-                total=pedido.total
-            )
-            print(f"Factura creada: #{factura.id} -> {factura.total}€")
-
-            # Crear albaran de ejemplo
-            albaran = Albaran.objects.create(
-                numero='ALB-001',
-                cliente=clientes[0],
-                fecha=hoy,
-                total=0
-            )
-            total_alb = 0
-            for art in seleccion:
-                cantidad = 1
-                precio_unitario = float(art.precio)
-                AlbaranItem.objects.create(
-                    albaran=albaran,
-                    articulo=art,
-                    cantidad=cantidad,
-                    precio_unitario=precio_unitario
-                )
-                total_alb += cantidad * precio_unitario
-            albaran.total = total_alb
-            albaran.save()
-            print(f"Albaran creado: #{albaran.id} -> {albaran.total}€")
+            # Crear superusuario y empresas
+            empresas = create_superuser_and_empresas()
             
-            # Crear ticket de ejemplo
-            ticket = Ticket.objects.create(
-                numero='TIC-001',
-                cliente=clientes[0],
-                fecha=hoy,
-                total=0
-            )
-            total_ticket = 0
-            for art in seleccion:
-                cantidad = 1
-                precio_unitario = float(art.precio)
-                TicketItem.objects.create(
-                    ticket=ticket,
-                    articulo=art,
-                    cantidad=cantidad,
-                    precio_unitario=precio_unitario
-                )
-                total_ticket += cantidad * precio_unitario
-            ticket.total = total_ticket
-            ticket.save()
-            print(f"Ticket creado: #{ticket.id} -> {ticket.total}€")
-
-            print('¡Datos iniciales insertados exitosamente!')
+            # Crear datos de ejemplo para cada empresa
+            for cif, empresa in empresas.items():
+                create_sample_data_for_empresa(empresa)
+            
+            print("\n" + "="*50)
+            print("INICIALIZACIÓN COMPLETADA EXITOSAMENTE")
+            print("="*50)
+            print("\nCredenciales de acceso:")
+            print("\n1. SUPERUSUARIO:")
+            print("   - Usuario: admin")
+            print("   - Contraseña: admin123")
+            print("   - Puede gestionar todas las empresas")
+            
+            print("\n2. EMPRESA: TecnoSoluciones S.L.")
+            print("   - Admin: admin_tecno / tecno123")
+            print("   - Ventas: ventas_678 / ventas123")
+            print("   - Almacén: almacen_678 / almacen123")
+            
+            print("\n3. EMPRESA: Comercial López e Hijos S.A.")
+            print("   - Admin: admin_lopez / lopez123")
+            print("   - Ventas: ventas_321 / ventas123")
+            print("   - Almacén: almacen_321 / almacen123")
+            
+            print("\nEndpoints principales:")
+            print("   - Login: POST /api/auth/login/")
+            print("   - Perfil: GET /api/auth/profile/")
+            print("   - Empresas: GET /api/auth/empresas/ (solo superadmin)")
+            print("   - Usuarios: GET /api/auth/users/")
+            print("   - API Modules: /api/core/, /api/products/, /api/sales/, etc.")
+            
     except Exception as e:
-        print(f"Error al insertar datos iniciales: {e}")
+        print(f"Error durante la inicialización: {e}")
+        import traceback
+        traceback.print_exc()
         sys.exit(1)
 
 

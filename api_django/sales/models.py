@@ -7,10 +7,11 @@ from core.models import AbstractBaseDocument, AbstractBaseItem
 # Modelos de documentos de venta
 class Presupuesto(AbstractBaseDocument):
     """Modelo de Presupuesto"""
-    numero = models.CharField(max_length=20, unique=True)
+    numero = models.CharField(max_length=20)
     
     class Meta:
         ordering = ['-fecha', '-numero']
+        unique_together = ['empresa', 'numero']  # Número único por empresa
     
     def get_items(self):
         return self.presupuestoitem_set.all()
@@ -26,11 +27,12 @@ class PresupuestoItem(AbstractBaseItem):
 
 class Pedido(AbstractBaseDocument):
     """Modelo de Pedido"""
-    numero = models.CharField(max_length=20, unique=True)
+    numero = models.CharField(max_length=20)
     entregado = models.BooleanField(default=False)
     
     class Meta:
         ordering = ['-fecha', '-numero']
+        unique_together = ['empresa', 'numero']  # Número único por empresa
     
     def get_items(self):
         return self.pedidoitem_set.all()
@@ -46,10 +48,11 @@ class PedidoItem(AbstractBaseItem):
 
 class Albaran(AbstractBaseDocument):
     """Modelo de Albarán"""
-    numero = models.CharField(max_length=20, unique=True)
+    numero = models.CharField(max_length=20)
     
     class Meta:
         ordering = ['-fecha', '-numero']
+        unique_together = ['empresa', 'numero']  # Número único por empresa
     
     def get_items(self):
         return self.albaranitem_set.all()
@@ -65,10 +68,11 @@ class AlbaranItem(AbstractBaseItem):
 
 class Ticket(AbstractBaseDocument):
     """Modelo de Ticket"""
-    numero = models.CharField(max_length=20, unique=True)
+    numero = models.CharField(max_length=20)
     
     class Meta:
         ordering = ['-fecha', '-numero']
+        unique_together = ['empresa', 'numero']  # Número único por empresa
     
     def get_items(self):
         return self.ticketitem_set.all()
@@ -84,12 +88,13 @@ class TicketItem(AbstractBaseItem):
 
 class Factura(AbstractBaseDocument):
     """Modelo de Factura - hereda de AbstractBaseDocument"""
-    numero = models.CharField(max_length=20, unique=True)
-    documento_origen = models.CharField(max_length=50, blank=True, null=True)
+    numero = models.CharField(max_length=20)
+    documento_origen = models.CharField(max_length=50, blank=True, null=True, help_text="Tipo de documento del que se genera esta factura")
     pedido = models.ForeignKey(Pedido, on_delete=models.SET_NULL, null=True, blank=True, related_name='facturas')
     
     class Meta:
         ordering = ['-fecha', '-numero']
+        unique_together = ['empresa', 'numero']  # Número único por empresa
     
     def get_items(self):
         return self.facturaitem_set.all()

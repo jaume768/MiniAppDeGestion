@@ -1,210 +1,231 @@
-# 📚 Documentación de API - Sistema de Gestión Empresarial
+# 🏢 Sistema de Gestión Empresarial Multi-Tenant con JWT
 
-## 🏗️ Arquitectura Modular
+## 🚀 Características Principales
 
-La API está organizada en **5 apps temáticas** siguiendo principios DRY y separación de responsabilidades:
-
-- **`core/`** - Modelos base y entidades transversales
-- **`products/`** - Gestión de productos y catálogo
-- **`sales/`** - Documentos comerciales y ventas
-- **`hr/`** - Recursos humanos
-- **`projects/`** - Gestión de proyectos
+- ✅ **Multi-Tenancy**: Aislamiento completo de datos por empresa
+- ✅ **Autenticación JWT**: Tokens seguros con refresh automático  
+- ✅ **Arquitectura Modular**: 6 apps Django especializadas
+- ✅ **Roles y Permisos**: SuperAdmin, EmpresaAdmin, Usuario
+- ✅ **Dockerizado**: Despliegue simple con Docker Compose
+- ✅ **Base de Datos**: MySQL 8.0 con phpMyAdmin
+- ✅ **API REST**: Endpoints completos con Django REST Framework
+- ✅ **Generación PDF**: Facturas, presupuestos, albaranes y tickets
 
 ---
 
-## 🔗 Endpoints Principales
+## 🏗️ Arquitectura Multi-Tenant
 
-### **1. Core - Modelos Base** `/api/core/`
+### **Jerarquía de Usuarios**
+```
+SuperAdmin (admin)
+├── Acceso global a todas las empresas
+├── Gestión de empresas y administradores
+└── Sin restricciones de tenant
 
-#### **👥 Clientes**
-```http
-GET    /api/core/clientes/           # Listar clientes
-POST   /api/core/clientes/           # Crear cliente
-GET    /api/core/clientes/{id}/      # Obtener cliente
-PUT    /api/core/clientes/{id}/      # Actualizar cliente
-DELETE /api/core/clientes/{id}/      # Eliminar cliente
+EmpresaAdmin (admin_tecno, admin_lopez)
+├── Gestión completa de SU empresa
+├── Crear/editar usuarios de su empresa
+└── Acceso a todos los módulos de su empresa
+
+Usuario (ventas_678, almacen_678, etc.)
+├── Acceso limitado a SU empresa
+├── Permisos específicos por rol
+└── Solo datos de su empresa
 ```
 
-**Modelo Cliente:**
+### **Empresas de Ejemplo**
+- **TecnoSoluciones S.L.** (CIF: B12345678)
+- **Comercial López e Hijos S.A.** (CIF: A87654321)
+
+---
+
+## 🔐 Autenticación JWT
+
+### **Endpoints de Autenticación**
+```http
+POST /api/auth/login/          # Obtener token JWT
+POST /api/auth/refresh/        # Renovar token
+POST /api/auth/verify/         # Verificar token
+GET  /api/auth/me/            # Perfil del usuario
+```
+
+### **Estructura del Token JWT**
 ```json
 {
-  "id": 1,
-  "nombre": "Juan",
-  "apellido": "Pérez",
-  "email": "juan@empresa.com",
-  "telefono": "666123456",
-  "direccion": "C/ Principal, 123",
-  "ciudad": "Madrid",
-  "codigo_postal": "28001",
-  "pais": "España"
+  "access": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9...",
+  "refresh": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9...",
+  "user": {
+    "id": 2,
+    "username": "admin_tecno",
+    "role": "empresa_admin",
+    "empresa": {
+      "id": 1,
+      "nombre": "TecnoSoluciones S.L.",
+      "cif": "B12345678"
+    }
+  }
 }
 ```
 
 ---
 
-### **2. Products - Gestión de Productos** `/api/products/`
+## 🐳 Instalación y Despliegue
 
-#### **📂 Categorías**
+### **Prerequisitos**
+- Docker y Docker Compose
+- Puerto 8000 (API), 3306 (MySQL), 8080 (phpMyAdmin) libres
+
+### **Comandos de Inicio**
+```bash
+# Clonar el repositorio
+git clone <repo-url>
+cd MiniGestion
+
+# Iniciar servicios
+docker-compose up --build
+
+# La API estará disponible en:
+# API: http://localhost:8000
+# phpMyAdmin: http://localhost:8080
+```
+
+### **Datos Iniciales Cargados**
+```
+Superusuario: admin / admin123
+TecnoSoluciones:
+  - admin_tecno / tecno123
+  - ventas_678 / pass123
+  - almacen_678 / pass123
+
+Comercial López:
+  - admin_lopez / lopez123  
+  - ventas_321 / pass123
+  - almacen_321 / pass123
+```
+
+---
+
+## 🏗️ Arquitectura Modular
+
+La API está organizada en **6 apps Django** con aislamiento de tenants:
+
+### **`accounts/`** - Autenticación y Multi-Tenancy
+- **CustomUser**: Usuario con empresa y roles
+- **Empresa**: Modelo central de tenant
+- **JWT Views**: Login, refresh, verify, me
+
+### **`tenants/`** - Middleware y Utilidades  
+- **TenantMiddleware**: Filtrado automático por empresa
+- **ThreadLocalMiddleware**: Contexto de request
+- **Permissions**: Control de acceso por roles
+
+### **`core/`** - Modelos Base
+- **Cliente**: Clientes por empresa
+- **AbstractBaseDocument**: Base para documentos
+- **AbstractBaseItem**: Base para items de documentos
+
+### **`products/`** - Gestión de Productos
+- **Categoría**: Categorías de productos por empresa
+- **Marca**: Marcas por empresa  
+- **Artículo**: Productos con stock e IVA
+
+### **`sales/`** - Documentos Comerciales
+- **Presupuesto, Pedido, Albarán, Ticket, Factura**
+- **Items correspondientes** para cada documento
+- **Conversión automática** entre documentos
+
+### **`hr/`** - Recursos Humanos
+- **Departamento**: Departamentos por empresa
+- **Empleado**: Empleados con salarios y fechas
+
+### **`projects/`** - Gestión de Proyectos  
+- **Proyecto**: Proyectos con empleados asignados
+
+---
+
+## 🔗 Endpoints Principales (Multi-Tenant)
+
+> **Importante**: Todos los endpoints requieren autenticación JWT y respetan el aislamiento por empresa automáticamente.
+
+### **🔐 Autenticación**
+```http
+POST   /api/auth/login/           # Login con username/password
+POST   /api/auth/refresh/         # Renovar token JWT  
+POST   /api/auth/verify/          # Verificar token
+GET    /api/auth/me/             # Datos del usuario autenticado
+```
+
+### **🏢 Gestión de Empresas** (Solo SuperAdmin)
+```http
+GET    /api/accounts/empresas/     # Listar empresas
+POST   /api/accounts/empresas/     # Crear empresa
+GET    /api/accounts/empresas/{id}/ # Obtener empresa
+PUT    /api/accounts/empresas/{id}/ # Actualizar empresa
+```
+
+### **👤 Gestión de Usuarios** (SuperAdmin y EmpresaAdmin)
+```http
+GET    /api/accounts/users/        # Listar usuarios (filtrados por empresa)
+POST   /api/accounts/users/        # Crear usuario
+GET    /api/accounts/users/{id}/   # Obtener usuario
+PUT    /api/accounts/users/{id}/   # Actualizar usuario
+```
+
+### **📈 Gestión de Clientes** (EmpresaAdmin y Usuario)
+```http
+GET    /api/core/clientes/         # Listar clientes
+POST   /api/core/clientes/         # Crear cliente
+GET    /api/core/clientes/{id}/    # Obtener cliente
+PUT    /api/core/clientes/{id}/    # Actualizar cliente
+```
+
+### **📦 Gestión de Productos** (EmpresaAdmin y Usuario)
 ```http
 GET    /api/products/categorias/     # Listar categorías
 POST   /api/products/categorias/     # Crear categoría
 GET    /api/products/categorias/{id}/ # Obtener categoría
 PUT    /api/products/categorias/{id}/ # Actualizar categoría
-DELETE /api/products/categorias/{id}/ # Eliminar categoría
-```
 
-#### **🏷️ Marcas**
-```http
 GET    /api/products/marcas/         # Listar marcas
 POST   /api/products/marcas/         # Crear marca
 GET    /api/products/marcas/{id}/    # Obtener marca
 PUT    /api/products/marcas/{id}/    # Actualizar marca
-DELETE /api/products/marcas/{id}/    # Eliminar marca
-```
 
-#### **📦 Artículos**
-```http
 GET    /api/products/articulos/      # Listar artículos
 POST   /api/products/articulos/      # Crear artículo
 GET    /api/products/articulos/{id}/ # Obtener artículo
 PUT    /api/products/articulos/{id}/ # Actualizar artículo
-DELETE /api/products/articulos/{id}/ # Eliminar artículo
 ```
 
-**Modelo Artículo:**
-```json
-{
-  "id": 1,
-  "nombre": "Laptop Dell XPS 13",
-  "descripcion": "Ultrabook profesional",
-  "modelo": "XPS-13-2024",
-  "precio": 1299.99,
-  "stock": 15,
-  "iva": 21.0,
-  "categoria": 1,
-  "marca": 2
-}
-```
-
----
-
-### **3. Sales - Documentos Comerciales** `/api/sales/`
-
-#### **💰 Presupuestos**
+### **📋 Gestión de Documentos** (EmpresaAdmin y Usuario)
 ```http
 GET    /api/sales/presupuestos/               # Listar presupuestos
 POST   /api/sales/presupuestos/               # Crear presupuesto
 GET    /api/sales/presupuestos/{id}/          # Obtener presupuesto
 PUT    /api/sales/presupuestos/{id}/          # Actualizar presupuesto
-DELETE /api/sales/presupuestos/{id}/          # Eliminar presupuesto
-POST   /api/sales/presupuestos/{id}/convertir_a_factura/ # Convertir a factura
-```
 
-#### **📋 Pedidos**
-```http
 GET    /api/sales/pedidos/                    # Listar pedidos
 POST   /api/sales/pedidos/                    # Crear pedido
 GET    /api/sales/pedidos/{id}/               # Obtener pedido
 PUT    /api/sales/pedidos/{id}/               # Actualizar pedido
-DELETE /api/sales/pedidos/{id}/               # Eliminar pedido
-POST   /api/sales/pedidos/{id}/convertir_a_factura/ # Convertir a factura
-```
 
-#### **📤 Albaranes**
-```http
 GET    /api/sales/albaranes/                  # Listar albaranes
 POST   /api/sales/albaranes/                  # Crear albarán
 GET    /api/sales/albaranes/{id}/             # Obtener albarán
 PUT    /api/sales/albaranes/{id}/             # Actualizar albarán
-DELETE /api/sales/albaranes/{id}/             # Eliminar albarán
-POST   /api/sales/albaranes/{id}/convertir_a_factura/ # Convertir a factura
-```
 
-#### **🧾 Tickets**
-```http
 GET    /api/sales/tickets/                    # Listar tickets
 POST   /api/sales/tickets/                    # Crear ticket
 GET    /api/sales/tickets/{id}/               # Obtener ticket
 PUT    /api/sales/tickets/{id}/               # Actualizar ticket
-DELETE /api/sales/tickets/{id}/               # Eliminar ticket
-POST   /api/sales/tickets/{id}/convertir_a_factura/ # Convertir a factura
-```
 
-#### **📄 Facturas**
-```http
 GET    /api/sales/facturas/                   # Listar facturas
 POST   /api/sales/facturas/                   # Crear factura
 GET    /api/sales/facturas/{id}/              # Obtener factura
 PUT    /api/sales/facturas/{id}/              # Actualizar factura
-DELETE /api/sales/facturas/{id}/              # Eliminar factura
-POST   /api/sales/facturas/crear_desde_documento/ # Crear desde otro documento
 ```
 
-**Estructura de Documento de Venta:**
-```json
-{
-  "id": 1,
-  "numero": "PRES-2024-001",
-  "fecha": "2024-06-23",
-  "cliente": 1,
-  "subtotal": 1000.00,
-  "iva_total": 210.00,
-  "total": 1210.00,
-  "is_facturado": false,
-  "items": [
-    {
-      "id": 1,
-      "articulo": 1,
-      "cantidad": 2,
-      "precio_unitario": 500.00,
-      "iva": 21.0,
-      "subtotal": 1000.00,
-      "total": 1210.00
-    }
-  ]
-}
-```
-
----
-
-### **4. HR - Recursos Humanos** `/api/hr/`
-
-#### **🏢 Departamentos**
-```http
-GET    /api/hr/departamentos/        # Listar departamentos
-POST   /api/hr/departamentos/        # Crear departamento
-GET    /api/hr/departamentos/{id}/   # Obtener departamento
-PUT    /api/hr/departamentos/{id}/   # Actualizar departamento
-DELETE /api/hr/departamentos/{id}/   # Eliminar departamento
-```
-
-#### **👨‍💼 Empleados**
-```http
-GET    /api/hr/empleados/            # Listar empleados
-POST   /api/hr/empleados/            # Crear empleado
-GET    /api/hr/empleados/{id}/       # Obtener empleado
-PUT    /api/hr/empleados/{id}/       # Actualizar empleado
-DELETE /api/hr/empleados/{id}/       # Eliminar empleado
-```
-
----
-
-### **5. Projects - Gestión de Proyectos** `/api/projects/`
-
-#### **📋 Proyectos**
-```http
-GET    /api/projects/proyectos/      # Listar proyectos
-POST   /api/projects/proyectos/      # Crear proyecto
-GET    /api/projects/proyectos/{id}/ # Obtener proyecto
-PUT    /api/projects/proyectos/{id}/ # Actualizar proyecto
-DELETE /api/projects/proyectos/{id}/ # Eliminar proyecto
-```
-
----
-
-### **6. Reports - Reportes Centralizados** `/api/reportes/`
-
-#### **📊 Endpoints de Reportes**
+### **📊 Reportes y Estadísticas** (EmpresaAdmin y Usuario)
 ```http
 GET /api/reportes/ventas_resumen/?fecha_desde=2024-01-01&fecha_hasta=2024-12-31
     # Resumen de ventas por tipo de documento
@@ -219,285 +240,422 @@ GET /api/reportes/facturacion_mensual/
     # Estadísticas de facturación de los últimos 12 meses
 ```
 
-**Ejemplo Respuesta Ventas Resumen:**
-```json
+---
+
+## 📄 Guía de Pruebas
+
+### **Pruebas Unitarias**
+```bash
+# Ejecutar pruebas unitarias
+python manage.py test
+```
+
+### **Pruebas de Integración**
+```bash
+# Ejecutar pruebas de integración
+python manage.py test --tag=integration
+```
+
+### **Pruebas de API**
+```bash
+# Ejecutar pruebas de API
+python manage.py test --tag=api
+```
+
+### **Pruebas de UI**
+```bash
+# Ejecutar pruebas de UI
+python manage.py test --tag=ui
+```
+
+---
+
+## 📈 Despliegue en Producción
+
+### **Configuración de Entorno**
+```bash
+# Crear archivo .env en el directorio raíz
+cp .env.example .env
+
+# Editar variables de entorno según sea necesario
+nano .env
+```
+
+### **Despliegue con Docker Compose**
+```bash
+# Iniciar servicios en segundo plano
+docker-compose up -d
+
+# Verificar estado de los servicios
+docker-compose ps
+```
+
+### **Acceso a la API**
+```bash
+# La API estará disponible en:
+# API: http://localhost:8000
+# phpMyAdmin: http://localhost:8080
+```
+
+---
+
+## 📊 Monitoreo y Logging
+
+### **Monitoreo de Servicios**
+```bash
+# Verificar estado de los servicios
+docker-compose ps
+
+# Verificar logs de los servicios
+docker-compose logs
+```
+
+### **Logging de la API**
+```bash
+# Verificar logs de la API
+docker-compose logs api
+```
+
+### **Monitoreo de Base de Datos**
+```bash
+# Acceder a phpMyAdmin
+http://localhost:8080
+```
+
+---
+
+## 🧪 Guía de Pruebas con Postman - 10 Ejemplos Prácticos
+
+### **🔧 Configuración Inicial de Postman**
+
+1. **Crear una nueva colección**: `MiniGestion Multi-Tenant API`
+2. **Configurar variables de entorno**:
+   - `base_url`: `http://localhost:8000`
+   - `access_token`: (se llenará automáticamente)
+   - `empresa_id`: (se llenará automáticamente)
+
+### **📋 Tests Paso a Paso**
+
+---
+
+#### **Test 1: 🔐 Autenticación - Login como SuperAdmin**
+
+```http
+POST {{base_url}}/api/auth/login/
+Content-Type: application/json
+
 {
-  "presupuestos": {
-    "count": 15,
-    "total": 25000.00
-  },
-  "pedidos": {
-    "count": 12,
-    "total": 18000.00
-  },
-  "facturas": {
-    "count": 8,
-    "total": 15000.00
-  }
+  "username": "admin", 
+  "password": "admin123"
 }
 ```
 
----
-
-## 🛠️ Funcionalidades Avanzadas
-
-### **🔒 Protección de Documentos Facturados**
-
-El sistema incluye el **`ReadOnlyIfInvoicedMixin`** que previene:
-- ✅ Edición de documentos ya facturados
-- ✅ Eliminación de documentos ya facturados
-- ✅ Mantiene integridad de datos fiscales
-
-### **🔄 Conversión de Documentos**
-
-El **`DocumentConversionMixin`** permite:
-- Presupuesto → Factura
-- Pedido → Factura  
-- Albarán → Factura
-- Ticket → Factura
-
-**Uso:**
-```http
-POST /api/sales/presupuestos/{id}/convertir_a_factura/
-POST /api/sales/facturas/crear_desde_documento/
-{
-  "documento_tipo": "presupuesto",
-  "documento_id": 5
-}
-```
-
-### **📈 Cálculos Automáticos**
-
-- **Totales automáticos** mediante señales Django
-- **Recálculo en tiempo real** al modificar items
-- **Agrupación por IVA** para cumplimiento fiscal
-- **Validaciones de negocio** integradas
-
----
-
-## 🏗️ Arquitectura DRY Implementada
-
-### **📋 Modelos Base Abstractos**
-
-#### **`AbstractBaseDocument`** (core/models.py)
-```python
-class AbstractBaseDocument(models.Model):
-    cliente = models.ForeignKey('core.Cliente', on_delete=models.CASCADE)
-    fecha = models.DateField(auto_now_add=True)
-    subtotal = models.DecimalField(max_digits=10, decimal_places=2, default=0)
-    iva_total = models.DecimalField(max_digits=10, decimal_places=2, default=0)
-    total = models.DecimalField(max_digits=10, decimal_places=2, default=0)
-    is_facturado = models.BooleanField(default=False)
-    
-    class Meta:
-        abstract = True
-        
-    @property
-    def numero_formateado(self):
-        """Genera número de documento con formato específico"""
-        # Implementación automática
-    
-    def recalcular_totales(self):
-        """Recalcula totales desde los items"""
-        # Lógica centralizada
-```
-
-#### **`AbstractBaseItem`** (core/models.py)
-```python
-class AbstractBaseItem(models.Model):
-    articulo = models.ForeignKey('products.Articulo', on_delete=models.CASCADE)
-    cantidad = models.PositiveIntegerField()
-    precio_unitario = models.DecimalField(max_digits=10, decimal_places=2)
-    iva = models.DecimalField(max_digits=5, decimal_places=2)
-    
-    class Meta:
-        abstract = True
-    
-    @property
-    def subtotal(self):
-        return self.cantidad * self.precio_unitario
-    
-    @property 
-    def total(self):
-        return self.subtotal * (1 + self.iva / 100)
-```
-
-### **🔧 Mixins Reutilizables**
-
-- **`ReadOnlyIfInvoicedMixin`**: Protección fiscal
-- **`DocumentConversionMixin`**: Conversión entre documentos
-- **Filtros y búsquedas**: Implementación consistente
-
----
-
-## 📄 Sistema de Generación de PDF ✅ **IMPLEMENTADO**
-
-### **🎯 Funcionalidad Completa**
-
-El sistema de generación de PDF está **completamente implementado** y funcional para todos los documentos de venta:
-
-- ✅ **Presupuestos** → PDF profesional
-- ✅ **Pedidos** → PDF con detalles de pedido  
-- ✅ **Albaranes** → PDF de entrega
-- ✅ **Tickets** → PDF de venta
-- ✅ **Facturas** → PDF con cumplimiento fiscal
-
-### **🔗 Endpoints de PDF Disponibles**
-
-#### **Para cada tipo de documento:**
-```http
-# PRESUPUESTOS
-GET /api/sales/presupuestos/{id}/ver_pdf/        # Ver en navegador
-GET /api/sales/presupuestos/{id}/generar_pdf/    # Descargar archivo
-
-# PEDIDOS  
-GET /api/sales/pedidos/{id}/ver_pdf/             # Ver en navegador
-GET /api/sales/pedidos/{id}/generar_pdf/         # Descargar archivo
-
-# ALBARANES
-GET /api/sales/albaranes/{id}/ver_pdf/           # Ver en navegador  
-GET /api/sales/albaranes/{id}/generar_pdf/       # Descargar archivo
-
-# TICKETS
-GET /api/sales/tickets/{id}/ver_pdf/             # Ver en navegador
-GET /api/sales/tickets/{id}/generar_pdf/         # Descargar archivo
-
-# FACTURAS
-GET /api/sales/facturas/{id}/ver_pdf/            # Ver en navegador
-GET /api/sales/facturas/{id}/generar_pdf/        # Descargar archivo
-```
-
-### **📋 Características del PDF**
-
-#### **✅ Cumplimiento Fiscal Español**
-- **Desglose automático por tipos de IVA** 
-- **Cálculos precisos** de base imponible y cuotas
-- **Numeración correlativa** por tipo de documento
-- **Formato profesional** acorde a normativa
-
-#### **📊 Contenido Completo**
-1. **Encabezado del documento** con tipo y número
-2. **Fecha de emisión** formateada
-3. **Datos completos del cliente** (nombre, dirección, contacto)
-4. **Tabla detallada de productos** con:
-   - Concepto/Artículo
-   - Cantidad
-   - Precio unitario
-   - Porcentaje de IVA
-   - Subtotal por línea
-   - Total por línea
-5. **Desglose por IVA** (cuando hay múltiples tipos)
-6. **Totales finales** destacados
-7. **Notas específicas** por tipo de documento
-
-#### **🎨 Diseño Profesional**
-- **Layout A4** estándar empresarial
-- **Tipografías legibles** (Helvetica/Arial)
-- **Tablas estructuradas** con bordes y fondos
-- **Colores corporativos** (gris/beige)
-- **Espaciado óptimo** para lectura
-
-### **🔧 Implementación Técnica**
-
-#### **Generador Modular** (`core/pdf_utils.py`)
-```python
-from core.pdf_utils import generate_document_pdf
-
-# Generar PDF de cualquier documento
-def generar_pdf_view(request, documento_id):
-    documento = get_object_or_404(ModeloDocumento, id=documento_id)
-    return generate_document_pdf(documento, download=True)
-```
-
-#### **Detección Automática de Tipo**
-El sistema detecta automáticamente el tipo de documento:
-- `Factura` → "FACTURA #123"
-- `Presupuesto` → "PRESUPUESTO #456" 
-- `Pedido` → "PEDIDO #789"
-- `Albaran` → "ALBARÁN #012"
-- `Ticket` → "TICKET #345"
-
-#### **Notas Específicas por Documento**
-- **Presupuestos**: "Este presupuesto tiene validez de 30 días"
-- **Pedidos**: "Pedido pendiente de entrega"
-- **Albaranes**: "Mercancía entregada conforme"
-- **Tickets/Facturas**: Texto estándar de agradecimiento
-
-### **📱 Uso desde Frontend**
-
-#### **JavaScript/Fetch**
+**Script Post-Response (Tests tab):**
 ```javascript
-// Ver PDF en nueva pestaña
-function verPDF(tipoDocumento, id) {
-    const url = `/api/sales/${tipoDocumento}/${id}/ver_pdf/`;
-    window.open(url, '_blank');
+if (pm.response.code === 200) {
+    const response = pm.response.json();
+    pm.environment.set("access_token", response.access);
+    pm.environment.set("refresh_token", response.refresh);
+    console.log("✅ Login exitoso como SuperAdmin");
+    console.log("Usuario:", response.user.username);
+    console.log("Rol:", response.user.role);
 }
+```
 
-// Descargar PDF
-function descargarPDF(tipoDocumento, id) {
-    const url = `/api/sales/${tipoDocumento}/${id}/generar_pdf/`;
-    window.location.href = url;
+**Resultado Esperado**: Token JWT y datos del superadmin sin empresa asignada.
+
+---
+
+#### **Test 2: 🏢 Listar Empresas (Solo SuperAdmin)**
+
+```http
+GET {{base_url}}/api/accounts/empresas/
+Authorization: Bearer {{access_token}}
+```
+
+**Resultado Esperado**: Lista con TecnoSoluciones y Comercial López.
+
+---
+
+#### **Test 3: 🔐 Login como Admin de Empresa**
+
+```http
+POST {{base_url}}/api/auth/login/
+Content-Type: application/json
+
+{
+  "username": "admin_tecno",
+  "password": "tecno123"
 }
-
-// Ejemplo de uso
-verPDF('facturas', 123);        // Ver factura #123
-descargarPDF('presupuestos', 456); // Descargar presupuesto #456
 ```
 
-#### **Botones en Tablas**
-```html
-<!-- Botón Ver PDF -->
-<button onclick="verPDF('facturas', ${factura.id})" 
-        class="actionIcon" title="Ver PDF">
-    📄
-</button>
-
-<!-- Botón Descargar PDF -->  
-<button onclick="descargarPDF('facturas', ${factura.id})"
-        class="actionIcon" title="Descargar PDF">
-    ⬇️
-</button>
+**Script Post-Response:**
+```javascript
+if (pm.response.code === 200) {
+    const response = pm.response.json();
+    pm.environment.set("access_token", response.access);
+    pm.environment.set("empresa_id", response.user.empresa.id);
+    console.log("✅ Login exitoso como Admin de Empresa");
+    console.log("Empresa:", response.user.empresa.nombre);
+    console.log("CIF:", response.user.empresa.cif);
+}
 ```
 
-### **⚡ Rendimiento y Optimización**
+**Resultado Esperado**: Token JWT con datos de TecnoSoluciones S.L.
 
-- **Generación rápida** usando ReportLab
-- **Memoria eficiente** con BytesIO
-- **Cálculos precisos** con Decimal para evitar errores de flotante
-- **Lazy loading** de items por documento
-- **Respuestas HTTP optimizadas** para streaming
+---
 
-### **🔍 Desglose Fiscal Automático**
+#### **Test 4: 👤 Perfil del Usuario Autenticado**
 
-Cuando un documento tiene productos con **diferentes tipos de IVA**, el PDF incluye automáticamente una tabla de desglose:
-
-```
-Desglose por Tipo de IVA:
-┌─────────────────┬────────┬─────────────┬──────────────┐
-│ Base Imponible  │ % IVA  │ Cuota IVA   │ Total        │
-├─────────────────┼────────┼─────────────┼──────────────┤
-│ 500.00 €        │ 21.0%  │ 105.00 €    │ 605.00 €     │
-│ 200.00 €        │ 10.0%  │ 20.00 €     │ 220.00 €     │
-│ 100.00 €        │ 4.0%   │ 4.00 €      │ 104.00 €     │
-└─────────────────┴────────┴─────────────┴──────────────┘
+```http
+GET {{base_url}}/api/auth/me/
+Authorization: Bearer {{access_token}}
 ```
 
-### **🚀 Funcionalidades Avanzadas**
+**Resultado Esperado**: Datos completos del usuario con su empresa y permisos.
 
-#### **Personalización por Empresa**
-```python
-# Futuras mejoras posibles
-class PDFDocumentGenerator:
-    def __init__(self, documento, empresa_config=None):
-        # Logo personalizado
-        # Colores corporativos
-        # Datos fiscales empresa
+---
+
+#### **Test 5: 📦 Listar Productos (Filtrados por Empresa)**
+
+```http
+GET {{base_url}}/api/products/articulos/
+Authorization: Bearer {{access_token}}
 ```
 
-#### **Plantillas Específicas**
-- **Facturas**: Formato fiscal completo
-- **Presupuestos**: Diseño comercial atractivo  
-- **Albaranes**: Formato de entrega simplificado
-- **Tickets**: Diseño compacto para punto de venta
+**Resultado Esperado**: Solo productos de TecnoSoluciones (Samsung, Apple, Sony, etc.).
+
+---
+
+#### **Test 6: ➕ Crear Nuevo Cliente**
+
+```http
+POST {{base_url}}/api/core/clientes/
+Authorization: Bearer {{access_token}}
+Content-Type: application/json
+
+{
+  "nombre": "María",
+  "apellido": "González",
+  "email": "maria@ejemplo.com",
+  "telefono": "666777888",
+  "direccion": "Av. Libertad 456",
+  "ciudad": "Barcelona",
+  "codigo_postal": "08001",
+  "pais": "España"
+}
+```
+
+**Script Post-Response:**
+```javascript
+if (pm.response.code === 201) {
+    const response = pm.response.json();
+    pm.environment.set("cliente_id", response.id);
+    console.log("✅ Cliente creado con ID:", response.id);
+}
+```
+
+**Resultado Esperado**: Cliente creado automáticamente asociado a TecnoSoluciones.
+
+---
+
+#### **Test 7: 💰 Crear Presupuesto con Items**
+
+```http
+POST {{base_url}}/api/sales/presupuestos/
+Authorization: Bearer {{access_token}}
+Content-Type: application/json
+
+{
+  "numero": "PRES-TEST-001",
+  "cliente": {{cliente_id}},
+  "items": [
+    {
+      "articulo": 1,
+      "cantidad": 2,
+      "precio_unitario": 1200.00,
+      "iva_porcentaje": 21.0
+    },
+    {
+      "articulo": 2, 
+      "cantidad": 1,
+      "precio_unitario": 800.00,
+      "iva_porcentaje": 21.0
+    }
+  ]
+}
+```
+
+**Script Post-Response:**
+```javascript
+if (pm.response.code === 201) {
+    const response = pm.response.json();
+    pm.environment.set("presupuesto_id", response.id);
+    console.log("✅ Presupuesto creado con ID:", response.id);
+    console.log("Total:", response.total);
+}
+```
+
+**Resultado Esperado**: Presupuesto con cálculos automáticos de IVA y totales.
+
+---
+
+#### **Test 8: 📄 Generar PDF del Presupuesto**
+
+```http
+GET {{base_url}}/api/sales/presupuestos/{{presupuesto_id}}/ver_pdf/
+Authorization: Bearer {{access_token}}
+```
+
+**Resultado Esperado**: PDF profesional del presupuesto que se abre en navegador.
+
+---
+
+#### **Test 9: 🔄 Convertir Presupuesto a Factura**
+
+```http
+POST {{base_url}}/api/sales/presupuestos/{{presupuesto_id}}/convertir_a_factura/
+Authorization: Bearer {{access_token}}
+Content-Type: application/json
+
+{
+  "numero_factura": "FAC-TEST-001"
+}
+```
+
+**Script Post-Response:**
+```javascript
+if (pm.response.code === 201) {
+    const response = pm.response.json();
+    pm.environment.set("factura_id", response.id);
+    console.log("✅ Factura creada con ID:", response.id);
+    console.log("Número:", response.numero);
+}
+```
+
+**Resultado Esperado**: Nueva factura creada con los mismos items del presupuesto.
+
+---
+
+#### **Test 10: 🔐 Test de Aislamiento Multi-Tenant**
+
+**Paso 1**: Login como admin de otra empresa:
+```http
+POST {{base_url}}/api/auth/login/
+Content-Type: application/json
+
+{
+  "username": "admin_lopez",
+  "password": "lopez123"
+}
+```
+
+**Paso 2**: Intentar acceder al presupuesto de TecnoSoluciones:
+```http
+GET {{base_url}}/api/sales/presupuestos/{{presupuesto_id}}/
+Authorization: Bearer {{access_token}}
+```
+
+**Resultado Esperado**: Error 404 (Not Found) porque el presupuesto pertenece a otra empresa.
+
+---
+
+### **📊 Reportes y Estadísticas**
+
+#### **Test Bonus: Reportes de Ventas**
+
+```http
+GET {{base_url}}/api/reportes/ventas_resumen/?fecha_desde=2024-01-01&fecha_hasta=2024-12-31
+Authorization: Bearer {{access_token}}
+```
+
+**Resultado Esperado**: Resumen de ventas filtrado automáticamente por la empresa del usuario.
+
+---
+
+### **🔍 Validaciones de Seguridad**
+
+#### **Test de Seguridad 1: Token Expirado**
+1. Esperar que expire el token (24 horas) o usar token inválido
+2. Intentar cualquier endpoint
+3. **Resultado Esperado**: Error 401 (Unauthorized)
+
+#### **Test de Seguridad 2: Acceso Sin Token**
+1. Intentar cualquier endpoint sin header Authorization
+2. **Resultado Esperado**: Error 401 (Unauthorized)
+
+#### **Test de Seguridad 3: Permisos de Rol**
+1. Login como usuario básico (ventas_678)
+2. Intentar crear otro usuario
+3. **Resultado Esperado**: Error 403 (Forbidden)
+
+---
+
+### **🎯 Casos de Uso Completos**
+
+#### **Flujo Comercial Completo**:
+1. ✅ Login como admin_tecno
+2. ✅ Crear cliente 
+3. ✅ Crear presupuesto
+4. ✅ Generar PDF del presupuesto
+5. ✅ Convertir a pedido
+6. ✅ Convertir pedido a albarán
+7. ✅ Convertir albarán a factura
+8. ✅ Generar PDF de factura final
+
+#### **Validación Multi-Tenancy**:
+1. ✅ Login como admin_tecno (empresa 1)
+2. ✅ Crear datos de prueba
+3. ✅ Login como admin_lopez (empresa 2) 
+4. ✅ Verificar que NO puede ver datos de empresa 1
+5. ✅ Crear datos propios de empresa 2
+6. ✅ Login como superadmin
+7. ✅ Verificar que VE datos de ambas empresas
+
+---
+
+### **⚙️ Scripts de Automatización**
+
+#### **Pre-request Script Global** (Nivel de Colección):
+```javascript
+// Auto-refresh token si está próximo a expirar
+const token = pm.environment.get("access_token");
+if (!token) {
+    console.log("⚠️ No hay token - hacer login primero");
+}
+```
+
+#### **Test Script Global** (Nivel de Colección):
+```javascript
+// Verificar respuestas exitosas
+pm.test("Status code is success", function () {
+    pm.expect(pm.response.code).to.be.oneOf([200, 201, 204]);
+});
+
+// Log automático de errores
+if (pm.response.code >= 400) {
+    console.log("❌ Error:", pm.response.code, pm.response.text());
+}
+```
+
+---
+
+## 🚀 Próximos Pasos de Desarrollo
+
+### **Funcionalidades Planificadas**
+- 📱 **Frontend React**: Interfaz completa multi-tenant
+- 🔔 **Notificaciones**: Sistema de alertas por empresa
+- 📈 **Dashboard Analytics**: Métricas y KPIs por tenant
+- 🔄 **Backup Automático**: Respaldos programados por empresa
+- 🌐 **Multi-idioma**: Soporte i18n para diferentes regiones
+- 🔐 **2FA**: Autenticación de dos factores
+- 📧 **Email Integration**: Envío automático de PDFs
+
+### **Mejoras Técnicas**
+- ⚡ **Caching Redis**: Cache distribuido por tenant
+- 🔍 **Elasticsearch**: Búsqueda avanzada de documentos
+- 📊 **Monitoring**: Prometheus + Grafana
+- 🧪 **Test Coverage**: 100% cobertura de pruebas
+- 📦 **CI/CD Pipeline**: Deploy automático con Docker
 
 ---

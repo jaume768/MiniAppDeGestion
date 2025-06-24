@@ -23,14 +23,39 @@ from core.reports import ReportsViewSet
 reports_router = DefaultRouter()
 reports_router.register(r'reportes', ReportsViewSet, basename='reportes')
 
+# Importar los routers de cada app
+from core.urls import router as core_router
+from products.urls import router as products_router
+from sales.urls import router as sales_router
+from hr.urls import router as hr_router
+from projects.urls import router as projects_router
+
+# Router principal
+router = DefaultRouter()
+
+# Registrar todas las rutas de los módulos
+router.registry.extend(core_router.registry)
+router.registry.extend(products_router.registry)
+router.registry.extend(sales_router.registry)
+router.registry.extend(hr_router.registry)
+router.registry.extend(projects_router.registry)
+
 urlpatterns = [
     path('admin/', admin.site.urls),
-    # URLs de apps modulares
-    path('', include('core.urls')),
-    path('', include('products.urls')),
-    path('', include('sales.urls')),
-    path('', include('hr.urls')),
-    path('', include('projects.urls')),
+    
+    # API de autenticación y gestión de usuarios/empresas
+    path('api/auth/', include('accounts.urls')),
+    
+    # APIs modulares
+    path('api/', include(router.urls)),
+    
+    # URLs específicas de los módulos si las hay
+    path('api/core/', include('core.urls')),
+    path('api/products/', include('products.urls')),
+    path('api/sales/', include('sales.urls')),
+    path('api/hr/', include('hr.urls')),
+    path('api/projects/', include('projects.urls')),
+    
     # Reportes
     path('api/', include(reports_router.urls)),
 ]
