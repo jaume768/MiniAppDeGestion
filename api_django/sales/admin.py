@@ -12,7 +12,7 @@ class PresupuestoItemInline(admin.TabularInline):
     model = PresupuestoItem
     extra = 1
     fields = ('articulo', 'cantidad', 'precio_unitario', 'iva_porcentaje')
-    readonly_fields = ('total_linea',)
+    readonly_fields = ('total',)
 
 
 @admin.register(Presupuesto)
@@ -20,7 +20,7 @@ class PresupuestoAdmin(admin.ModelAdmin):
     list_display = ('numero', 'empresa', 'cliente', 'fecha', 'subtotal', 'total', 'created_at')
     list_filter = ('empresa', 'fecha', 'created_at')
     search_fields = ('numero', 'cliente__nombre')
-    readonly_fields = ('subtotal', 'iva_total', 'total', 'created_at', 'updated_at')
+    readonly_fields = ('subtotal', 'iva', 'total', 'created_at', 'updated_at')
     inlines = [PresupuestoItemInline]
     
     fieldsets = (
@@ -28,7 +28,7 @@ class PresupuestoAdmin(admin.ModelAdmin):
             'fields': ('numero', 'cliente', 'fecha', 'observaciones')
         }),
         ('Totales', {
-            'fields': ('subtotal', 'iva_total', 'total'),
+            'fields': ('subtotal', 'iva', 'total'),
             'classes': ('collapse',)
         }),
         ('Fechas', {
@@ -59,15 +59,15 @@ class PedidoItemInline(admin.TabularInline):
     model = PedidoItem
     extra = 1
     fields = ('articulo', 'cantidad', 'precio_unitario', 'iva_porcentaje')
-    readonly_fields = ('total_linea',)
+    readonly_fields = ('total',)
 
 
 @admin.register(Pedido)
 class PedidoAdmin(admin.ModelAdmin):
     list_display = ('numero', 'empresa', 'cliente', 'fecha', 'entregado', 'subtotal', 'total', 'created_at')
-    list_filter = ('empresa', 'entregado', 'fecha', 'created_at')
+    list_filter = ('empresa', 'fecha', 'entregado', 'created_at')
     search_fields = ('numero', 'cliente__nombre')
-    readonly_fields = ('subtotal', 'iva_total', 'total', 'created_at', 'updated_at')
+    readonly_fields = ('subtotal', 'iva', 'total', 'created_at', 'updated_at')
     inlines = [PedidoItemInline]
     
     fieldsets = (
@@ -75,7 +75,7 @@ class PedidoAdmin(admin.ModelAdmin):
             'fields': ('numero', 'cliente', 'fecha', 'entregado', 'observaciones')
         }),
         ('Totales', {
-            'fields': ('subtotal', 'iva_total', 'total'),
+            'fields': ('subtotal', 'iva', 'total'),
             'classes': ('collapse',)
         }),
         ('Fechas', {
@@ -106,7 +106,7 @@ class FacturaItemInline(admin.TabularInline):
     model = FacturaItem
     extra = 1
     fields = ('articulo', 'cantidad', 'precio_unitario', 'iva_porcentaje')
-    readonly_fields = ('total_linea',)
+    readonly_fields = ('total',)
 
 
 @admin.register(Factura)
@@ -114,7 +114,7 @@ class FacturaAdmin(admin.ModelAdmin):
     list_display = ('numero', 'empresa', 'cliente', 'fecha', 'documento_origen', 'subtotal', 'total', 'created_at')
     list_filter = ('empresa', 'documento_origen', 'fecha', 'created_at')
     search_fields = ('numero', 'cliente__nombre')
-    readonly_fields = ('subtotal', 'iva_total', 'total', 'created_at', 'updated_at')
+    readonly_fields = ('subtotal', 'iva', 'total', 'created_at', 'updated_at')
     inlines = [FacturaItemInline]
     
     fieldsets = (
@@ -122,7 +122,7 @@ class FacturaAdmin(admin.ModelAdmin):
             'fields': ('numero', 'cliente', 'fecha', 'documento_origen', 'pedido', 'observaciones')
         }),
         ('Totales', {
-            'fields': ('subtotal', 'iva_total', 'total'),
+            'fields': ('subtotal', 'iva', 'total'),
             'classes': ('collapse',)
         }),
         ('Fechas', {
@@ -153,7 +153,7 @@ class AlbaranItemInline(admin.TabularInline):
     model = AlbaranItem
     extra = 1
     fields = ('articulo', 'cantidad', 'precio_unitario', 'iva_porcentaje')
-    readonly_fields = ('total_linea',)
+    readonly_fields = ('total',)
 
 
 @admin.register(Albaran)
@@ -161,7 +161,7 @@ class AlbaranAdmin(admin.ModelAdmin):
     list_display = ('numero', 'empresa', 'cliente', 'fecha', 'subtotal', 'total', 'created_at')
     list_filter = ('empresa', 'fecha', 'created_at')
     search_fields = ('numero', 'cliente__nombre')
-    readonly_fields = ('subtotal', 'iva_total', 'total', 'created_at', 'updated_at')
+    readonly_fields = ('subtotal', 'iva', 'total', 'created_at', 'updated_at')
     inlines = [AlbaranItemInline]
     
     def get_queryset(self, request):
@@ -177,7 +177,7 @@ class TicketItemInline(admin.TabularInline):
     model = TicketItem
     extra = 1
     fields = ('articulo', 'cantidad', 'precio_unitario', 'iva_porcentaje')
-    readonly_fields = ('total_linea',)
+    readonly_fields = ('total',)
 
 
 @admin.register(Ticket)
@@ -185,7 +185,7 @@ class TicketAdmin(admin.ModelAdmin):
     list_display = ('numero', 'empresa', 'cliente', 'fecha', 'subtotal', 'total', 'created_at')
     list_filter = ('empresa', 'fecha', 'created_at')
     search_fields = ('numero', 'cliente__nombre')
-    readonly_fields = ('subtotal', 'iva_total', 'total', 'created_at', 'updated_at')
+    readonly_fields = ('subtotal', 'iva', 'total', 'created_at', 'updated_at')
     inlines = [TicketItemInline]
     
     def get_queryset(self, request):
