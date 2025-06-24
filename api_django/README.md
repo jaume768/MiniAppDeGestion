@@ -296,32 +296,6 @@ docker-compose ps
 # API: http://localhost:8000
 # phpMyAdmin: http://localhost:8080
 ```
-
----
-
-## 📊 Monitoreo y Logging
-
-### **Monitoreo de Servicios**
-```bash
-# Verificar estado de los servicios
-docker-compose ps
-
-# Verificar logs de los servicios
-docker-compose logs
-```
-
-### **Logging de la API**
-```bash
-# Verificar logs de la API
-docker-compose logs api
-```
-
-### **Monitoreo de Base de Datos**
-```bash
-# Acceder a phpMyAdmin
-http://localhost:8080
-```
-
 ---
 
 ## 🧪 Guía de Pruebas con Postman - 10 Ejemplos Prácticos
@@ -369,7 +343,7 @@ if (pm.response.code === 200) {
 #### **Test 2: 🏢 Listar Empresas (Solo SuperAdmin)**
 
 ```http
-GET {{base_url}}/api/accounts/empresas/
+GET {{base_url}}/api/auth/empresas/
 Authorization: Bearer {{access_token}}
 ```
 
