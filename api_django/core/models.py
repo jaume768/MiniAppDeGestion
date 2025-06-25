@@ -5,18 +5,39 @@ from tenants.models import TenantModelMixin
 
 class Cliente(TenantModelMixin, models.Model):
     """Modelo Cliente - común a varias apps"""
-    nombre = models.CharField(max_length=200)
-    email = models.EmailField(unique=False)
-    telefono = models.CharField(max_length=20, blank=True, null=True)
-    direccion = models.TextField(blank=True, null=True)
-    cif = models.CharField(max_length=20, blank=True, null=True)
-    activo = models.BooleanField(default=True)
+    # Datos básicos
+    nombre = models.CharField(max_length=200, verbose_name="Nombre")
+    nombre_comercial = models.CharField(max_length=200, verbose_name="Nombre comercial", blank=True, null=True)
+    es_empresa = models.BooleanField(default=True, verbose_name="Es empresa")
+    
+    # Contacto
+    email = models.EmailField(verbose_name="Email", blank=True, null=True)
+    telefono = models.CharField(max_length=20, verbose_name="Teléfono", blank=True, null=True)
+    movil = models.CharField(max_length=20, verbose_name="Móvil", blank=True, null=True)
+    website = models.URLField(verbose_name="Website", blank=True, null=True)
+    
+    # Dirección
+    direccion = models.CharField(max_length=300, verbose_name="Dirección", blank=True, null=True)
+    poblacion = models.CharField(max_length=100, verbose_name="Población", blank=True, null=True)
+    codigo_postal = models.CharField(max_length=10, verbose_name="Código postal", blank=True, null=True)
+    provincia = models.CharField(max_length=100, verbose_name="Provincia", blank=True, null=True)
+    pais = models.CharField(max_length=100, verbose_name="País", default="España")
+    
+    # Datos fiscales
+    cif = models.CharField(max_length=20, verbose_name="CIF/NIF", blank=True, null=True)
+    identificacion_vat = models.CharField(max_length=20, verbose_name="Identificación VAT", blank=True, null=True)
+    
+    # Metadatos
+    tags = models.CharField(max_length=500, verbose_name="Tags", blank=True, null=True, help_text="Separar por comas")
+    activo = models.BooleanField(default=True, verbose_name="Activo")
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
         ordering = ['nombre']
-        unique_together = ['empresa', 'email']  # Email único por empresa
+        unique_together = ['empresa', 'email']
+        verbose_name = "Cliente"
+        verbose_name_plural = "Clientes"
 
     def __str__(self):
         return self.nombre
@@ -24,11 +45,30 @@ class Cliente(TenantModelMixin, models.Model):
 
 class Proveedor(TenantModelMixin, models.Model):
     """Modelo para proveedores de la empresa"""
+    # Datos básicos
     nombre = models.CharField(max_length=200, verbose_name="Nombre")
+    nombre_comercial = models.CharField(max_length=200, verbose_name="Nombre comercial", blank=True, null=True)
+    es_empresa = models.BooleanField(default=True, verbose_name="Es empresa")
+    
+    # Contacto
     email = models.EmailField(verbose_name="Email", blank=True, null=True)
     telefono = models.CharField(max_length=20, verbose_name="Teléfono", blank=True, null=True)
-    direccion = models.TextField(verbose_name="Dirección", blank=True, null=True)
-    cif_nif = models.CharField(max_length=15, verbose_name="CIF/NIF", blank=True, null=True)
+    movil = models.CharField(max_length=20, verbose_name="Móvil", blank=True, null=True)
+    website = models.URLField(verbose_name="Website", blank=True, null=True)
+    
+    # Dirección
+    direccion = models.CharField(max_length=300, verbose_name="Dirección", blank=True, null=True)
+    poblacion = models.CharField(max_length=100, verbose_name="Población", blank=True, null=True)
+    codigo_postal = models.CharField(max_length=10, verbose_name="Código postal", blank=True, null=True)
+    provincia = models.CharField(max_length=100, verbose_name="Provincia", blank=True, null=True)
+    pais = models.CharField(max_length=100, verbose_name="País", default="España")
+    
+    # Datos fiscales
+    cif_nif = models.CharField(max_length=20, verbose_name="CIF/NIF", blank=True, null=True)
+    identificacion_vat = models.CharField(max_length=20, verbose_name="Identificación VAT", blank=True, null=True)
+    
+    # Metadatos
+    tags = models.CharField(max_length=500, verbose_name="Tags", blank=True, null=True, help_text="Separar por comas")
     activo = models.BooleanField(default=True, verbose_name="Activo")
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -36,6 +76,7 @@ class Proveedor(TenantModelMixin, models.Model):
     class Meta:
         verbose_name = "Proveedor"
         verbose_name_plural = "Proveedores"
+        ordering = ['nombre']
         constraints = [
             models.UniqueConstraint(
                 fields=['email', 'empresa'],

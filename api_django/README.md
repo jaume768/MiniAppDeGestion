@@ -412,14 +412,21 @@ Authorization: Bearer {{access_token}}
 Content-Type: application/json
 
 {
-  "nombre": "María",
-  "apellido": "González",
-  "email": "maria@ejemplo.com",
-  "telefono": "666777888",
-  "direccion": "Av. Libertad 456",
-  "ciudad": "Barcelona",
-  "codigo_postal": "08001",
-  "pais": "España"
+  'nombre': 'Empresa ABC S.L.',
+  'nombre_comercial': 'ABC Comercial',
+  'es_empresa': True,
+  'cif': 'B11111111',
+  'email': 'info@abc.com',
+  'telefono': '+34 91 111 11 11',
+  'movil': '+34 666 111 111',
+  'website': 'https://www.abc.com',
+  'direccion': 'Calle Principal, 1',
+  'poblacion': 'Madrid',
+  'codigo_postal': '28001',
+  'provincia': 'Madrid',
+  'pais': 'España',
+  'identificacion_vat': 'ES11111111',
+  'tags': 'mayorista, distribución, B2B'
 }
 ```
 
@@ -622,18 +629,22 @@ if (pm.response.code >= 400) {
 ### **Funcionalidades Planificadas**
 - 📱 **Frontend React**: Interfaz completa multi-tenant
 - 🔔 **Notificaciones**: Sistema de alertas por empresa
+- 📦 **TPV (puesto de venta)**: Interfaz para vender productos
+- 🎨 **Personalización de la empresa**: Permitir subir colores, logo, datos fiscales, etc.
+- 🏢 **Sistema como admin de empresa**: Invitar usuarios, gestionar roles, etc.
 - 📈 **Dashboard Analytics**: Métricas y KPIs por tenant(empresa)
 - 🔄 **Backup Automático**: Respaldos programados por empresa
 - 🌐 **Multi-idioma**: Soporte i18n para diferentes regiones
 - 🔐 **2FA**: Autenticación de dos factores
 - 📧 **Email Integration**: Envío automático de PDFs
-- 📊 **Exportación de docuemntos a Excel/CSV/XLSX**: Capacidad de exportar articulos, persupuestos... a Excel/CSV/XLSX
-- 📊 **Importación de docuemntos desde Excel/CSV/XLSX**: Capacidad de importar articulos, persupuestos... desde Excel/CSV/XLSX
+- 📊 **Exportación de docuemntos a Excel/CSV/XLSX**: Capacidad de exportar articulos, clientes, proveedores... a Excel/CSV/XLSX
+- 📊 **Importación de docuemntos desde Excel/CSV/XLSX**: Capacidad de importar articulos, clientes, proveedores... desde Excel/CSV/XLSX
 - 📊 **Capacidad de analizar un pdf de factura y extraer los datos relevantes**: Poder analizar un pdf de factura y extraer los datos relevantes para crear una factura de compra en el sistema
 - 🔐 **Envio a Verifactu**: Capacidad de enviar una factura a Verifactu para su validación.
 
-
 ### **Mejoras Técnicas**
+- 📧 **Integrar mailchimp o similar para enviar**: Notificaciones de facturas, presupuestos, albaranes, invitación de usuarios, etc.
+- 📦 **S3 para almacenar**: PDFs, imágenes, etc.
 - 🔍 **Elasticsearch**: Búsqueda avanzada de documentos
 - 📊 **Monitoring**: Prometheus + Grafana
 - 🧪 **Test Coverage**: 100% cobertura de pruebas

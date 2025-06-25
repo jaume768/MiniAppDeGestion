@@ -26,8 +26,8 @@ class ClienteViewSet(viewsets.ModelViewSet):
     queryset = Cliente.objects.all()
     serializer_class = ClienteSerializer
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
-    filterset_fields = ['activo']
-    search_fields = ['nombre', 'email', 'telefono', 'cif_nif']
+    filterset_fields = ['activo', 'es_empresa']
+    search_fields = ['nombre', 'nombre_comercial', 'email', 'telefono', 'movil', 'cif', 'poblacion', 'tags']
     ordering_fields = ['nombre', 'created_at']
     ordering = ['nombre']
 
@@ -37,8 +37,8 @@ class ProveedorViewSet(viewsets.ModelViewSet):
     queryset = Proveedor.objects.all()
     serializer_class = ProveedorSerializer
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
-    filterset_fields = ['activo']
-    search_fields = ['nombre', 'email', 'telefono', 'cif_nif']
+    filterset_fields = ['activo', 'es_empresa']
+    search_fields = ['nombre', 'nombre_comercial', 'email', 'telefono', 'movil', 'cif_nif', 'poblacion', 'tags']
     ordering_fields = ['nombre', 'created_at']
     ordering = ['nombre']
 
@@ -60,7 +60,10 @@ class ContactosViewSet(viewsets.ViewSet):
                 Q(nombre__icontains=search) |
                 Q(email__icontains=search) |
                 Q(telefono__icontains=search) |
-                Q(cif_nif__icontains=search)
+                Q(movil__icontains=search) |
+                Q(cif__icontains=search) |
+                Q(poblacion__icontains=search) |
+                Q(tags__icontains=search)
             )
         if activo:
             clientes_qs = clientes_qs.filter(activo=activo.lower() == 'true')
@@ -72,7 +75,10 @@ class ContactosViewSet(viewsets.ViewSet):
                 Q(nombre__icontains=search) |
                 Q(email__icontains=search) |
                 Q(telefono__icontains=search) |
-                Q(cif_nif__icontains=search)
+                Q(movil__icontains=search) |
+                Q(cif_nif__icontains=search) |
+                Q(poblacion__icontains=search) |
+                Q(tags__icontains=search)
             )
         if activo:
             proveedores_qs = proveedores_qs.filter(activo=activo.lower() == 'true')
@@ -84,10 +90,20 @@ class ContactosViewSet(viewsets.ViewSet):
             contactos_list.append({
                 'id': cliente.id,
                 'nombre': cliente.nombre,
+                'nombre_comercial': cliente.nombre_comercial,
+                'es_empresa': cliente.es_empresa,
                 'email': cliente.email,
                 'telefono': cliente.telefono,
+                'movil': cliente.movil,
+                'website': cliente.website,
                 'direccion': cliente.direccion,
-                'cif_nif': cliente.cif_nif,
+                'poblacion': cliente.poblacion,
+                'codigo_postal': cliente.codigo_postal,
+                'provincia': cliente.provincia,
+                'pais': cliente.pais,
+                'cif_nif': cliente.cif,
+                'identificacion_vat': cliente.identificacion_vat,
+                'tags': cliente.tags,
                 'activo': cliente.activo,
                 'tipo': 'cliente',
                 'created_at': cliente.created_at,
@@ -98,10 +114,20 @@ class ContactosViewSet(viewsets.ViewSet):
             contactos_list.append({
                 'id': proveedor.id,
                 'nombre': proveedor.nombre,
+                'nombre_comercial': proveedor.nombre_comercial,
+                'es_empresa': proveedor.es_empresa,
                 'email': proveedor.email,
                 'telefono': proveedor.telefono,
+                'movil': proveedor.movil,
+                'website': proveedor.website,
                 'direccion': proveedor.direccion,
+                'poblacion': proveedor.poblacion,
+                'codigo_postal': proveedor.codigo_postal,
+                'provincia': proveedor.provincia,
+                'pais': proveedor.pais,
                 'cif_nif': proveedor.cif_nif,
+                'identificacion_vat': proveedor.identificacion_vat,
+                'tags': proveedor.tags,
                 'activo': proveedor.activo,
                 'tipo': 'proveedor',
                 'created_at': proveedor.created_at,

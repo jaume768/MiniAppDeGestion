@@ -82,11 +82,31 @@ class ProveedorSerializer(serializers.ModelSerializer):
 class ContactoSerializer(serializers.Serializer):
     """Serializer para vista combinada de contactos (clientes y proveedores)"""
     id = serializers.IntegerField()
+    
+    # Datos básicos
     nombre = serializers.CharField()
+    nombre_comercial = serializers.CharField(allow_null=True)
+    es_empresa = serializers.BooleanField()
+    
+    # Contacto
     email = serializers.EmailField(allow_null=True)
     telefono = serializers.CharField(allow_null=True)
+    movil = serializers.CharField(allow_null=True)
+    website = serializers.URLField(allow_null=True)
+    
+    # Dirección
     direccion = serializers.CharField(allow_null=True)
+    poblacion = serializers.CharField(allow_null=True)
+    codigo_postal = serializers.CharField(allow_null=True)
+    provincia = serializers.CharField(allow_null=True)
+    pais = serializers.CharField(allow_null=True)
+    
+    # Datos fiscales
     cif_nif = serializers.CharField(allow_null=True)
+    identificacion_vat = serializers.CharField(allow_null=True)
+    
+    # Metadatos
+    tags = serializers.CharField(allow_null=True)
     activo = serializers.BooleanField()
     tipo = serializers.CharField()  # 'cliente' o 'proveedor'
     created_at = serializers.DateTimeField()

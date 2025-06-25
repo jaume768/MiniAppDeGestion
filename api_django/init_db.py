@@ -233,48 +233,166 @@ def create_sample_data_for_empresa(empresa):
         # Crear clientes
         print("Creando clientes...")
         clientes_data = [
-            ('Empresa ABC S.L.', 'B11111111', 'Calle Principal, 1', '+34 91 111 11 11', 'info@abc.com'),
-            ('Distribuciones XYZ', 'B22222222', 'Avenida Central, 25', '+34 93 222 22 22', 'contacto@xyz.com'),
-            ('Comercial 123', 'B33333333', 'Plaza Mayor, 10', '+34 95 333 33 33', 'ventas@123.com'),
+            {
+                'nombre': 'Empresa ABC S.L.',
+                'nombre_comercial': 'ABC Comercial',
+                'es_empresa': True,
+                'cif': 'B11111111',
+                'email': 'info@abc.com',
+                'telefono': '+34 91 111 11 11',
+                'movil': '+34 666 111 111',
+                'website': 'https://www.abc.com',
+                'direccion': 'Calle Principal, 1',
+                'poblacion': 'Madrid',
+                'codigo_postal': '28001',
+                'provincia': 'Madrid',
+                'pais': 'España',
+                'identificacion_vat': 'ES11111111',
+                'tags': 'mayorista, distribución, B2B'
+            },
+            {
+                'nombre': 'Distribuciones XYZ',
+                'nombre_comercial': 'XYZ Distribución',
+                'es_empresa': True,
+                'cif': 'B22222222',
+                'email': 'contacto@xyz.com',
+                'telefono': '+34 93 222 22 22',
+                'movil': '+34 666 222 222',
+                'website': 'https://www.xyz.com',
+                'direccion': 'Avenida Central, 25',
+                'poblacion': 'Barcelona',
+                'codigo_postal': '08001',
+                'provincia': 'Barcelona',
+                'pais': 'España',
+                'identificacion_vat': 'ES22222222',
+                'tags': 'minorista, comercio, retail'
+            },
+            {
+                'nombre': 'Juan García Pérez',
+                'nombre_comercial': 'Comercial 123',
+                'es_empresa': False,
+                'cif': '12345678Z',
+                'email': 'juan@comercial123.com',
+                'telefono': '+34 95 333 33 33',
+                'movil': '+34 666 333 333',
+                'website': 'https://www.comercial123.com',
+                'direccion': 'Plaza Mayor, 10',
+                'poblacion': 'Sevilla',
+                'codigo_postal': '41001',
+                'provincia': 'Sevilla',
+                'pais': 'España',
+                'identificacion_vat': '',
+                'tags': 'autónomo, pequeño comercio'
+            },
         ]
         
-        for nombre, cif, direccion, telefono, email in clientes_data:
+        for data in clientes_data:
             cliente, created = Cliente.objects.get_or_create(
-                cif=cif,
+                cif=data['cif'],
                 empresa=empresa,
-                defaults={
-                    'nombre': nombre,
-                    'direccion': direccion,
-                    'telefono': telefono,
-                    'email': email,
-                }
+                defaults=data
             )
             if created:
-                print(f"✓ Cliente: {nombre}")
+                print(f"✓ Cliente: {data['nombre']}")
         
         # Crear proveedores
         print("Creando proveedores...")
         proveedores_data = [
-            ('Suministros Industriales S.A.', 'A44444444', 'Polígono Industrial Norte, Nave 15', '+34 91 444 44 44', 'ventas@suministros.com'),
-            ('Materiales y Equipos López', 'B55555555', 'Calle de los Proveedores, 30', '+34 93 555 55 55', 'info@lopez-materiales.com'),
-            ('Tecnología Avanzada S.L.', 'B66666666', 'Parque Tecnológico, Edificio A', '+34 95 666 66 66', 'contacto@tecnoavanzada.com'),
-            ('Papelería Martínez', 'B77777777', 'Avenida de las Flores, 12', '+34 91 777 77 77', 'pedidos@papeleria-martinez.com'),
-            ('Distribuciones del Norte', 'A88888888', 'Zona Industrial Este, Parcela 8', '+34 98 888 88 88', 'comercial@distrinorte.com'),
+            {
+                'nombre': 'Suministros Industriales S.A.',
+                'nombre_comercial': 'Industrial Supply',
+                'es_empresa': True,
+                'cif_nif': 'A44444444',
+                'email': 'ventas@suministros.com',
+                'telefono': '+34 91 444 44 44',
+                'movil': '+34 666 444 444',
+                'website': 'https://www.suministros.com',
+                'direccion': 'Polígono Industrial Norte, Nave 15',
+                'poblacion': 'Getafe',
+                'codigo_postal': '28902',
+                'provincia': 'Madrid',
+                'pais': 'España',
+                'identificacion_vat': 'ES44444444',
+                'tags': 'industrial, maquinaria, B2B'
+            },
+            {
+                'nombre': 'Materiales y Equipos López',
+                'nombre_comercial': 'López Materiales',
+                'es_empresa': True,
+                'cif_nif': 'B55555555',
+                'email': 'info@lopez-materiales.com',
+                'telefono': '+34 93 555 55 55',
+                'movil': '+34 666 555 555',
+                'website': 'https://www.lopez-materiales.com',
+                'direccion': 'Calle de los Proveedores, 30',
+                'poblacion': 'Sabadell',
+                'codigo_postal': '08201',
+                'provincia': 'Barcelona',
+                'pais': 'España',
+                'identificacion_vat': 'ES55555555',
+                'tags': 'construcción, materiales, obra'
+            },
+            {
+                'nombre': 'Tecnología Avanzada S.L.',
+                'nombre_comercial': 'TechAdvanced',
+                'es_empresa': True,
+                'cif_nif': 'B66666666',
+                'email': 'contacto@tecnoavanzada.com',
+                'telefono': '+34 95 666 66 66',
+                'movil': '+34 666 666 666',
+                'website': 'https://www.tecnoavanzada.com',
+                'direccion': 'Parque Tecnológico, Edificio A',
+                'poblacion': 'Málaga',
+                'codigo_postal': '29590',
+                'provincia': 'Málaga',
+                'pais': 'España',
+                'identificacion_vat': 'ES66666666',
+                'tags': 'tecnología, software, hardware'
+            },
+            {
+                'nombre': 'Ana Martínez Ruiz',
+                'nombre_comercial': 'Papelería Martínez',
+                'es_empresa': False,
+                'cif_nif': '87654321A',
+                'email': 'ana@papeleria-martinez.com',
+                'telefono': '+34 91 777 77 77',
+                'movil': '+34 666 777 777',
+                'website': 'https://www.papeleria-martinez.com',
+                'direccion': 'Avenida de las Flores, 12',
+                'poblacion': 'Alcalá de Henares',
+                'codigo_postal': '28801',
+                'provincia': 'Madrid',
+                'pais': 'España',
+                'identificacion_vat': '',
+                'tags': 'papelería, autónoma, oficina'
+            },
+            {
+                'nombre': 'Distribuciones del Norte S.A.',
+                'nombre_comercial': 'DistriNorte',
+                'es_empresa': True,
+                'cif_nif': 'A88888888',
+                'email': 'comercial@distrinorte.com',
+                'telefono': '+34 98 888 88 88',
+                'movil': '+34 666 888 888',
+                'website': 'https://www.distrinorte.com',
+                'direccion': 'Zona Industrial Este, Parcela 8',
+                'poblacion': 'Bilbao',
+                'codigo_postal': '48001',
+                'provincia': 'Vizcaya',
+                'pais': 'España',
+                'identificacion_vat': 'ES88888888',
+                'tags': 'distribución, logística, almacén'
+            },
         ]
         
-        for nombre, cif, direccion, telefono, email in proveedores_data:
+        for data in proveedores_data:
             proveedor, created = Proveedor.objects.get_or_create(
-                cif_nif=cif,
+                cif_nif=data['cif_nif'],
                 empresa=empresa,
-                defaults={
-                    'nombre': nombre,
-                    'direccion': direccion,
-                    'telefono': telefono,
-                    'email': email,
-                }
+                defaults=data
             )
             if created:
-                print(f"✓ Proveedor: {nombre}")
+                print(f"✓ Proveedor: {data['nombre']}")
         
         # Crear departamentos
         print("Creando departamentos...")
