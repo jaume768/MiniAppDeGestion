@@ -22,6 +22,32 @@ class Cliente(TenantModelMixin, models.Model):
         return self.nombre
 
 
+class Proveedor(TenantModelMixin, models.Model):
+    """Modelo para proveedores de la empresa"""
+    nombre = models.CharField(max_length=200, verbose_name="Nombre")
+    email = models.EmailField(verbose_name="Email", blank=True, null=True)
+    telefono = models.CharField(max_length=20, verbose_name="Teléfono", blank=True, null=True)
+    direccion = models.TextField(verbose_name="Dirección", blank=True, null=True)
+    cif_nif = models.CharField(max_length=15, verbose_name="CIF/NIF", blank=True, null=True)
+    activo = models.BooleanField(default=True, verbose_name="Activo")
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = "Proveedor"
+        verbose_name_plural = "Proveedores"
+        constraints = [
+            models.UniqueConstraint(
+                fields=['email', 'empresa'],
+                condition=models.Q(email__isnull=False) & ~models.Q(email=''),
+                name='unique_proveedor_email_empresa'
+            )
+        ]
+
+    def __str__(self):
+        return self.nombre
+
+
 class AbstractBaseDocument(TenantModelMixin, models.Model):
     """Modelo base abstracto para documentos (Presupuesto, Pedido, etc.)"""
     cliente = models.ForeignKey('core.Cliente', on_delete=models.CASCADE)

@@ -1,9 +1,11 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
-from .views import ClienteViewSet
+from .views import ClienteViewSet, ProveedorViewSet, ContactosViewSet
 
 router = DefaultRouter()
 router.register(r'clientes', ClienteViewSet)
+router.register(r'proveedores', ProveedorViewSet)
+router.register(r'contactos', ContactosViewSet, basename='contactos')
 
 urlpatterns = [
     path('api/core/', include(router.urls)),

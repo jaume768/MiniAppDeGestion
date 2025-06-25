@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Cliente
+from .models import Cliente, Proveedor
 
 
 class BaseDocumentSerializer(serializers.ModelSerializer):
@@ -70,3 +70,24 @@ class ClienteSerializer(serializers.ModelSerializer):
     class Meta:
         model = Cliente
         fields = '__all__'
+
+
+class ProveedorSerializer(serializers.ModelSerializer):
+    """Serializer para Proveedor"""
+    class Meta:
+        model = Proveedor
+        fields = '__all__'
+
+
+class ContactoSerializer(serializers.Serializer):
+    """Serializer para vista combinada de contactos (clientes y proveedores)"""
+    id = serializers.IntegerField()
+    nombre = serializers.CharField()
+    email = serializers.EmailField(allow_null=True)
+    telefono = serializers.CharField(allow_null=True)
+    direccion = serializers.CharField(allow_null=True)
+    cif_nif = serializers.CharField(allow_null=True)
+    activo = serializers.BooleanField()
+    tipo = serializers.CharField()  # 'cliente' o 'proveedor'
+    created_at = serializers.DateTimeField()
+    updated_at = serializers.DateTimeField()

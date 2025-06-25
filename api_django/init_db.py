@@ -19,7 +19,7 @@ thread_local_middleware.process_request(mock_request)
 
 # Importaciones modulares
 from accounts.models import Empresa, CustomUser
-from core.models import Cliente
+from core.models import Cliente, Proveedor
 from products.models import Categoria, Marca, Articulo
 from sales.models import (
     Presupuesto, PresupuestoItem, Pedido, PedidoItem, 
@@ -251,6 +251,30 @@ def create_sample_data_for_empresa(empresa):
             )
             if created:
                 print(f"✓ Cliente: {nombre}")
+        
+        # Crear proveedores
+        print("Creando proveedores...")
+        proveedores_data = [
+            ('Suministros Industriales S.A.', 'A44444444', 'Polígono Industrial Norte, Nave 15', '+34 91 444 44 44', 'ventas@suministros.com'),
+            ('Materiales y Equipos López', 'B55555555', 'Calle de los Proveedores, 30', '+34 93 555 55 55', 'info@lopez-materiales.com'),
+            ('Tecnología Avanzada S.L.', 'B66666666', 'Parque Tecnológico, Edificio A', '+34 95 666 66 66', 'contacto@tecnoavanzada.com'),
+            ('Papelería Martínez', 'B77777777', 'Avenida de las Flores, 12', '+34 91 777 77 77', 'pedidos@papeleria-martinez.com'),
+            ('Distribuciones del Norte', 'A88888888', 'Zona Industrial Este, Parcela 8', '+34 98 888 88 88', 'comercial@distrinorte.com'),
+        ]
+        
+        for nombre, cif, direccion, telefono, email in proveedores_data:
+            proveedor, created = Proveedor.objects.get_or_create(
+                cif_nif=cif,
+                empresa=empresa,
+                defaults={
+                    'nombre': nombre,
+                    'direccion': direccion,
+                    'telefono': telefono,
+                    'email': email,
+                }
+            )
+            if created:
+                print(f"✓ Proveedor: {nombre}")
         
         # Crear departamentos
         print("Creando departamentos...")

@@ -179,6 +179,20 @@ GET    /api/core/clientes/{id}/    # Obtener cliente
 PUT    /api/core/clientes/{id}/    # Actualizar cliente
 ```
 
+### **📈 Gestión de Proveedores** (EmpresaAdmin y Usuario)
+```http
+GET    /api/core/proveedores/         # Listar proveedores
+POST   /api/core/proveedores/         # Crear proveedor
+GET    /api/core/proveedores/{id}/    # Obtener proveedor
+PUT    /api/core/proveedores/{id}/    # Actualizar proveedor
+DELETE /api/core/proveedores/{id}/    # Eliminar proveedor
+```
+
+### **📞 Contactos** (EmpresaAdmin y Usuario)
+```http
+GET    /api/core/contactos/         # Listar contactos (agrupación de clientes y proveedores)
+```
+
 ### **📦 Gestión de Productos** (EmpresaAdmin y Usuario)
 ```http
 GET    /api/products/categorias/     # Listar categorías
@@ -608,7 +622,7 @@ if (pm.response.code >= 400) {
 ### **Funcionalidades Planificadas**
 - 📱 **Frontend React**: Interfaz completa multi-tenant
 - 🔔 **Notificaciones**: Sistema de alertas por empresa
-- 📈 **Dashboard Analytics**: Métricas y KPIs por tenant
+- 📈 **Dashboard Analytics**: Métricas y KPIs por tenant(empresa)
 - 🔄 **Backup Automático**: Respaldos programados por empresa
 - 🌐 **Multi-idioma**: Soporte i18n para diferentes regiones
 - 🔐 **2FA**: Autenticación de dos factores
