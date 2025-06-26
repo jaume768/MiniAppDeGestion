@@ -169,3 +169,157 @@ class CustomUser(AbstractUser):
             self.empresa = None  # Los superadmins no tienen empresa
         
         super().save(*args, **kwargs)
+
+
+class UserInvitation(models.Model):
+    """Modelo para invitaciones de usuarios por email"""
+    
+    STATUS_CHOICES = [
+        ('pending', 'Pendiente'),
+        ('accepted', 'Aceptada'),
+        ('expired', 'Expirada'),
+        ('cancelled', 'Cancelada'),
+    ]
+    
+    empresa = models.ForeignKey(
+        Empresa, 
+        on_delete=models.CASCADE,
+        related_name='invitaciones',
+        verbose_name="Empresa"
+    )
+    
+    email = models.EmailField(verbose_name="Email del invitado")
+    
+    role = models.CharField(
+        max_length=20, 
+        choices=CustomUser.ROLE_CHOICES,
+        default='employee',
+        verbose_name="Rol asignado"
+    )
+    
+    token = models.CharField(
+        max_length=100, 
+        unique=True,
+        verbose_name="Token de invitación"
+    )
+    
+    invited_by = models.ForeignKey(
+        CustomUser, 
+        on_delete=models.SET_NULL, 
+        null=True,
+        related_name='invitaciones_enviadas',
+        verbose_name="Invitado por"
+    )
+    
+    # Datos adicionales del invitado
+    first_name = models.CharField(max_length=150, blank=True, verbose_name="Nombre")
+    last_name = models.CharField(max_length=150, blank=True, verbose_name="Apellidos")
+    cargo = models.CharField(max_length=100, blank=True, verbose_name="Cargo")
+    telefono = models.CharField(max_length=20, blank=True, verbose_name="Teléfono")
+    
+    # Permisos específicos
+    can_manage_users = models.BooleanField(default=False, verbose_name="Puede gestionar usuarios")
+    can_view_reports = models.BooleanField(default=True, verbose_name="Puede ver reportes")
+    can_manage_settings = models.BooleanField(default=False, verbose_name="Puede gestionar configuración")
+    
+    # Estado y fechas
+    status = models.CharField(
+        max_length=20,
+        choices=STATUS_CHOICES,
+        default='pending',
+        verbose_name="Estado"
+    )
+    
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="Fecha de creación")
+    expires_at = models.DateTimeField(verbose_name="Fecha de expiración")
+    accepted_at = models.DateTimeField(null=True, blank=True, verbose_name="Fecha de aceptación")
+    
+    # Mensaje personalizado (opcional)
+    message = models.TextField(
+        blank=True, 
+        max_length=500,
+        verbose_name="Mensaje personalizado"
+    )
+    
+    class Meta:
+        ordering = ['-created_at']
+        verbose_name = 'Invitación de Usuario'
+        verbose_name_plural = 'Invitaciones de Usuarios'
+        indexes = [
+            models.Index(fields=['token']),
+            models.Index(fields=['email']),
+            models.Index(fields=['status']),
+            models.Index(fields=['expires_at']),
+        ]
+        constraints = [
+            models.UniqueConstraint(
+                fields=['email', 'empresa', 'status'],
+                condition=models.Q(status='pending'),
+                name='unique_pending_invitation_per_email_empresa'
+            )
+        ]
+    
+    def __str__(self):
+        return f"Invitación para {self.email} a {self.empresa.nombre}"
+    
+    def is_expired(self):
+        """Verifica si la invitación ha expirado"""
+        from django.utils import timezone
+        return timezone.now() > self.expires_at
+    
+    def can_be_accepted(self):
+        """Verifica si la invitación puede ser aceptada"""
+        return self.status == 'pending' and not self.is_expired()
+    
+    def mark_as_expired(self):
+        """Marca la invitación como expirada"""
+        self.status = 'expired'
+        self.save(update_fields=['status'])
+    
+    def accept(self, user):
+        """Marca la invitación como aceptada"""
+        from django.utils import timezone
+        self.status = 'accepted'
+        self.accepted_at = timezone.now()
+        self.save(update_fields=['status', 'accepted_at'])
+        
+        # Cancelar otras invitaciones pendientes para el mismo email en la misma empresa
+        UserInvitation.objects.filter(
+            email=self.email,
+            empresa=self.empresa,
+            status='pending'
+        ).exclude(id=self.id).update(status='cancelled')
+    
+    def cancel(self):
+        """Cancela la invitación"""
+        self.status = 'cancelled'
+        self.save(update_fields=['status'])
+    
+    def generate_token(self):
+        """Genera un token único para la invitación"""
+        import secrets
+        import string
+        
+        # Generar token de 32 caracteres
+        alphabet = string.ascii_letters + string.digits
+        token = ''.join(secrets.choice(alphabet) for _ in range(32))
+        
+        # Verificar que sea único
+        while UserInvitation.objects.filter(token=token).exists():
+            token = ''.join(secrets.choice(alphabet) for _ in range(32))
+        
+        return token
+    
+    def save(self, *args, **kwargs):
+        # Generar token si no existe
+        if not self.token:
+            self.token = self.generate_token()
+        
+        # Establecer fecha de expiración si no existe
+        if not self.expires_at:
+            from django.utils import timezone
+            from django.conf import settings
+            days = getattr(settings, 'INVITATION_EXPIRY_DAYS', 7)
+            self.expires_at = timezone.now() + timezone.timedelta(days=days)
+        
+        super().save(*args, **kwargs)

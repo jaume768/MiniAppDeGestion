@@ -6,6 +6,7 @@
 - ✅ **Autenticación JWT**: Tokens seguros con refresh automático  
 - ✅ **Arquitectura Modular**: 7 apps Django especializadas
 - ✅ **Roles y Permisos**: SuperAdmin, EmpresaAdmin, Usuario
+- ✅ **Invitaciones**: Invitar usuarios por email
 - ✅ **Dockerizado**: Despliegue simple con Docker Compose
 - ✅ **Base de Datos**: MySQL 8.0 con phpMyAdmin
 - ✅ **API REST**: Endpoints completos con Django REST Framework
@@ -24,13 +25,36 @@ SuperAdmin (admin)
 
 EmpresaAdmin (admin_tecno, admin_lopez)
 ├── Gestión completa de SU empresa
-├── Crear/editar usuarios de su empresa
+├── Crear/editar e invitar usuarios de su empresa
 └── Acceso a todos los módulos de su empresa
 
 Usuario (ventas_678, almacen_678, etc.)
 ├── Acceso limitado a SU empresa
 ├── Permisos específicos por rol
 └── Solo datos de su empresa
+```
+
+## 🐳 Instalación y Despliegue
+
+### **Prerequisitos**
+- Docker y Docker Compose
+- Puerto 8000 (API), 3306 (MySQL), 8080 (phpMyAdmin) libres
+
+### **Comandos de Inicio**
+```bash
+# Clonar el repositorio
+git clone <repo-url>
+cd MiniGestion
+
+# Crear archivo .env
+cp .env.example .env # Editar variables de entorno según sea necesario
+
+# Iniciar servicios
+docker-compose up --build
+
+# La API estará disponible en:
+# API: http://localhost:8000
+# phpMyAdmin: http://localhost:8080
 ```
 
 ### **Empresas de Ejemplo**
@@ -66,28 +90,133 @@ GET  /api/auth/me/            # Perfil del usuario
   }
 }
 ```
-
 ---
 
-## 🐳 Instalación y Despliegue
+## 📧 Registro Público e Invitaciones
 
-### **Prerequisitos**
-- Docker y Docker Compose
-- Puerto 8000 (API), 3306 (MySQL), 8080 (phpMyAdmin) libres
+### **🚀 Registro Público de Empresas**
+Permite que cualquier persona registre una nueva empresa y se convierta automáticamente en su administrador:
 
-### **Comandos de Inicio**
-```bash
-# Clonar el repositorio
-git clone <repo-url>
-cd MiniGestion
-
-# Iniciar servicios
-docker-compose up --build
-
-# La API estará disponible en:
-# API: http://localhost:8000
-# phpMyAdmin: http://localhost:8080
+```http
+POST /api/accounts/public/register-empresa/
 ```
+
+**Payload de ejemplo:**
+```json
+{
+  "empresa": {
+    "nombre": "Mi Nueva Empresa S.L.",
+    "cif": "B98765432",
+    "email": "contacto@minuevaempresa.com",
+    "telefono": "666777888",
+    "direccion": "Calle Nueva 123",
+    "plan": "basico"
+  },
+  "admin": {
+    "username": "admin_nueva",
+    "email": "admin@minuevaempresa.com",
+    "password": "password123",
+    "password_confirm": "password123",
+    "first_name": "Admin",
+    "last_name": "Nuevo"
+  },
+  "terms_accepted": true
+}
+```
+
+**Respuesta exitosa:**
+- ✅ Empresa creada automáticamente
+- ✅ Usuario admin creado con permisos completos
+- ✅ Tokens JWT para login inmediato
+- ✅ Email de bienvenida enviado
+
+### **👥 Sistema de Invitaciones por Email**
+
+Los administradores pueden invitar usuarios por email sin crear cuentas manualmente:
+
+#### **Crear Invitación**
+```http
+POST /api/accounts/invite/
+```
+
+**Payload:**
+```json
+{
+  "email": "usuario@ejemplo.com",
+  "first_name": "Juan",
+  "last_name": "Pérez",
+  "role": "employee",
+  "cargo": "Vendedor",
+  "message": "¡Únete a nuestro equipo!"
+}
+```
+
+#### **Ver Invitación (público)**
+```http
+GET /api/accounts/invitation/{token}/
+```
+
+#### **Aceptar Invitación (público)**
+```http
+POST /api/accounts/invitation/accept/
+```
+
+**Payload:**
+```json
+{
+  "token": "abc123...",
+  "username": "juan_vendedor",
+  "password": "password123",
+  "password_confirm": "password123"
+}
+```
+
+#### **Gestionar Invitaciones (ViewSet)**
+```http
+GET    /api/accounts/invitations/          # Listar invitaciones
+POST   /api/accounts/invitations/          # Crear invitación
+GET    /api/accounts/invitations/{id}/     # Ver invitación
+DELETE /api/accounts/invitations/{id}/     # Eliminar invitación
+POST   /api/accounts/invitations/{id}/cancel/  # Cancelar invitación
+POST   /api/accounts/invitations/{id}/resend/  # Reenviar email
+```
+
+### **⚙️ Configuración de Email**
+
+Para que funcione el sistema, configura las variables de entorno en `.env`:
+
+```bash
+# Configuración SMTP (usando Brevo/SendinBlue)
+EMAIL_HOST=smtp-relay.brevo.com
+EMAIL_PORT=587
+EMAIL_HOST_USER=tu_email@ejemplo.com
+EMAIL_HOST_PASSWORD=tu_password_smtp
+EMAIL_USE_TLS=True
+DEFAULT_FROM_EMAIL=noreply@tudominio.com
+
+# URL Frontend para enlaces en emails
+FRONTEND_URL=http://localhost:3000
+
+# Expiración de invitaciones (días)
+INVITATION_EXPIRY_DAYS=7
+```
+
+### **🔒 Permisos y Seguridad**
+
+- **Registro Público**: Sin autenticación (endpoint público)
+- **Crear Invitaciones**: Solo SuperAdmin y EmpresaAdmin
+- **Ver/Aceptar Invitaciones**: Público con token válido
+- **Gestionar Invitaciones**: Solo quien las envió o SuperAdmin
+- **Límites de Plan**: Se respetan los límites de usuarios por empresa
+
+### **📱 Estados de Invitación**
+
+| Estado | Descripción |
+|--------|------------|
+| `pending` | Invitación enviada, esperando aceptación |
+| `accepted` | Usuario registrado exitosamente |
+| `expired` | Invitación expirada (>7 días) |
+| `cancelled` | Cancelada por el administrador |
 
 ### **Datos Iniciales Cargados**
 ```
@@ -112,7 +241,10 @@ La API está organizada en **7 apps Django** con aislamiento de tenants:
 ### **`accounts/`** - Autenticación y Multi-Tenancy
 - **CustomUser**: Usuario con empresa y roles
 - **Empresa**: Modelo central de tenant
+- **UserInvitation**: Sistema de invitaciones por email
 - **JWT Views**: Login, refresh, verify, me
+- **Public Registration**: Registro público de empresas
+- **Invitation System**: Invitar usuarios por email
 
 ### **`tenants/`** - Middleware y Utilidades  
 - **TenantMiddleware**: Filtrado automático por empresa
@@ -121,6 +253,8 @@ La API está organizada en **7 apps Django** con aislamiento de tenants:
 
 ### **`core/`** - Modelos Base
 - **Cliente**: Clientes por empresa
+- **Proveedor**: Proveedores por empresa
+- **Contacto**: Contactos por empresa (conjunto de clientes y proveedores)
 - **AbstractBaseDocument**: Base para documentos
 - **AbstractBaseItem**: Base para items de documentos
 
@@ -466,21 +600,21 @@ Authorization: Bearer {{access_token}}
 Content-Type: application/json
 
 {
-  'nombre': 'Empresa ABC S.L.',
-  'nombre_comercial': 'ABC Comercial',
-  'es_empresa': True,
-  'cif': 'B11111111',
-  'email': 'info@abc.com',
-  'telefono': '+34 91 111 11 11',
-  'movil': '+34 666 111 111',
-  'website': 'https://www.abc.com',
-  'direccion': 'Calle Principal, 1',
-  'poblacion': 'Madrid',
-  'codigo_postal': '28001',
-  'provincia': 'Madrid',
-  'pais': 'España',
-  'identificacion_vat': 'ES11111111',
-  'tags': 'mayorista, distribución, B2B'
+  "nombre": "Empresa ABC S.L.",
+  "nombre_comercial": "ABC Comercial",
+  "es_empresa": True,
+  "cif": "B11111111",
+  "email": "info@abc.com",
+  "telefono": "+34 91 111 11 11",
+  "movil": "+34 666 111 111",
+  "website": "https://www.abc.com",
+  "direccion": "Calle Principal, 1",
+  "poblacion": "Madrid",
+  "codigo_postal": "28001",
+  "provincia": "Madrid",
+  "pais": "España",
+  "identificacion_vat": "ES11111111",
+  "tags": "mayorista, distribución, B2B"
 }
 ```
 
@@ -735,6 +869,8 @@ if (pm.response.code >= 400) {
 - 🔔 **Notificaciones**: Sistema de alertas por empresa
 - 🎨 **Personalización de la empresa**: Permitir subir colores, logo, datos fiscales, etc.
 - 🏢 **Sistema como admin de empresa**: Invitar usuarios, gestionar roles, etc.
+- 🏦 **Gestrionar stock de articulos por almacenes**: Permitir gestionar stock de articulos por almacenes
+- 🏦 **Gestionar almacenes por empresa**: Permitir gestionar almacenes por empresa
 - 📈 **Dashboard Analytics**: Métricas y KPIs por tenant(empresa)
 - 🔄 **Backup Automático**: Respaldos programados por empresa
 - 🌐 **Multi-idioma**: Soporte i18n para diferentes regiones
@@ -744,9 +880,9 @@ if (pm.response.code >= 400) {
 - 📊 **Importación de docuemntos desde Excel/CSV/XLSX**: Capacidad de importar articulos, clientes, proveedores... desde Excel/CSV/XLSX
 - 📊 **Capacidad de analizar un pdf de factura y extraer los datos relevantes**: Poder analizar un pdf de factura y extraer los datos relevantes para crear una factura de compra en el sistema
 - 🔐 **Envio a Verifactu**: Capacidad de enviar una factura a Verifactu para su validación.
+- 📧 **Envio de email de las ventas**: Envio de email de las ventas a los clientes.
 
 ### **Mejoras Técnicas**
-- 📧 **Integrar mailchimp o similar para enviar**: Notificaciones de facturas, presupuestos, albaranes, invitación de usuarios, etc.
 - 📦 **S3 para almacenar**: PDFs, imágenes, etc.
 - 🔍 **Elasticsearch**: Búsqueda avanzada de documentos
 - 📊 **Monitoring**: Prometheus + Grafana

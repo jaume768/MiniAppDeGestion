@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
-from .models import CustomUser, Empresa
+from .models import CustomUser, Empresa, UserInvitation
 
 
 @admin.register(Empresa)
@@ -74,6 +74,44 @@ class CustomUserAdmin(UserAdmin):
                 else:
                     kwargs["queryset"] = Empresa.objects.none()
         return super().formfield_for_foreignkey(db_field, request, **kwargs)
+
+
+@admin.register(UserInvitation)
+class UserInvitationAdmin(admin.ModelAdmin):
+    list_display = ['email', 'empresa', 'role', 'status', 'invited_by', 'created_at', 'expires_at']
+    list_filter = ['status', 'role', 'empresa', 'created_at', 'expires_at']
+    search_fields = ['email', 'first_name', 'last_name', 'empresa__nombre']
+    readonly_fields = ('token', 'created_at', 'expires_at', 'accepted_at')
+    
+    fieldsets = (
+        (None, {
+            'fields': ('empresa', 'email', 'role', 'invited_by', 'status', 'message')
+        }),
+        ('Información Personal', {
+            'fields': ('first_name', 'last_name', 'cargo', 'telefono'),
+            'classes': ('collapse',)
+        }),
+        ('Permisos', {
+            'fields': ('can_manage_users', 'can_view_reports', 'can_manage_settings'),
+            'classes': ('collapse',)
+        }),
+        ('Sistema', {
+            'fields': ('token', 'created_at', 'expires_at', 'accepted_at'),
+            'classes': ('collapse',)
+        }),
+    )
+    
+    actions = ['mark_as_expired', 'mark_as_cancelled']
+    
+    def mark_as_expired(self, request, queryset):
+        count = queryset.filter(status='pending').update(status='expired')
+        self.message_user(request, f'{count} invitaciones marcadas como expiradas.')
+    mark_as_expired.short_description = 'Marcar como expiradas'
+    
+    def mark_as_cancelled(self, request, queryset):
+        count = queryset.filter(status='pending').update(status='cancelled')
+        self.message_user(request, f'{count} invitaciones canceladas.')
+    mark_as_cancelled.short_description = 'Cancelar invitaciones'
 
 
 # Personalizar el título del admin
