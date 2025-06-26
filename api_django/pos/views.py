@@ -21,6 +21,7 @@ from accounts.permissions import HasEmpresaPermission, IsOwnerOrEmpresaAdmin
 class CajaSessionViewSet(viewsets.ModelViewSet):
     """ViewSet para gestión de sesiones de caja"""
     
+    queryset = CajaSession.objects.all()  # Para el router
     permission_classes = [IsAuthenticated, HasEmpresaPermission]
     serializer_class = CajaSessionSerializer
     filterset_fields = ['estado', 'usuario']
@@ -191,6 +192,7 @@ class CajaSessionViewSet(viewsets.ModelViewSet):
 class MovimientoCajaViewSet(viewsets.ModelViewSet):
     """ViewSet para movimientos de caja"""
     
+    queryset = MovimientoCaja.objects.all()  # Para el router
     permission_classes = [IsAuthenticated, HasEmpresaPermission]
     serializer_class = MovimientoCajaSerializer
     filterset_fields = ['caja_session', 'tipo', 'metodo_pago']
@@ -269,6 +271,7 @@ class MovimientoCajaViewSet(viewsets.ModelViewSet):
 class CuadreCajaViewSet(viewsets.ModelViewSet):
     """ViewSet para cuadres de caja"""
     
+    queryset = CuadreCaja.objects.all()  # Para el router
     permission_classes = [IsAuthenticated, HasEmpresaPermission]
     serializer_class = CuadreCajaSerializer
     filterset_fields = ['caja_session', 'created_at']
@@ -331,6 +334,7 @@ class CuadreCajaViewSet(viewsets.ModelViewSet):
 class EstadisticasPOSViewSet(viewsets.ViewSet):
     """ViewSet para estadísticas y reportes del TPV"""
     
+    queryset = []  # Para el router
     permission_classes = [IsAuthenticated, HasEmpresaPermission]
     
     @action(detail=False, methods=['get'])

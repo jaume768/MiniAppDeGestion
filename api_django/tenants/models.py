@@ -1,6 +1,7 @@
 from django.db import models
 from django.db.models import QuerySet
 from .middleware import get_current_empresa_id, is_superadmin
+from .drf_middleware import get_current_empresa_id_drf, is_superadmin_drf
 
 
 class TenantQuerySet(QuerySet):
@@ -8,11 +9,11 @@ class TenantQuerySet(QuerySet):
     
     def filter_by_tenant(self):
         """Filtra por la empresa actual del contexto"""
-        if is_superadmin():
+        if is_superadmin() or is_superadmin_drf():
             # Los superadmins pueden ver todo
             return self
             
-        empresa_id = get_current_empresa_id()
+        empresa_id = get_current_empresa_id() or get_current_empresa_id_drf()
         if empresa_id:
             return self.filter(empresa_id=empresa_id)
         return self.none()  # Sin empresa, no mostrar nada
@@ -27,7 +28,7 @@ class TenantManager(models.Manager):
     
     def all_tenants(self):
         """Retorna todos los objetos sin filtrar (solo para superadmins)"""
-        if is_superadmin():
+        if is_superadmin() or is_superadmin_drf():
             return TenantQuerySet(self.model, using=self._db)
         return self.get_queryset()
 
@@ -56,8 +57,8 @@ class TenantModelMixin(models.Model):
     
     def save(self, *args, **kwargs):
         """Override save para asignar automáticamente la empresa actual"""
-        if not self.empresa_id and not is_superadmin():
-            empresa_id = get_current_empresa_id()
+        if not self.empresa_id and (not is_superadmin() and not is_superadmin_drf()):
+            empresa_id = get_current_empresa_id() or get_current_empresa_id_drf()
             if empresa_id:
                 self.empresa_id = empresa_id
             else:

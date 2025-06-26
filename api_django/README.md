@@ -9,6 +9,7 @@
 - ✅ **Invitaciones**: Invitar usuarios por email
 - ✅ **Dockerizado**: Despliegue simple con Docker Compose
 - ✅ **Base de Datos**: MySQL 8.0 con phpMyAdmin
+- ✅ **Documentación**: Documentación completa de la API con OpenAPI
 - ✅ **API REST**: Endpoints completos con Django REST Framework
 - ✅ **Generación PDF**: Facturas, presupuestos, albaranes y tickets
 
@@ -868,7 +869,6 @@ if (pm.response.code >= 400) {
 - 📱 **Frontend React**: Interfaz completa multi-tenant
 - 🔔 **Notificaciones**: Sistema de alertas por empresa
 - 🎨 **Personalización de la empresa**: Permitir subir colores, logo, datos fiscales, etc.
-- 🏢 **Sistema como admin de empresa**: Invitar usuarios, gestionar roles, etc.
 - 🏦 **Gestrionar stock de articulos por almacenes**: Permitir gestionar stock de articulos por almacenes
 - 🏦 **Gestionar almacenes por empresa**: Permitir gestionar almacenes por empresa
 - 📈 **Dashboard Analytics**: Métricas y KPIs por tenant(empresa)
@@ -887,6 +887,5 @@ if (pm.response.code >= 400) {
 - 🔍 **Elasticsearch**: Búsqueda avanzada de documentos
 - 📊 **Monitoring**: Prometheus + Grafana
 - 🧪 **Test Coverage**: 100% cobertura de pruebas
-- 📚 **Documentación completa de la API**: Falta poner OpenAPI
 
 ---

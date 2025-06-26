@@ -2,6 +2,7 @@ from django.shortcuts import render
 from rest_framework import viewsets, status
 from rest_framework.response import Response
 from rest_framework.decorators import action
+from rest_framework.permissions import IsAuthenticated
 from core.mixins import ReadOnlyIfInvoicedMixin, DocumentConversionMixin
 from core.pdf_utils import generate_document_pdf
 from .models import (
@@ -15,8 +16,13 @@ from .serializers import (
 
 class PresupuestoViewSet(ReadOnlyIfInvoicedMixin, DocumentConversionMixin, viewsets.ModelViewSet):
     """ViewSet para gestión de presupuestos"""
-    queryset = Presupuesto.objects.all()
+    queryset = Presupuesto.objects.all()  # Para el router
     serializer_class = PresupuestoSerializer
+    permission_classes = [IsAuthenticated]
+    
+    def get_queryset(self):
+        """Retorna el queryset filtrado por tenant"""
+        return Presupuesto.objects.all()
     
     @action(detail=True, methods=['get'])
     def generar_pdf(self, request, pk=None):
@@ -33,8 +39,13 @@ class PresupuestoViewSet(ReadOnlyIfInvoicedMixin, DocumentConversionMixin, views
 
 class PedidoViewSet(ReadOnlyIfInvoicedMixin, DocumentConversionMixin, viewsets.ModelViewSet):
     """ViewSet para gestión de pedidos"""
-    queryset = Pedido.objects.all()
+    queryset = Pedido.objects.all()  # Para el router
     serializer_class = PedidoSerializer
+    permission_classes = [IsAuthenticated]
+    
+    def get_queryset(self):
+        """Retorna el queryset filtrado por tenant"""
+        return Pedido.objects.all()
     
     @action(detail=True, methods=['get'])
     def generar_pdf(self, request, pk=None):
@@ -51,8 +62,13 @@ class PedidoViewSet(ReadOnlyIfInvoicedMixin, DocumentConversionMixin, viewsets.M
 
 class AlbaranViewSet(ReadOnlyIfInvoicedMixin, DocumentConversionMixin, viewsets.ModelViewSet):
     """ViewSet para gestión de albaranes"""
-    queryset = Albaran.objects.all()
+    queryset = Albaran.objects.all()  # Para el router
     serializer_class = AlbaranSerializer
+    permission_classes = [IsAuthenticated]
+    
+    def get_queryset(self):
+        """Retorna el queryset filtrado por tenant"""
+        return Albaran.objects.all()
     
     @action(detail=True, methods=['get'])
     def generar_pdf(self, request, pk=None):
@@ -69,8 +85,13 @@ class AlbaranViewSet(ReadOnlyIfInvoicedMixin, DocumentConversionMixin, viewsets.
 
 class TicketViewSet(ReadOnlyIfInvoicedMixin, DocumentConversionMixin, viewsets.ModelViewSet):
     """ViewSet para gestión de tickets"""
-    queryset = Ticket.objects.all()
+    queryset = Ticket.objects.all()  # Para el router
     serializer_class = TicketSerializer
+    permission_classes = [IsAuthenticated]
+    
+    def get_queryset(self):
+        """Retorna el queryset filtrado por tenant"""
+        return Ticket.objects.all()
     
     @action(detail=True, methods=['get'])
     def generar_pdf(self, request, pk=None):
@@ -87,8 +108,13 @@ class TicketViewSet(ReadOnlyIfInvoicedMixin, DocumentConversionMixin, viewsets.M
 
 class FacturaViewSet(viewsets.ModelViewSet):
     """ViewSet para gestión de facturas"""
-    queryset = Factura.objects.all()
+    queryset = Factura.objects.all()  # Para el router
     serializer_class = FacturaSerializer
+    permission_classes = [IsAuthenticated]
+    
+    def get_queryset(self):
+        """Retorna el queryset filtrado por tenant"""
+        return Factura.objects.all()
     
     @action(detail=True, methods=['get'])
     def generar_pdf(self, request, pk=None):

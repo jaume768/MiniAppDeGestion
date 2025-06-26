@@ -45,6 +45,7 @@ INSTALLED_APPS = [
     'rest_framework_simplejwt',
     'corsheaders',
     'django_filters',
+    'drf_spectacular',
     
     # Local apps
     'accounts',
@@ -64,8 +65,9 @@ MIDDLEWARE = [
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
-    'tenants.middleware.ThreadLocalMiddleware',  # Debe estar después de AuthenticationMiddleware
-    'tenants.middleware.TenantMiddleware',        # Debe estar después de ThreadLocalMiddleware
+    'tenants.drf_middleware.DRFTenantMiddleware',    # Middleware específico para DRF
+    'tenants.middleware.ThreadLocalMiddleware',      # Debe estar después de AuthenticationMiddleware
+    'tenants.middleware.TenantMiddleware',           # Debe estar después de ThreadLocalMiddleware
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
@@ -168,6 +170,7 @@ REST_FRAMEWORK = {
         'rest_framework.filters.SearchFilter',
         'rest_framework.filters.OrderingFilter',
     ],
+    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
 }
 
 # JWT Configuration
@@ -192,6 +195,54 @@ SIMPLE_JWT = {
     
     'AUTH_TOKEN_CLASSES': ('rest_framework_simplejwt.tokens.AccessToken',),
     'TOKEN_TYPE_CLAIM': 'token_type',
+}
+
+# OpenAPI Schema Configuration (drf-spectacular)
+SPECTACULAR_SETTINGS = {
+    'TITLE': 'Gestion API',
+    'DESCRIPTION': 'API completa para sistema de gestión empresarial multi-tenant con funcionalidades de TPV, ventas, productos, contactos e invitaciones por email.',
+    'VERSION': '1.0.0',
+    'SERVE_INCLUDE_SCHEMA': False,
+    'CONTACT': {
+        'name': 'Gestion Team',
+        'email': 'jaumefernandezsunyer12@gmail.com',
+    },
+    'EXTERNAL_DOCS': {
+        'description': 'GitHub Repository',
+        'url': 'https://github.com/jaume768/MiniAppDeGestion',
+    },
+    'SCHEMA_PATH_PREFIX': '/api/',
+    'COMPONENT_SPLIT_REQUEST': True,
+    'SORT_OPERATIONS': False,
+    
+    # JWT Authentication
+    'AUTHENTICATION_WHITELIST': [
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    ],
+    'SECURITY_DEFINITIONS': {
+        'Bearer': {
+            'type': 'apiKey',
+            'name': 'Authorization',
+            'in': 'header',
+            'description': 'JWT Authorization header using the Bearer scheme. Example: "Authorization: Bearer {token}"',
+        }
+    },
+    'SECURITY': [{'Bearer': []}],
+    
+    # Swagger UI Configuration
+    'SWAGGER_UI_SETTINGS': {
+        'deepLinking': True,
+        'persistAuthorization': True,
+        'displayOperationId': True,
+        'defaultModelsExpandDepth': 1,
+        'defaultModelExpandDepth': 1,
+        'displayRequestDuration': True,
+    },
+    'REDOC_UI_SETTINGS': {
+        'hideDownloadButton': False,
+        'expandResponses': 'all',
+        'pathInMiddlePanel': True,
+    },
 }
 
 # Email configuration

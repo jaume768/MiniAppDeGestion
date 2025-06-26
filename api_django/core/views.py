@@ -4,6 +4,7 @@ from rest_framework import viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.pagination import PageNumberPagination
+from rest_framework.permissions import IsAuthenticated
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.filters import SearchFilter, OrderingFilter
 from itertools import chain
@@ -23,24 +24,34 @@ class ContactoPagination(PageNumberPagination):
 
 class ClienteViewSet(viewsets.ModelViewSet):
     """ViewSet para gestión de clientes"""
-    queryset = Cliente.objects.all()
+    queryset = Cliente.objects.all()  # Para el router
     serializer_class = ClienteSerializer
+    permission_classes = [IsAuthenticated]
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
     filterset_fields = ['activo', 'es_empresa']
     search_fields = ['nombre', 'nombre_comercial', 'email', 'telefono', 'movil', 'cif', 'poblacion', 'tags']
     ordering_fields = ['nombre', 'created_at']
     ordering = ['nombre']
+    
+    def get_queryset(self):
+        """Retorna el queryset filtrado por tenant"""
+        return Cliente.objects.all()
 
 
 class ProveedorViewSet(viewsets.ModelViewSet):
     """ViewSet para gestión de proveedores"""
-    queryset = Proveedor.objects.all()
+    queryset = Proveedor.objects.all()  # Para el router
     serializer_class = ProveedorSerializer
+    permission_classes = [IsAuthenticated]
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
     filterset_fields = ['activo', 'es_empresa']
     search_fields = ['nombre', 'nombre_comercial', 'email', 'telefono', 'movil', 'cif_nif', 'poblacion', 'tags']
     ordering_fields = ['nombre', 'created_at']
     ordering = ['nombre']
+    
+    def get_queryset(self):
+        """Retorna el queryset filtrado por tenant"""
+        return Proveedor.objects.all()
 
 
 class ContactosViewSet(viewsets.ViewSet):

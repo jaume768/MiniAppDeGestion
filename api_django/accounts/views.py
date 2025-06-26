@@ -139,22 +139,31 @@ def change_password_view(request):
 
 class EmpresaListCreateView(generics.ListCreateAPIView):
     """Vista para listar y crear empresas"""
-    queryset = Empresa.objects.all()
+    queryset = Empresa.objects.all()  # Para el router
     serializer_class = EmpresaSerializer
     permission_classes = [IsSuperAdmin]
+    
+    def get_queryset(self):
+        """Superadmins ven todas las empresas"""
+        return Empresa.objects.all()
 
 
 class EmpresaDetailView(generics.RetrieveUpdateDestroyAPIView):
     """Vista para ver, actualizar y eliminar empresa específica"""
-    queryset = Empresa.objects.all()
+    queryset = Empresa.objects.all()  # Para el router
     serializer_class = EmpresaSerializer
     permission_classes = [IsSuperAdmin]
+    
+    def get_queryset(self):
+        """Superadmins ven todas las empresas"""
+        return Empresa.objects.all()
 
 
 class UserListView(generics.ListAPIView):
     """Vista para listar usuarios"""
     serializer_class = CustomUserSerializer
     permission_classes = [permissions.IsAuthenticated]
+    queryset = CustomUser.objects.all()  # Para el router
     
     def get_queryset(self):
         user = self.request.user
@@ -174,6 +183,7 @@ class UserDetailView(generics.RetrieveUpdateDestroyAPIView):
     """Vista para ver, actualizar y eliminar usuario específico"""
     serializer_class = CustomUserSerializer
     permission_classes = [IsOwnerOrEmpresaAdmin]
+    queryset = CustomUser.objects.all()  # Para el router
     
     def get_queryset(self):
         user = self.request.user
@@ -387,6 +397,7 @@ class UserInvitationViewSet(viewsets.ModelViewSet):
     search_fields = ['email', 'first_name', 'last_name']
     ordering_fields = ['created_at', 'expires_at', 'email']
     ordering = ['-created_at']
+    queryset = UserInvitation.objects.all()  # Para el router
     
     def get_queryset(self):
         user = self.request.user
