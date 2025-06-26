@@ -13,5 +13,5 @@ router.register(r'tickets', TicketViewSet)
 router.register(r'facturas', FacturaViewSet)
 
 urlpatterns = [
-    path('api/sales/', include(router.urls)),
+    path('', include(router.urls)),
 ]

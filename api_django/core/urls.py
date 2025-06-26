@@ -8,5 +8,5 @@ router.register(r'proveedores', ProveedorViewSet)
 router.register(r'contactos', ContactosViewSet, basename='contactos')
 
 urlpatterns = [
-    path('api/core/', include(router.urls)),
+    path('', include(router.urls)),
 ]

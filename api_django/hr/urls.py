@@ -7,5 +7,5 @@ router.register(r'departamentos', DepartamentoViewSet)
 router.register(r'empleados', EmpleadoViewSet)
 
 urlpatterns = [
-    path('api/hr/', include(router.urls)),
+    path('', include(router.urls)),
 ]
