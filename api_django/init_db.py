@@ -1,6 +1,7 @@
 import os
 import django
 import sys
+from decimal import Decimal
 from django.db import transaction
 from django.test import RequestFactory
 from tenants.middleware import ThreadLocalMiddleware
@@ -27,6 +28,7 @@ from sales.models import (
 )
 from hr.models import Departamento, Empleado
 from projects.models import Proyecto
+from pos.models import CajaSession, MovimientoCaja, CuadreCaja
 from django.utils import timezone
 from datetime import date, timedelta
 
@@ -414,6 +416,111 @@ def create_sample_data_for_empresa(empresa):
             if created:
                 print(f"✓ Departamento: {nombre}")
         
+        # ==== Crear datos de TPV ====
+        print("Creando datos de TPV...")
+        
+        # Obtener usuarios de ventas para las sesiones de caja
+        usuarios_ventas = CustomUser.objects.filter(
+            empresa=empresa,
+            username__icontains='ventas'
+        )
+        
+        if usuarios_ventas.exists():
+            usuario_ventas = usuarios_ventas.first()
+            
+            # Crear sesión de caja cerrada (histórica)
+            sesion_historica = CajaSession.objects.create(
+                usuario=usuario_ventas,
+                nombre=f"Caja Principal {empresa.nombre[:10]} - {timezone.now().strftime('%d/%m')}",
+                estado='cerrada',
+                fecha_apertura=timezone.now() - timedelta(days=1),
+                fecha_cierre=timezone.now() - timedelta(hours=8),
+                saldo_inicial=Decimal('100.00'),
+                saldo_final=Decimal('485.50'),
+                notas_apertura="Apertura normal de caja",
+                notas_cierre="Cierre con cuadre correcto",
+                empresa=empresa
+            )
+            
+            # Crear movimientos para la sesión histórica
+            movimientos_historicos = [
+                {
+                    'tipo': 'venta',
+                    'importe': Decimal('25.50'),
+                    'metodo_pago': 'efectivo',
+                    'concepto': 'Venta #001 - Productos varios'
+                },
+                {
+                    'tipo': 'venta', 
+                    'importe': Decimal('45.80'),
+                    'metodo_pago': 'tarjeta',
+                    'concepto': 'Venta #002 - Servicio técnico'
+                },
+                {
+                    'tipo': 'entrada',
+                    'importe': Decimal('50.00'),
+                    'metodo_pago': 'efectivo', 
+                    'concepto': 'Entrada de efectivo inicial'
+                },
+                {
+                    'tipo': 'venta',
+                    'importe': Decimal('125.00'),
+                    'metodo_pago': 'mixto',
+                    'importe_efectivo': Decimal('75.00'),
+                    'importe_tarjeta': Decimal('50.00'),
+                    'concepto': 'Venta #003 - Pago mixto'
+                }
+            ]
+            
+            for mov_data in movimientos_historicos:
+                MovimientoCaja.objects.create(
+                    caja_session=sesion_historica,
+                    empresa=empresa,
+                    **mov_data
+                )
+            
+            # Crear cuadre para la sesión histórica
+            efectivo_esperado = sesion_historica.calcular_efectivo_esperado()
+            CuadreCaja.objects.create(
+                caja_session=sesion_historica,
+                efectivo_contado=Decimal('385.50'),
+                efectivo_esperado=efectivo_esperado,
+                observaciones="Cuadre correcto, diferencia mínima",
+                empresa=empresa
+            )
+            
+            # Crear sesión actual abierta
+            sesion_actual = CajaSession.objects.create(
+                usuario=usuario_ventas,
+                nombre=f"Caja Principal {empresa.nombre[:10]} - {timezone.now().strftime('%d/%m')}",
+                estado='abierta',
+                fecha_apertura=timezone.now() - timedelta(hours=2),
+                saldo_inicial=Decimal('100.00'),
+                notas_apertura="Inicio de jornada",
+                empresa=empresa
+            )
+            
+            # Crear algunos movimientos para la sesión actual
+            MovimientoCaja.objects.create(
+                caja_session=sesion_actual,
+                tipo='entrada',
+                importe=Decimal('100.00'),
+                metodo_pago='efectivo',
+                concepto='Fondo de caja inicial',
+                empresa=empresa
+            )
+            
+            MovimientoCaja.objects.create(
+                caja_session=sesion_actual,
+                tipo='venta',
+                importe=Decimal('18.50'),
+                metodo_pago='efectivo',
+                concepto='Venta del día - Cliente walk-in',
+                empresa=empresa
+            )
+            
+            print(f"✓ Datos de TPV creados: 2 sesiones, movimientos y cuadre")
+        
         print(f"✓ Datos de ejemplo creados para {empresa.nombre}")
         
     finally:
@@ -464,6 +571,7 @@ def run():
             print("   - Empresas: GET /api/auth/empresas/ (solo superadmin)")
             print("   - Usuarios: GET /api/auth/users/")
             print("   - API Modules: /api/core/, /api/products/, /api/sales/, etc.")
+            print("   - TPV/POS: /api/pos/sesiones/, /api/pos/movimientos/, /api/pos/cuadres/")
             
     except Exception as e:
         print(f"Error durante la inicialización: {e}")

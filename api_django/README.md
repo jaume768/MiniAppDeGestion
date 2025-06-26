@@ -4,7 +4,7 @@
 
 - ✅ **Multi-Tenancy**: Aislamiento completo de datos por empresa
 - ✅ **Autenticación JWT**: Tokens seguros con refresh automático  
-- ✅ **Arquitectura Modular**: 6 apps Django especializadas
+- ✅ **Arquitectura Modular**: 7 apps Django especializadas
 - ✅ **Roles y Permisos**: SuperAdmin, EmpresaAdmin, Usuario
 - ✅ **Dockerizado**: Despliegue simple con Docker Compose
 - ✅ **Base de Datos**: MySQL 8.0 con phpMyAdmin
@@ -107,7 +107,7 @@ Comercial López:
 
 ## 🏗️ Arquitectura Modular
 
-La API está organizada en **6 apps Django** con aislamiento de tenants:
+La API está organizada en **7 apps Django** con aislamiento de tenants:
 
 ### **`accounts/`** - Autenticación y Multi-Tenancy
 - **CustomUser**: Usuario con empresa y roles
@@ -140,6 +140,11 @@ La API está organizada en **6 apps Django** con aislamiento de tenants:
 
 ### **`projects/`** - Gestión de Proyectos  
 - **Proyecto**: Proyectos con empleados asignados
+
+### **`pos/`** - TPV (Terminal Punto de Venta)
+- **CajaSession**: Sesiones de caja con estados y saldos
+- **MovimientoCaja**: Movimientos (ventas, entradas, salidas) 
+- **CuadreCaja**: Conciliación automática de caja
 
 ---
 
@@ -252,6 +257,55 @@ GET /api/reportes/stock_bajo/?limite=10
 
 GET /api/reportes/facturacion_mensual/
     # Estadísticas de facturación de los últimos 12 meses
+```
+
+### **🏪 TPV (Terminal Punto de Venta)** (EmpresaAdmin y Usuario)
+
+El módulo TPV permite gestionar sesiones de caja, movimientos de efectivo y cuadres automáticos con aislamiento multi-tenant completo.
+
+#### **Gestión de Sesiones de Caja**
+```http
+GET    /api/pos/sesiones/              # Listar sesiones de caja
+POST   /api/pos/sesiones/              # Crear nueva sesión
+GET    /api/pos/sesiones/{id}/         # Obtener sesión específica
+PUT    /api/pos/sesiones/{id}/         # Actualizar sesión
+
+# Endpoints especiales
+GET    /api/pos/sesiones/activa/       # Obtener sesión activa del usuario
+POST   /api/pos/sesiones/abrir_nueva/  # Abrir nueva sesión si no hay activa
+POST   /api/pos/sesiones/{id}/cerrar_caja/  # Cerrar sesión con cuadre automático
+GET    /api/pos/sesiones/{id}/resumen/      # Resumen detallado de la sesión
+```
+
+#### **Gestión de Movimientos de Caja**
+```http
+GET    /api/pos/movimientos/           # Listar movimientos
+POST   /api/pos/movimientos/           # Crear movimiento
+GET    /api/pos/movimientos/{id}/      # Obtener movimiento
+PUT    /api/pos/movimientos/{id}/      # Actualizar movimiento
+```
+
+#### **Gestión de Cuadres de Caja**
+```http
+GET    /api/pos/cuadres/               # Listar cuadres
+POST   /api/pos/cuadres/               # Crear cuadre manual
+GET    /api/pos/cuadres/{id}/          # Obtener cuadre
+```
+
+#### **Estadísticas TPV**
+```http
+GET    /api/pos/estadisticas/dashboard/  # Dashboard con estadísticas TPV
+```
+
+#### **Características TPV**
+- ✅ **Sesiones de Caja**: Estados (abierta/cerrada/suspendida)
+- ✅ **Movimientos Diversos**: Ventas, devoluciones, entradas/salidas
+- ✅ **Pagos Mixtos**: Soporte efectivo + tarjeta en una transacción
+- ✅ **Cuadre Automático**: Al cerrar sesión se calcula automáticamente
+- ✅ **Multi-Tenancy**: Aislamiento completo por empresa
+- ✅ **Permisos Granulares**: Solo propietarios y admins pueden cerrar cajas
+- ✅ **Auditoría Completa**: Timestamps y trazabilidad
+- ✅ **Validaciones de Negocio**: Solo una sesión activa por usuario
 ```
 
 ---
@@ -557,6 +611,56 @@ Authorization: Bearer {{access_token}}
 
 ---
 
+#### **Test 10: 🏪 TPV - Gestión de Sesiones de Caja**
+
+**Paso 1: Abrir Nueva Sesión de Caja**
+```http
+POST {{base_url}}/api/pos/sesiones/abrir_nueva/
+Authorization: Bearer {{access_token}}
+Content-Type: application/json
+
+{
+  "nombre": "Sesión Mañana",
+  "saldo_inicial": 100.00,
+  "observaciones": "Apertura de turno de mañana"
+}
+```
+
+**Paso 2: Crear Movimiento de Venta**
+```http
+POST {{base_url}}/api/pos/movimientos/
+Authorization: Bearer {{access_token}}
+Content-Type: application/json
+
+{
+  "tipo": "venta",
+  "concepto": "Venta de producto",
+  "importe": 25.50,
+  "metodo_pago": "efectivo",
+  "observaciones": "Venta de iPhone 15"
+}
+```
+
+**Paso 3: Obtener Resumen de Sesión Activa**
+```http
+GET {{base_url}}/api/pos/sesiones/activa/
+Authorization: Bearer {{access_token}}
+```
+
+**Paso 4: Cerrar Sesión con Cuadre Automático**
+```http
+POST {{base_url}}/api/pos/sesiones/{session_id}/cerrar_caja/
+Authorization: Bearer {{access_token}}
+Content-Type: application/json
+
+{
+  "efectivo_contado": 125.50,
+  "observaciones": "Cierre de turno"
+}
+```
+
+**Resultado Esperado**: Sesión cerrada automáticamente con cuadre calculado y diferencia mostrada.
+
 ### **🔍 Validaciones de Seguridad**
 
 #### **Test de Seguridad 1: Token Expirado**
@@ -629,7 +733,6 @@ if (pm.response.code >= 400) {
 ### **Funcionalidades Planificadas**
 - 📱 **Frontend React**: Interfaz completa multi-tenant
 - 🔔 **Notificaciones**: Sistema de alertas por empresa
-- 📦 **TPV (puesto de venta)**: Interfaz para vender productos
 - 🎨 **Personalización de la empresa**: Permitir subir colores, logo, datos fiscales, etc.
 - 🏢 **Sistema como admin de empresa**: Invitar usuarios, gestionar roles, etc.
 - 📈 **Dashboard Analytics**: Métricas y KPIs por tenant(empresa)
