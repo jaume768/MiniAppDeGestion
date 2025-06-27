@@ -29,6 +29,7 @@ from sales.models import (
 from hr.models import Departamento, Empleado
 from projects.models import Proyecto
 from pos.models import CajaSession, MovimientoCaja, CuadreCaja
+from inventory.models import Almacen, ArticuloStock, MovimientoStock
 from django.utils import timezone
 from datetime import date, timedelta
 
@@ -160,6 +161,12 @@ def create_sample_data_for_empresa(empresa):
     set_current_tenant(empresa)
     
     try:
+        # Obtener el usuario administrador de la empresa
+        admin_user = CustomUser.objects.filter(empresa=empresa, role='admin').first()
+        if not admin_user:
+            # Si no se encuentra, usar el primer usuario disponible
+            admin_user = CustomUser.objects.filter(empresa=empresa).first()
+        
         # Crear marcas
         print("Creando marcas...")
         marcas_data = [
@@ -520,6 +527,99 @@ def create_sample_data_for_empresa(empresa):
             )
             
             print(f"✓ Datos de TPV creados: 2 sesiones, movimientos y cuadre")
+        
+        # 9. Crear datos de inventory (almacenes y stock)
+        print("   Creando datos de inventory...")
+        
+        # Crear almacén principal
+        almacen_principal = Almacen.objects.create(
+            nombre="Almacén Principal",
+            codigo="ALM001",
+            direccion="Calle Principal 123, Ciudad",
+            telefono="666-123-456",
+            responsable="Juan García",
+            activo=True,
+            es_principal=True,
+            empresa=empresa
+        )
+        
+        # Crear almacén secundario
+        almacen_tienda = Almacen.objects.create(
+            nombre="Tienda Centro",
+            codigo="TDA001", 
+            direccion="Plaza Mayor 5, Centro",
+            telefono="666-789-012",
+            responsable="María López",
+            activo=True,
+            es_principal=False,
+            empresa=empresa
+        )
+        
+        # Migrar stock existente de artículos al almacén principal
+        articulos = Articulo.objects.filter(empresa=empresa)
+        for articulo in articulos:
+            if articulo.stock > 0:
+                # Crear registro de stock en almacén principal
+                articulo_stock = ArticuloStock.objects.create(
+                    articulo=articulo,
+                    almacen=almacen_principal,
+                    stock_actual=articulo.stock,
+                    stock_minimo=max(5, articulo.stock // 4),  # 25% del stock actual como mínimo
+                    stock_maximo=articulo.stock * 2,  # El doble como máximo
+                    pasillo=str((articulo.id % 5) + 1),
+                    estanteria=str((articulo.id % 3) + 1),
+                    nivel="1",
+                    empresa=empresa
+                )
+                
+                # Crear movimiento inicial de entrada
+                MovimientoStock.objects.create(
+                    articulo=articulo,
+                    almacen=almacen_principal,
+                    tipo='entrada',
+                    motivo='inicial',
+                    cantidad=articulo.stock,
+                    stock_anterior=0,
+                    stock_posterior=articulo.stock,
+                    precio_unitario=articulo.precio,
+                    observaciones=f'Stock inicial migrado desde artículo #{articulo.id}',
+                    usuario=admin_user,
+                    empresa=empresa
+                )
+        
+        # Crear algunos stocks en tienda con menos cantidad
+        articulos_tienda = articulos[:3]  # Solo los primeros 3 artículos en tienda
+        for articulo in articulos_tienda:
+            cantidad_tienda = max(1, articulo.stock // 3)  # Un tercio del stock principal
+            
+            ArticuloStock.objects.create(
+                articulo=articulo,
+                almacen=almacen_tienda,
+                stock_actual=cantidad_tienda,
+                stock_minimo=2,
+                stock_maximo=cantidad_tienda * 3,
+                pasillo="1",
+                estanteria=str((articulo.id % 2) + 1),
+                nivel="1",
+                empresa=empresa
+            )
+            
+            # Crear movimiento de entrada en tienda
+            MovimientoStock.objects.create(
+                articulo=articulo,
+                almacen=almacen_tienda,
+                tipo='entrada',
+                motivo='inicial',
+                cantidad=cantidad_tienda,
+                stock_anterior=0,
+                stock_posterior=cantidad_tienda,
+                precio_unitario=articulo.precio,
+                observaciones=f'Stock inicial en tienda para {articulo.nombre}',
+                usuario=admin_user,
+                empresa=empresa
+            )
+        
+        print(f"✓ Datos de inventory creados: 2 almacenes, stock migrado para {articulos.count()} artículos")
         
         print(f"✓ Datos de ejemplo creados para {empresa.nombre}")
         

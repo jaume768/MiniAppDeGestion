@@ -30,6 +30,7 @@ from products.urls import router as products_router
 from sales.urls import router as sales_router
 from hr.urls import router as hr_router
 from projects.urls import router as projects_router
+from inventory.urls import router as inventory_router
 
 # Router principal
 router = DefaultRouter()
@@ -40,6 +41,7 @@ router.registry.extend(products_router.registry)
 router.registry.extend(sales_router.registry)
 router.registry.extend(hr_router.registry)
 router.registry.extend(projects_router.registry)
+router.registry.extend(inventory_router.registry)
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -56,6 +58,7 @@ urlpatterns = [
     path('api/sales/', include('sales.urls')),
     path('api/hr/', include('hr.urls')),
     path('api/projects/', include('projects.urls')),
+    path('api/inventory/', include('inventory.urls')),
     
     # URLs específicas de pos sin usar router
     path('api/pos/', include('pos.urls')),

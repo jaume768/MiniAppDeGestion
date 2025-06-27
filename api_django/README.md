@@ -4,9 +4,10 @@
 
 - ✅ **Multi-Tenancy**: Aislamiento completo de datos por empresa
 - ✅ **Autenticación JWT**: Tokens seguros con refresh automático  
-- ✅ **Arquitectura Modular**: 7 apps Django especializadas
+- ✅ **Arquitectura Modular**: 8 apps Django especializadas
 - ✅ **Roles y Permisos**: SuperAdmin, EmpresaAdmin, Usuario
 - ✅ **Invitaciones**: Invitar usuarios por email
+- ✅ **Gestión de Almacenes**: Control multi-almacén con stock granular
 - ✅ **Dockerizado**: Despliegue simple con Docker Compose
 - ✅ **Base de Datos**: MySQL 8.0 con phpMyAdmin
 - ✅ **Documentación**: Documentación completa de la API con OpenAPI
@@ -237,7 +238,7 @@ Comercial López:
 
 ## 🏗️ Arquitectura Modular
 
-La API está organizada en **7 apps Django** con aislamiento de tenants:
+La API está organizada en **8 apps Django** con aislamiento de tenants:
 
 ### **`accounts/`** - Autenticación y Multi-Tenancy
 - **CustomUser**: Usuario con empresa y roles
@@ -280,6 +281,12 @@ La API está organizada en **7 apps Django** con aislamiento de tenants:
 - **CajaSession**: Sesiones de caja con estados y saldos
 - **MovimientoCaja**: Movimientos (ventas, entradas, salidas) 
 - **CuadreCaja**: Conciliación automática de caja
+
+### **`inventory/`** - Gestión de Almacenes y Stock
+- **Almacen**: Almacenes por empresa con responsables
+- **ArticuloStock**: Stock por artículo y almacén con umbrales
+- **MovimientoStock**: Auditoría completa de movimientos
+- **TransferenciaStock**: Transferencias entre almacenes
 
 ---
 
@@ -441,8 +448,76 @@ GET    /api/pos/estadisticas/dashboard/  # Dashboard con estadísticas TPV
 - ✅ **Permisos Granulares**: Solo propietarios y admins pueden cerrar cajas
 - ✅ **Auditoría Completa**: Timestamps y trazabilidad
 - ✅ **Validaciones de Negocio**: Solo una sesión activa por usuario
+
+### **🏭 Inventory (Gestión de Almacenes y Stock)** (EmpresaAdmin y Usuario)
+
+El módulo inventory permite gestionar múltiples almacenes por empresa, controlar stock por artículo y almacén, auditar movimientos y realizar transferencias entre almacenes con control total multi-tenant.
+
+#### **Gestión de Almacenes**
+```http
+GET    /api/inventory/almacenes/              # Listar almacenes
+POST   /api/inventory/almacenes/              # Crear almacén
+GET    /api/inventory/almacenes/{id}/         # Obtener almacén
+PUT    /api/inventory/almacenes/{id}/         # Actualizar almacén
+DELETE /api/inventory/almacenes/{id}/         # Eliminar almacén
+
+# Endpoints especiales
+GET    /api/inventory/almacenes/principal/    # Obtener almacén principal
+GET    /api/inventory/almacenes/{id}/stock/   # Stock del almacén
+GET    /api/inventory/almacenes/{id}/movimientos/ # Movimientos del almacén
 ```
 
+#### **Gestión de Stock por Artículo**
+```http
+GET    /api/inventory/stock/                  # Listar stock por artículo/almacén
+POST   /api/inventory/stock/                  # Crear registro de stock
+GET    /api/inventory/stock/{id}/             # Obtener stock específico
+PUT    /api/inventory/stock/{id}/             # Actualizar stock
+DELETE /api/inventory/stock/{id}/             # Eliminar registro
+
+# Endpoints especiales
+GET    /api/inventory/stock/resumen/          # Resumen consolidado por artículo
+GET    /api/inventory/stock/alertas/          # Alertas de stock bajo
+POST   /api/inventory/stock/ajuste_masivo/    # Ajustes masivos de stock
+```
+
+#### **Auditoría de Movimientos**
+```http
+GET    /api/inventory/movimientos/            # Listar movimientos (solo lectura)
+GET    /api/inventory/movimientos/{id}/       # Obtener movimiento específico
+
+# Endpoints especiales
+POST   /api/inventory/movimientos/crear_movimiento/  # Crear movimiento manual
+GET    /api/inventory/movimientos/estadisticas/      # Estadísticas de movimientos
+```
+
+#### **Transferencias entre Almacenes**
+```http
+GET    /api/inventory/transferencias/         # Listar transferencias
+POST   /api/inventory/transferencias/         # Crear transferencia
+GET    /api/inventory/transferencias/{id}/    # Obtener transferencia
+PUT    /api/inventory/transferencias/{id}/    # Actualizar transferencia
+DELETE /api/inventory/transferencias/{id}/    # Eliminar transferencia
+
+# Endpoints de workflow
+POST   /api/inventory/transferencias/{id}/enviar/    # Enviar transferencia
+POST   /api/inventory/transferencias/{id}/recibir/   # Recibir transferencia  
+POST   /api/inventory/transferencias/{id}/cancelar/  # Cancelar transferencia
+POST   /api/inventory/transferencias/{id}/agregar_item/ # Agregar artículo a transferencia
+```
+
+#### **Características Inventory**
+- ✅ **Multi-Almacén**: Gestión de múltiples almacenes por empresa
+- ✅ **Stock Granular**: Control de stock por artículo y almacén
+- ✅ **Umbrales Inteligentes**: Stock mínimo/máximo con alertas automáticas
+- ✅ **Auditoría Completa**: Todos los movimientos quedan registrados
+- ✅ **Transferencias**: Workflow completo entre almacenes (pendiente → enviado → recibido)
+- ✅ **Reservas de Stock**: Control de stock disponible vs reservado
+- ✅ **Ubicaciones**: Sistema de ubicaciones dentro de cada almacén
+- ✅ **Valoración**: Precios unitarios y valoración total del stock
+- ✅ **Transacciones Atómicas**: Consistencia garantizada en todas las operaciones
+- ✅ **Multi-Tenancy**: Aislamiento completo por empresa
+- ✅ **Migración Automática**: Migra stock existente de `products.Articulo`
 ---
 
 ## 📄 Guía de Pruebas
@@ -869,8 +944,6 @@ if (pm.response.code >= 400) {
 - 📱 **Frontend React**: Interfaz completa multi-tenant
 - 🔔 **Notificaciones**: Sistema de alertas por empresa
 - 🎨 **Personalización de la empresa**: Permitir subir colores, logo, datos fiscales, etc.
-- 🏦 **Gestrionar stock de articulos por almacenes**: Permitir gestionar stock de articulos por almacenes
-- 🏦 **Gestionar almacenes por empresa**: Permitir gestionar almacenes por empresa
 - 📈 **Dashboard Analytics**: Métricas y KPIs por tenant(empresa)
 - 🔄 **Backup Automático**: Respaldos programados por empresa
 - 🌐 **Multi-idioma**: Soporte i18n para diferentes regiones
