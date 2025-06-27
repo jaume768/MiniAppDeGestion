@@ -63,6 +63,9 @@ urlpatterns = [
     # URLs específicas de pos sin usar router
     path('api/pos/', include('pos.urls')),
     
+    # URLs de auditoría
+    path('api/logs', include('audit.urls')),
+    
     # Reportes
     path('api/', include(reports_router.urls)),
     

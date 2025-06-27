@@ -57,6 +57,7 @@ INSTALLED_APPS = [
     'projects',
     'pos',
     'inventory',
+    'audit',  # Nueva app de auditoría
 ]
 
 MIDDLEWARE = [
@@ -69,8 +70,10 @@ MIDDLEWARE = [
     'tenants.drf_middleware.DRFTenantMiddleware',    # Middleware específico para DRF
     'tenants.middleware.ThreadLocalMiddleware',      # Debe estar después de AuthenticationMiddleware
     'tenants.middleware.TenantMiddleware',           # Debe estar después de ThreadLocalMiddleware
+    'audit.context_middleware.AuditContextMiddleware',  # Contexto para auditoría
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'audit.middleware.AuditMiddleware',  # Middleware de auditoría
 ]
 
 ROOT_URLCONF = 'gestion_empresa.urls'

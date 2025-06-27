@@ -9,6 +9,7 @@
 - ✅ **Invitaciones**: Invitar usuarios por email
 - ✅ **Gestión de Almacenes**: Control multi-almacén con stock granular
 - ✅ **Automaticación de descuento de stock**: Al crear un documento de venta, se descontará el stock automáticamente
+- ✅ **Logs de Auditoría**: Logs de auditoría para trazabilidad completa (quien ha hecho qué y cuándo)
 - ✅ **Dockerizado**: Despliegue simple con Docker Compose
 - ✅ **Base de Datos**: MySQL 8.0 con phpMyAdmin
 - ✅ **Documentación**: Documentación completa de la API con OpenAPI
@@ -961,6 +962,7 @@ if (pm.response.code >= 400) {
 - 📱 **Frontend Next**: Interfaz completa multi-tenant
 - 🔔 **Notificaciones**: Sistema de alertas por empresa
 - 🎨 **Personalización de la empresa**: Permitir subir colores, logo, etc.
+- 📊 **Sistema de contabilidad básica**: Sistema de contabilidad básica con libros diarios, libros mayor, etc.
 - 🔄 **Backup Automático**: Respaldos programados por empresa
 - 🌐 **Multi-idioma**: Soporte i18n para diferentes regiones
 - 🔐 **2FA**: Autenticación de dos factores
