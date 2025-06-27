@@ -4,7 +4,7 @@
 
 - ✅ **Multi-Tenancy**: Aislamiento completo de datos por empresa
 - ✅ **Autenticación JWT**: Tokens seguros con refresh automático  
-- ✅ **Arquitectura Modular**: 8 apps Django especializadas
+- ✅ **Arquitectura Modular**: 9 apps Django especializadas
 - ✅ **Roles y Permisos**: SuperAdmin, EmpresaAdmin, Usuario
 - ✅ **Invitaciones**: Invitar usuarios por email
 - ✅ **Gestión de Almacenes**: Control multi-almacén con stock granular
