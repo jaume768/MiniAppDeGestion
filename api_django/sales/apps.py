@@ -8,4 +8,4 @@ class SalesConfig(AppConfig):
     
     def ready(self):
         # Importar señales cuando la app esté lista
-        import sales.models
+        import sales.signals

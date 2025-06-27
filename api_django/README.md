@@ -1,4 +1,4 @@
-# 🏢 Sistema de Gestión Empresarial Multi-Tenant con JWT
+# 🏢 API de Gestión Empresarial Multi-Tenant/empresa con JWT
 
 ## 🚀 Características Principales
 
@@ -8,6 +8,7 @@
 - ✅ **Roles y Permisos**: SuperAdmin, EmpresaAdmin, Usuario
 - ✅ **Invitaciones**: Invitar usuarios por email
 - ✅ **Gestión de Almacenes**: Control multi-almacén con stock granular
+- ✅ **Automaticación de descuento de stock**: Al crear un documento de venta, se descontará el stock automáticamente
 - ✅ **Dockerizado**: Despliegue simple con Docker Compose
 - ✅ **Base de Datos**: MySQL 8.0 con phpMyAdmin
 - ✅ **Documentación**: Documentación completa de la API con OpenAPI
@@ -257,6 +258,7 @@ La API está organizada en **8 apps Django** con aislamiento de tenants:
 - **Cliente**: Clientes por empresa
 - **Proveedor**: Proveedores por empresa
 - **Contacto**: Contactos por empresa (conjunto de clientes y proveedores)
+- **Serie**: Series de numeración asociadas a almacenes para control de stock
 - **AbstractBaseDocument**: Base para documentos
 - **AbstractBaseItem**: Base para items de documentos
 
@@ -339,6 +341,21 @@ DELETE /api/core/proveedores/{id}/    # Eliminar proveedor
 ```http
 GET    /api/core/contactos/         # Listar contactos (agrupación de clientes y proveedores)
 ```
+
+### **📑 Series de Numeración** (EmpresaAdmin y Usuario)
+```http
+GET    /api/core/series/            # Listar series de numeración
+POST   /api/core/series/            # Crear serie
+GET    /api/core/series/{id}/       # Obtener serie
+PUT    /api/core/series/{id}/       # Actualizar serie
+DELETE /api/core/series/{id}/       # Eliminar serie
+```
+
+**Funcionalidad de Series:**
+- **Asociación con Almacén**: Cada serie está vinculada a un almacén específico
+- **Control de Stock**: Los documentos de venta utilizan la serie para determinar desde qué almacén descontar stock
+- **Multi-tenancy**: Las series están aisladas por empresa
+- **Estado Activo/Inactivo**: Control de series habilitadas para uso
 
 ### **📦 Gestión de Productos** (EmpresaAdmin y Usuario)
 ```http
@@ -941,10 +958,9 @@ if (pm.response.code >= 400) {
 ## 🚀 Próximos Pasos de Desarrollo
 
 ### **Funcionalidades Planificadas**
-- 📱 **Frontend React**: Interfaz completa multi-tenant
+- 📱 **Frontend Next**: Interfaz completa multi-tenant
 - 🔔 **Notificaciones**: Sistema de alertas por empresa
-- 🎨 **Personalización de la empresa**: Permitir subir colores, logo, datos fiscales, etc.
-- 📈 **Dashboard Analytics**: Métricas y KPIs por tenant(empresa)
+- 🎨 **Personalización de la empresa**: Permitir subir colores, logo, etc.
 - 🔄 **Backup Automático**: Respaldos programados por empresa
 - 🌐 **Multi-idioma**: Soporte i18n para diferentes regiones
 - 🔐 **2FA**: Autenticación de dos factores

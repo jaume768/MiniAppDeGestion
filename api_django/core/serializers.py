@@ -1,10 +1,12 @@
 from rest_framework import serializers
-from .models import Cliente, Proveedor
+from .models import Cliente, Proveedor, Serie
 
 
 class BaseDocumentSerializer(serializers.ModelSerializer):
     """Serializer base para documentos comerciales"""
     items = serializers.SerializerMethodField()
+    serie_nombre = serializers.CharField(source='serie.nombre', read_only=True)
+    almacen_nombre = serializers.CharField(source='serie.almacen.nombre', read_only=True)
     
     def get_items(self, obj):
         """Devuelve los items del documento usando el serializer específico"""
@@ -77,6 +79,29 @@ class ProveedorSerializer(serializers.ModelSerializer):
     class Meta:
         model = Proveedor
         fields = '__all__'
+
+
+class SerieSerializer(serializers.ModelSerializer):
+    """Serializer para Serie"""
+    almacen_nombre = serializers.CharField(source='almacen.nombre', read_only=True)
+    almacen_codigo = serializers.CharField(source='almacen.codigo', read_only=True)
+    
+    class Meta:
+        model = Serie
+        fields = [
+            'id', 'nombre', 'descripcion', 'almacen', 
+            'almacen_nombre', 'almacen_codigo', 'activa',
+            'created_at', 'updated_at'
+        ]
+        read_only_fields = ['created_at', 'updated_at']
+    
+    def validate_almacen(self, value):
+        """Validar que el almacén pertenece a la empresa del usuario"""
+        request = self.context.get('request')
+        if request and hasattr(request.user, 'empresa'):
+            if value.empresa != request.user.empresa:
+                raise serializers.ValidationError("Almacén no válido para esta empresa")
+        return value
 
 
 class ContactoSerializer(serializers.Serializer):

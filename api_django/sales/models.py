@@ -8,6 +8,7 @@ from core.models import AbstractBaseDocument, AbstractBaseItem
 class Presupuesto(AbstractBaseDocument):
     """Modelo de Presupuesto"""
     numero = models.CharField(max_length=20)
+    serie = models.ForeignKey('core.Serie', on_delete=models.SET_NULL, null=True, blank=True, help_text="Serie asociada al documento")
     
     class Meta:
         ordering = ['-fecha', '-numero']
@@ -28,6 +29,7 @@ class PresupuestoItem(AbstractBaseItem):
 class Pedido(AbstractBaseDocument):
     """Modelo de Pedido"""
     numero = models.CharField(max_length=20)
+    serie = models.ForeignKey('core.Serie', on_delete=models.SET_NULL, null=True, blank=True, help_text="Serie asociada al documento")
     entregado = models.BooleanField(default=False)
     
     class Meta:
@@ -49,6 +51,7 @@ class PedidoItem(AbstractBaseItem):
 class Albaran(AbstractBaseDocument):
     """Modelo de Albarán"""
     numero = models.CharField(max_length=20)
+    serie = models.ForeignKey('core.Serie', on_delete=models.SET_NULL, null=True, blank=True, help_text="Serie asociada al documento")
     
     class Meta:
         ordering = ['-fecha', '-numero']
@@ -69,6 +72,7 @@ class AlbaranItem(AbstractBaseItem):
 class Ticket(AbstractBaseDocument):
     """Modelo de Ticket"""
     numero = models.CharField(max_length=20)
+    serie = models.ForeignKey('core.Serie', on_delete=models.SET_NULL, null=True, blank=True, help_text="Serie asociada al documento")
     
     class Meta:
         ordering = ['-fecha', '-numero']
@@ -89,6 +93,7 @@ class TicketItem(AbstractBaseItem):
 class Factura(AbstractBaseDocument):
     """Modelo de Factura - hereda de AbstractBaseDocument"""
     numero = models.CharField(max_length=20)
+    serie = models.ForeignKey('core.Serie', on_delete=models.SET_NULL, null=True, blank=True, help_text="Serie asociada al documento")
     documento_origen = models.CharField(max_length=50, blank=True, null=True, help_text="Tipo de documento del que se genera esta factura")
     pedido = models.ForeignKey(Pedido, on_delete=models.SET_NULL, null=True, blank=True, related_name='facturas')
     

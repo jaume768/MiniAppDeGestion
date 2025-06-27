@@ -20,7 +20,7 @@ thread_local_middleware.process_request(mock_request)
 
 # Importaciones modulares
 from accounts.models import Empresa, CustomUser
-from core.models import Cliente, Proveedor
+from core.models import Cliente, Proveedor, Serie
 from products.models import Categoria, Marca, Articulo
 from sales.models import (
     Presupuesto, PresupuestoItem, Pedido, PedidoItem, 
@@ -620,6 +620,29 @@ def create_sample_data_for_empresa(empresa):
             )
         
         print(f"✓ Datos de inventory creados: 2 almacenes, stock migrado para {articulos.count()} artículos")
+        
+        # 10. Crear Series de numeración
+        print("   Creando series de numeración...")
+        
+        # Serie para almacén principal
+        serie_principal = Serie.objects.create(
+            nombre="SERIE-PRINCIPAL",
+            descripcion="Serie principal para el almacén central",
+            almacen=almacen_principal,
+            activa=True,
+            empresa=empresa
+        )
+        
+        # Serie para tienda
+        serie_tienda = Serie.objects.create(
+            nombre="SERIE-TIENDA",
+            descripcion="Serie para la tienda del centro",
+            almacen=almacen_tienda,
+            activa=True,
+            empresa=empresa
+        )
+        
+        print(f"✓ Series creadas: {serie_principal.nombre} y {serie_tienda.nombre}")
         
         print(f"✓ Datos de ejemplo creados para {empresa.nombre}")
         

@@ -89,9 +89,45 @@ class Proveedor(TenantModelMixin, models.Model):
         return self.nombre
 
 
+class Serie(TenantModelMixin, models.Model):
+    """Serie de numeración asociada a un almacén para documentos de venta"""
+    
+    nombre = models.CharField(max_length=100, verbose_name="Nombre")
+    descripcion = models.TextField(blank=True, null=True, verbose_name="Descripción")
+    
+    # Asociación con almacén
+    almacen = models.ForeignKey(
+        'inventory.Almacen', 
+        on_delete=models.CASCADE,
+        verbose_name="Almacén asociado"
+    )
+    
+    # Estado
+    activa = models.BooleanField(default=True, verbose_name="Serie activa")
+    
+    # Metadatos
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        ordering = ['nombre']
+        unique_together = [('empresa', 'nombre')]
+        verbose_name = "Serie"
+        verbose_name_plural = "Series"
+    
+    def __str__(self):
+        return f"{self.nombre} ({self.almacen.nombre})"
+
+
 class AbstractBaseDocument(TenantModelMixin, models.Model):
     """Modelo base abstracto para documentos (Presupuesto, Pedido, etc.)"""
     cliente = models.ForeignKey('core.Cliente', on_delete=models.CASCADE)
+    serie = models.ForeignKey(
+        'core.Serie',
+        on_delete=models.PROTECT,
+        verbose_name="Serie",
+        help_text="Serie asociada al documento para control de stock"
+    )
     fecha = models.DateField()
     observaciones = models.TextField(blank=True, null=True)
     subtotal = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal('0.00'))

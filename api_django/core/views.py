@@ -9,8 +9,8 @@ from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.filters import SearchFilter, OrderingFilter
 from itertools import chain
 from operator import attrgetter
-from .models import Cliente, Proveedor
-from .serializers import ClienteSerializer, ProveedorSerializer, ContactoSerializer
+from .models import Cliente, Proveedor, Serie
+from .serializers import ClienteSerializer, ProveedorSerializer, SerieSerializer, ContactoSerializer
 
 
 # Create your views here.
@@ -51,7 +51,23 @@ class ProveedorViewSet(viewsets.ModelViewSet):
     
     def get_queryset(self):
         """Retorna el queryset filtrado por tenant"""
-        return Proveedor.objects.all()
+        return self.queryset.filter(empresa=self.request.user.empresa)
+
+
+class SerieViewSet(viewsets.ModelViewSet):
+    """ViewSet para gestión de series"""
+    queryset = Serie.objects.all()  # Para el router
+    serializer_class = SerieSerializer
+    permission_classes = [IsAuthenticated]
+    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
+    filterset_fields = ['activa', 'almacen']
+    search_fields = ['nombre', 'descripcion']
+    ordering_fields = ['nombre', 'created_at']
+    ordering = ['nombre']
+    
+    def get_queryset(self):
+        """Retorna el queryset filtrado por tenant"""
+        return self.queryset.filter(empresa=self.request.user.empresa)
 
 
 class ContactosViewSet(viewsets.ViewSet):
