@@ -53,6 +53,7 @@ INSTALLED_APPS = [
     'core',
     'products',
     'sales',
+    'purchases',  # Sistema de compras
     'hr',
     'projects',
     'pos',

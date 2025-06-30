@@ -28,6 +28,7 @@ reports_router.register(r'reportes', ReportsViewSet, basename='reportes')
 from core.urls import router as core_router
 from products.urls import router as products_router
 from sales.urls import router as sales_router
+from purchases.urls import router as purchases_router
 from hr.urls import router as hr_router
 from projects.urls import router as projects_router
 from inventory.urls import router as inventory_router
@@ -39,6 +40,7 @@ router = DefaultRouter()
 router.registry.extend(core_router.registry)
 router.registry.extend(products_router.registry)
 router.registry.extend(sales_router.registry)
+router.registry.extend(purchases_router.registry)
 router.registry.extend(hr_router.registry)
 router.registry.extend(projects_router.registry)
 router.registry.extend(inventory_router.registry)
@@ -56,6 +58,7 @@ urlpatterns = [
     path('api/core/', include('core.urls')),
     path('api/products/', include('products.urls')),
     path('api/sales/', include('sales.urls')),
+    path('api/purchases/', include('purchases.urls')),
     path('api/hr/', include('hr.urls')),
     path('api/projects/', include('projects.urls')),
     path('api/inventory/', include('inventory.urls')),

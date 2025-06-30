@@ -4,10 +4,11 @@
 
 - ✅ **Multi-Tenancy**: Aislamiento completo de datos por empresa
 - ✅ **Autenticación JWT**: Tokens seguros con refresh automático  
-- ✅ **Arquitectura Modular**: 9 apps Django especializadas
+- ✅ **Arquitectura Modular**: 10 apps Django especializadas
 - ✅ **Roles y Permisos**: SuperAdmin, EmpresaAdmin, Usuario
 - ✅ **Invitaciones**: Invitar usuarios por email
 - ✅ **Gestión de Almacenes**: Control multi-almacén con stock granular
+- ✅ **Gestión de Compras**: Pedidos, albaranes, facturas de compra y cuentas por pagar
 - ✅ **Automaticación de descuento de stock**: Al crear un documento de venta, se descontará el stock automáticamente
 - ✅ **Logs de Auditoría**: Logs de auditoría para trazabilidad completa (quien ha hecho qué y cuándo)
 - ✅ **Dockerizado**: Despliegue simple con Docker Compose
@@ -336,6 +337,44 @@ POST   /api/core/proveedores/         # Crear proveedor
 GET    /api/core/proveedores/{id}/    # Obtener proveedor
 PUT    /api/core/proveedores/{id}/    # Actualizar proveedor
 DELETE /api/core/proveedores/{id}/    # Eliminar proveedor
+```
+
+### **🛒 Gestión de Compras** (EmpresaAdmin y Usuario)
+
+#### **Pedidos de Compra**
+```http
+GET    /api/purchases/pedidos/        # Listar pedidos de compra
+POST   /api/purchases/pedidos/        # Crear pedido de compra
+GET    /api/purchases/pedidos/{id}/   # Obtener pedido
+PUT    /api/purchases/pedidos/{id}/   # Actualizar pedido
+DELETE /api/purchases/pedidos/{id}/   # Eliminar pedido
+POST   /api/purchases/pedidos/{id}/recibir_mercancia/  # Generar albarán
+```
+
+#### **Albaranes de Compra**
+```http
+GET    /api/purchases/albaranes/      # Listar albaranes de compra
+POST   /api/purchases/albaranes/      # Crear albarán
+GET    /api/purchases/albaranes/{id}/ # Obtener albarán
+PUT    /api/purchases/albaranes/{id}/ # Actualizar albarán
+POST   /api/purchases/albaranes/{id}/crear_factura/    # Generar factura
+```
+
+#### **Facturas de Compra**
+```http
+GET    /api/purchases/facturas/       # Listar facturas de compra
+POST   /api/purchases/facturas/       # Crear factura
+GET    /api/purchases/facturas/{id}/  # Obtener factura
+PUT    /api/purchases/facturas/{id}/  # Actualizar factura
+```
+
+#### **Cuentas por Pagar**
+```http
+GET    /api/purchases/cuentas-por-pagar/     # Listar cuentas por pagar
+POST   /api/purchases/cuentas-por-pagar/     # Crear cuenta por pagar
+GET    /api/purchases/cuentas-por-pagar/{id}/# Obtener cuenta
+PUT    /api/purchases/cuentas-por-pagar/{id}/# Actualizar cuenta
+GET    /api/purchases/cuentas-por-pagar/resumen/ # Resumen de pagos pendientes
 ```
 
 ### **📞 Contactos** (EmpresaAdmin y Usuario)
