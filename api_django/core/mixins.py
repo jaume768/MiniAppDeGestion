@@ -62,12 +62,32 @@ class DocumentConversionMixin:
         documento_field = documento.__class__.__name__.lower()
         factura_data = {
             documento_field: documento,
+            'cliente': documento.cliente,
+            'serie': documento.serie,
+            'fecha': documento.fecha,
+            'observaciones': documento.observaciones,
             'subtotal': documento.subtotal,
             'iva': documento.iva,
             'total': documento.total
         }
         
         factura = Factura.objects.create(**factura_data)
+        
+        # Copiar items del documento a la factura
+        from sales.models import FacturaItem
+        for item in documento.get_items():
+            FacturaItem.objects.create(
+                factura=factura,
+                articulo=item.articulo,
+                cantidad=item.cantidad,
+                precio_unitario=item.precio_unitario,
+                iva_porcentaje=item.iva_porcentaje
+            )
+        
+        # Marcar documento como facturado si tiene ese campo
+        if hasattr(documento, 'is_facturado'):
+            documento.is_facturado = True
+            documento.save(update_fields=['is_facturado'])
         
         return Response({
             'message': f'{documento.__class__.__name__} convertido a factura exitosamente',

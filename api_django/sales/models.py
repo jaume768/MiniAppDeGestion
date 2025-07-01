@@ -95,6 +95,8 @@ class Factura(AbstractBaseDocument):
     numero = models.CharField(max_length=20)
     serie = models.ForeignKey('core.Serie', on_delete=models.SET_NULL, null=True, blank=True, help_text="Serie asociada al documento")
     documento_origen = models.CharField(max_length=50, blank=True, null=True, help_text="Tipo de documento del que se genera esta factura")
+    presupuesto = models.ForeignKey(Presupuesto, on_delete=models.SET_NULL, null=True, blank=True, related_name='facturas', help_text="Presupuesto del que se genera esta factura")
+    albaran = models.ForeignKey(Albaran, on_delete=models.SET_NULL, null=True, blank=True, related_name='facturas', help_text="Albarán del que se genera esta factura")
     pedido = models.ForeignKey(Pedido, on_delete=models.SET_NULL, null=True, blank=True, related_name='facturas')
     
     class Meta:
