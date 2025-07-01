@@ -12,29 +12,33 @@ services:
     volumes:
       - mysql_data:/var/lib/mysql          # volumen persistente
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "gestion_user", "-pgestion_pass123"]
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-proot_pass123"]
       interval: 10s
       timeout: 5s
       retries: 5
+      start_period: 30s
+    restart: unless-stopped
   
   api:
     build:
       context: ./api_django
       dockerfile: Dockerfile
     container_name: api-gestion
-    command: sh -c "chmod +x entrypoint.sh && ./entrypoint.sh python manage.py runserver 0.0.0.0:8000"
     volumes:
       - ./api_django:/app         # hot reload: cualquier cambio en el código se refleja inmediatamente
     ports:
       - "8000:8000"
     depends_on:
-      - db
+      db:
+        condition: service_healthy
     environment:
       - DEBUG=1
       - DATABASE_HOST=db
       - DATABASE_NAME=gestion_empresa
       - DATABASE_USER=gestion_user
       - DATABASE_PASSWORD=gestion_pass123
+      - PYTHONPATH=/app
+    restart: unless-stopped
 
   phpmyadmin:
     image: phpmyadmin/phpmyadmin
