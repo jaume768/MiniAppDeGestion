@@ -59,6 +59,7 @@ INSTALLED_APPS = [
     'pos',
     'inventory',
     'audit',  # Nueva app de auditoría
+    'documents',  # Nueva app de documentos PDF
 ]
 
 MIDDLEWARE = [
@@ -264,6 +265,30 @@ FRONTEND_URL = config('FRONTEND_URL', default='http://localhost:3000')
 
 # Invitation settings
 INVITATION_EXPIRY_DAYS = config('INVITATION_EXPIRY_DAYS', default=7, cast=int)
+
+# AWS S3 Configuration (para almacenar PDFs)
+AWS_ACCESS_KEY_ID = config('AWS_ACCESS_KEY_ID', default='')
+AWS_SECRET_ACCESS_KEY = config('AWS_SECRET_ACCESS_KEY', default='')
+AWS_STORAGE_BUCKET_NAME = config('AWS_STORAGE_BUCKET_NAME', default='')
+AWS_S3_REGION_NAME = config('AWS_S3_REGION_NAME', default='eu-west-1')
+AWS_S3_CUSTOM_DOMAIN = config('AWS_S3_CUSTOM_DOMAIN', default='')
+AWS_DEFAULT_ACL = 'private'  # Archivos privados por defecto
+AWS_S3_FILE_OVERWRITE = False  # No sobrescribir archivos con el mismo nombre
+AWS_S3_VERIFY = True
+
+# Storage backends
+if AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY and AWS_STORAGE_BUCKET_NAME:
+    # Usar S3 si está configurado
+    DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
+    AWS_S3_OBJECT_PARAMETERS = {
+        'CacheControl': 'max-age=86400',
+    }
+else:
+    # Usar almacenamiento local si no hay configuración S3
+    import os
+    MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+    MEDIA_URL = '/media/'
+    DEFAULT_FILE_STORAGE = 'django.core.files.storage.FileSystemStorage'
 
 # CORS settings
 CORS_ALLOWED_ORIGINS = [

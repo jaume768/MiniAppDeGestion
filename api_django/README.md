@@ -4,7 +4,7 @@
 
 - ✅ **Multi-Tenancy**: Aislamiento completo de datos por empresa
 - ✅ **Autenticación JWT**: Tokens seguros con refresh automático  
-- ✅ **Arquitectura Modular**: 10 apps Django especializadas
+- ✅ **Arquitectura Modular**: 11 apps Django especializadas
 - ✅ **Roles y Permisos**: SuperAdmin, EmpresaAdmin, Usuario
 - ✅ **Invitaciones**: Invitar usuarios por email
 - ✅ **Gestión de Almacenes**: Control multi-almacén con stock granular
@@ -16,6 +16,7 @@
 - ✅ **Documentación**: Documentación completa de la API con OpenAPI
 - ✅ **API REST**: Endpoints completos con Django REST Framework
 - ✅ **Generación PDF**: Facturas, presupuestos, albaranes y tickets
+- ✅ **Gestión de PDFs**: Almacenamiento persistente (S3/local) y envío por email
 
 ---
 
@@ -291,6 +292,12 @@ La API está organizada en **8 apps Django** con aislamiento de tenants:
 - **ArticuloStock**: Stock por artículo y almacén con umbrales
 - **MovimientoStock**: Auditoría completa de movimientos
 - **TransferenciaStock**: Transferencias entre almacenes
+
+### **`documents/`** - Gestión de PDFs y Email
+- **DocumentoPDF**: Almacenamiento persistente de PDFs generados
+- **Almacenamiento S3/Local**: Configuración flexible de almacenamiento
+- **Envío por Email**: Integración SMTP para enviar PDFs adjuntos o enlaces
+- **Versionado**: Control de versiones de documentos para evitar duplicados
 
 ---
 
@@ -575,6 +582,32 @@ POST   /api/inventory/transferencias/{id}/agregar_item/ # Agregar artículo a tr
 - ✅ **Transacciones Atómicas**: Consistencia garantizada en todas las operaciones
 - ✅ **Multi-Tenancy**: Aislamiento completo por empresa
 - ✅ **Migración Automática**: Migra stock existente de `products.Articulo`
+
+### **📊 Gestión de PDFs y Email** (EmpresaAdmin y Usuario)
+
+#### **Gestionar PDFs de Documentos**
+```http
+GET    /api/documents/pdfs/                    # Listar PDFs generados
+POST   /api/documents/pdfs/                    # Crear PDF manualmente
+GET    /api/documents/pdfs/{id}/               # Obtener detalles del PDF
+DELETE /api/documents/pdfs/{id}/               # Eliminar PDF
+
+# Acciones especiales
+GET    /api/documents/pdfs/{id}/descargar/     # Descargar PDF
+GET    /api/documents/pdfs/{id}/ver_inline/    # Ver PDF en navegador
+POST   /api/documents/pdfs/{id}/enviar_email/  # Enviar PDF por email
+GET    /api/documents/pdfs/estadisticas/       # Estadísticas de uso
+```
+
+#### **Características de Documents**
+- ✅ **Almacenamiento Persistente**: S3 (producción) o local (desarrollo)
+- ✅ **Envío por Email**: PDFs como adjunto o enlace de descarga
+- ✅ **Control de Versiones**: Evita PDFs duplicados con hash de documento
+- ✅ **Estadísticas**: Seguimiento de envíos y descargas
+- ✅ **Multi-Tenancy**: Aislamiento completo por empresa
+- ✅ **Filtros Avanzados**: Por tipo de documento, estado de envío, fecha
+- ✅ **Integración SMTP**: Usa configuración existente de email del sistema
+
 ---
 
 ## 📄 Guía de Pruebas
@@ -1005,7 +1038,6 @@ if (pm.response.code >= 400) {
 - 🔄 **Backup Automático**: Respaldos programados por empresa
 - 🌐 **Multi-idioma**: Soporte i18n para diferentes regiones
 - 🔐 **2FA**: Autenticación de dos factores
-- 📧 **Email Integration**: Envío automático de PDFs
 - 📊 **Exportación de docuemntos a Excel/CSV/XLSX**: Capacidad de exportar articulos, clientes, proveedores... a Excel/CSV/XLSX
 - 📊 **Importación de docuemntos desde Excel/CSV/XLSX**: Capacidad de importar articulos, clientes, proveedores... desde Excel/CSV/XLSX
 - 📊 **Capacidad de analizar un pdf de factura y extraer los datos relevantes**: Poder analizar un pdf de factura y extraer los datos relevantes para crear una factura de compra en el sistema

@@ -258,6 +258,25 @@ class PDFDocumentGenerator:
         response = self.get_response(filename)
         response['Content-Disposition'] = response['Content-Disposition'].replace('inline', 'attachment')
         return response
+    
+    def get_pdf_content(self):
+        """Genera y retorna el contenido del PDF como bytes"""
+        buffer = BytesIO()
+        doc = SimpleDocTemplate(
+            buffer, 
+            pagesize=A4,
+            rightMargin=72,
+            leftMargin=72,
+            topMargin=72,
+            bottomMargin=72
+        )
+        
+        doc.build(self._build_elements())
+        
+        pdf_content = buffer.getvalue()
+        buffer.close()
+        
+        return pdf_content
 
 
 def generate_document_pdf(documento, download=False, filename=None):

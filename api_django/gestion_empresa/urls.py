@@ -32,6 +32,7 @@ from purchases.urls import router as purchases_router
 from hr.urls import router as hr_router
 from projects.urls import router as projects_router
 from inventory.urls import router as inventory_router
+from documents.urls import router as documents_router
 
 # Router principal
 router = DefaultRouter()
@@ -44,6 +45,7 @@ router.registry.extend(purchases_router.registry)
 router.registry.extend(hr_router.registry)
 router.registry.extend(projects_router.registry)
 router.registry.extend(inventory_router.registry)
+router.registry.extend(documents_router.registry)
 
 urlpatterns = [
     path('admin/', admin.site.urls),
