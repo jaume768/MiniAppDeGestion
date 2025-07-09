@@ -1035,7 +1035,6 @@ if (pm.response.code >= 400) {
 - 🔔 **Notificaciones**: Sistema de alertas por empresa
 - 🎨 **Personalización de la empresa**: Permitir subir colores, logo, etc.
 - 📊 **Sistema de contabilidad básica**: Sistema de contabilidad básica con libros diarios, libros mayor, etc.
-- 🔄 **Backup Automático**: Respaldos programados por empresa
 - 🌐 **Multi-idioma**: Soporte i18n para diferentes regiones
 - 🔐 **2FA**: Autenticación de dos factores
 - 📊 **Exportación de docuemntos a Excel/CSV/XLSX**: Capacidad de exportar articulos, clientes, proveedores... a Excel/CSV/XLSX
@@ -1045,7 +1044,6 @@ if (pm.response.code >= 400) {
 - 📧 **Envio de email de las ventas**: Envio de email de las ventas a los clientes.
 
 ### **Mejoras Técnicas**
-- 📦 **S3 para almacenar**: PDFs, imágenes, etc.
 - 🔍 **Elasticsearch**: Búsqueda avanzada de documentos
 - 📊 **Monitoring**: Prometheus + Grafana
 - 🧪 **Test Coverage**: 100% cobertura de pruebas

@@ -39,6 +39,16 @@ class CajaSessionViewSet(viewsets.ModelViewSet):
             return CerrarCajaSerializer
         return CajaSessionSerializer
     
+    def create(self, request, *args, **kwargs):
+        """Crear sesión con respuesta usando el serializer completo"""
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        instance = serializer.save()
+        
+        # Devolver la respuesta con el serializer completo
+        response_serializer = CajaSessionSerializer(instance)
+        return Response(response_serializer.data, status=status.HTTP_201_CREATED)
+    
     @action(detail=False, methods=['get'])
     def activa(self, request):
         """Obtiene la sesión de caja activa del usuario actual"""

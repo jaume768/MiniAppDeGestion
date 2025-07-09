@@ -20,5 +20,5 @@ class EmpleadoSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = Empleado
-        fields = ['id', 'nombre', 'puesto', 'departamento', 'departamento_nombre', 
-                 'salario', 'fecha_contratacion']
+        fields = ['id', 'nombre', 'apellidos', 'email', 'telefono', 'puesto', 
+                 'departamento', 'departamento_nombre', 'salario', 'fecha_contratacion']
