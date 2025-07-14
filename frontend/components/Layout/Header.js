@@ -46,7 +46,7 @@ export default function Header() {
 
           {/* CTA Buttons */}
           <div className={styles.navActions}>
-            <Link href="/login" className="btn btn-outline btn-sm">
+            <Link href="/login" className="btn btn-login btn-sm">
               Iniciar Sesión
             </Link>
             <Link href="/demo" className="btn btn-primary btn-sm">

@@ -144,7 +144,7 @@ export default function PricingSection() {
                 <div className={styles.cardFooter}>
                   <Link 
                     href={plan.buttonLink}
-                    className={`btn ${plan.popular ? 'btn-primary' : 'btn-outline'} btn-lg w-full`}
+                    className={`btn ${plan.popular ? 'btn-primary' : 'btn-login'} btn-lg w-full`}
                   >
                     {plan.buttonText}
                   </Link>
@@ -213,7 +213,7 @@ export default function PricingSection() {
                 Nuestro equipo está aquí para ayudarte a elegir el plan perfecto 
                 para tu empresa. Contacta con nosotros sin compromiso.
               </p>
-              <Link href="/contact" className="btn btn-outline">
+              <Link href="/contact" className="btn btn-login">
                 Hablar con un Experto
               </Link>
             </div>
