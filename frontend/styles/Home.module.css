@@ -26,6 +26,14 @@
   color: var(--color-primary);
 }
 
+.logoDesktop {
+  display: inline;
+}
+
+.logoMobile {
+  display: none;
+}
+
 .navLinks {
   display: flex;
   list-style: none;
@@ -50,12 +58,161 @@
   align-items: center;
 }
 
+/* Mobile Menu Button */
 .mobileMenuButton {
   display: none;
   background: none;
   border: none;
   cursor: pointer;
-  padding: var(--spacing-sm);
+  padding: 8px;
+  position: relative;
+  z-index: 1001;
+}
+
+/* Hamburger simple */
+.hamburger {
+  display: flex;
+  flex-direction: column;
+  width: 24px;
+  height: 16px;
+  justify-content: space-between;
+}
+
+.hamburger span {
+  display: block;
+  height: 2px;
+  width: 100%;
+  background-color: #334155;
+  border-radius: 1px;
+  transition: all 0.3s ease;
+}
+
+/* Hamburger animation when menu is open */
+.menuOpen .hamburger span:nth-child(1) {
+  transform: rotate(45deg) translate(6px, 6px);
+}
+
+.menuOpen .hamburger span:nth-child(2) {
+  opacity: 0;
+}
+
+.menuOpen .hamburger span:nth-child(3) {
+  transform: rotate(-45deg) translate(6px, -6px);
+}
+
+/* Mobile Menu Overlay */
+.mobileMenuOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 999;
+}
+
+/* Mobile Side Menu */
+.mobileMenu {
+  position: fixed;
+  top: 0;
+  right: 0;
+  height: 100vh;
+  width: 280px;
+  background-color: white;
+  box-shadow: -2px 0 10px rgba(0, 0, 0, 0.1);
+  transform: translateX(100%);
+  transition: transform 0.3s ease;
+  z-index: 1000;
+  overflow-y: auto;
+}
+
+.mobileMenuOpen {
+  transform: translateX(0);
+}
+
+/* Mobile Menu Header */
+.mobileMenuHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem;
+  border-bottom: 1px solid #e2e8f0;
+  background-color: #2563eb;
+  color: white;
+}
+
+.mobileMenuLogo {
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: white;
+}
+
+.mobileMenuClose {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+  color: white;
+  border-radius: 4px;
+  transition: background-color 0.2s ease;
+}
+
+.mobileMenuClose:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+/* Mobile Menu Navigation */
+.mobileMenuNav {
+  padding: 1rem 0;
+  height: calc(100vh - 80px);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.mobileMenuLinks {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.mobileMenuLink {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  color: #334155;
+  text-decoration: none;
+  font-weight: 500;
+  border-bottom: 1px solid #f1f5f9;
+  transition: all 0.2s ease;
+}
+
+.mobileMenuLink:hover {
+  background-color: #f8fafc;
+  color: #2563eb;
+  transform: translateX(4px);
+}
+
+.mobileMenuIcon {
+  margin-right: 1rem;
+  font-size: 1.125rem;
+}
+
+/* Mobile Menu Actions */
+.mobileMenuActions {
+  padding: 1rem;
+  border-top: 1px solid #e2e8f0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.mobileMenuBtn {
+  width: 100%;
+  text-align: center;
+  padding: 1rem;
+  font-weight: 500;
 }
 
 /* Hero Section */
@@ -66,7 +223,6 @@
   background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-accent) 100%);
   background-image: url('/images/foto-empresarios.png');
   background-size: cover;
-  background-position: center;
   background-attachment: fixed;
   color: var(--color-white);
   min-height: 100vh;
@@ -542,10 +698,6 @@
     padding: var(--spacing-md) 0;
   }
   
-  .nav {
-    display: none;
-  }
-  
   .mobileMenuButton {
     display: block;
   }
@@ -729,12 +881,36 @@
 
 /* Responsive Design */
 @media (max-width: 768px) {
+  /* Hide desktop navigation */
+  .navLinks {
+    display: none;
+  }
+  
+  .navActions {
+    display: none;
+  }
+  
+  /* Show mobile menu button */
   .mobileMenuButton {
     display: block;
   }
   
-  .navLinks {
+  /* Adjust header layout for mobile */
+  .nav {
+    padding: 0.5rem 0;
+  }
+  
+  /* Change logo text for mobile */
+  .logo {
+    font-size: 1.125rem;
+  }
+  
+  .logoDesktop {
     display: none;
+  }
+  
+  .logoMobile {
+    display: inline;
   }
   
   .hero {
