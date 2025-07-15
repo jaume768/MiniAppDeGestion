@@ -1,3 +1,8 @@
+/* Scroll suave */
+html {
+  scroll-behavior: smooth;
+}
+
 /* Variables CSS */
 :root {
   /* Colores principales */
