@@ -51,7 +51,6 @@ services:
     container_name: frontend-gestion
     volumes:
       - ./frontend:/app           # hot reload: cambios en tiempo real
-      - /app/node_modules         # evita que node_modules se monte desde host
       - /app/.next                # cache de Next.js
     ports:
       - "3000:3000"               # puerto para acceder al frontend
@@ -60,6 +59,7 @@ services:
     environment:
       - NODE_ENV=development
       - NEXT_TELEMETRY_DISABLED=1
+      - NEXT_PUBLIC_API_URL=http://localhost:8000
     restart: unless-stopped
     networks:
       - gestion-network

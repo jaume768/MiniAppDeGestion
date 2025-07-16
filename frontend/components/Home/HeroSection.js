@@ -19,8 +19,8 @@ export default function HeroSection() {
             </p>
 
             <div className={styles.heroActions}>
-              <Link href="/demo" className="btn btn-primary btn-lg">
-                Prueba Gratuita 30 días
+              <Link href="/register" className="btn btn-primary btn-lg">
+                Registrar Empresa Gratis
               </Link>
               <Link href="#features" className="btn btn-outline btn-lg">
                 Ver Características

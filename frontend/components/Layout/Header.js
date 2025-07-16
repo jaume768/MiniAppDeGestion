@@ -80,8 +80,8 @@ export default function Header() {
               <Link href="/login" className="btn btn-login btn-sm">
                 Iniciar Sesión
               </Link>
-              <Link href="/demo" className="btn btn-primary btn-sm">
-                Demo Gratuita
+              <Link href="/register" className="btn btn-primary btn-sm">
+                Registrar Empresa
               </Link>
             </div>
 
@@ -155,8 +155,8 @@ export default function Header() {
             <Link href="/login" className={`btn btn-login ${styles.mobileMenuBtn}`} onClick={closeMenu}>
               Iniciar Sesión
             </Link>
-            <Link href="/demo" className={`btn btn-primary ${styles.mobileMenuBtn}`} onClick={closeMenu}>
-              Demo Gratuita
+            <Link href="/register" className={`btn btn-primary ${styles.mobileMenuBtn}`} onClick={closeMenu}>
+              Registrar Empresa
             </Link>
           </div>
         </nav>

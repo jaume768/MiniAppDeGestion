@@ -8,11 +8,11 @@ venv
 *.log
 
 # Next.js
-frontend_gestion_empresa/node_modules
-frontend_gestion_empresa/.next/
-frontend_gestion_empresa/out/
-frontend_gestion_empresa/.vercel
-frontend_gestion_empresa/build
+frontend/node_modules
+frontend/.next/
+frontend/out/
+frontend/.vercel
+frontend/build
 
 # Python
 __pycache__/
