@@ -1031,11 +1031,8 @@ if (pm.response.code >= 400) {
 ## 🚀 Próximos Pasos de Desarrollo
 
 ### **Funcionalidades Planificadas**
-- 📱 **Frontend Next**: Interfaz completa multi-tenant
-- 🔔 **Notificaciones**: Sistema de alertas por empresa
 - 🎨 **Personalización de la empresa**: Permitir subir colores, logo, etc.
 - 📊 **Sistema de contabilidad básica**: Sistema de contabilidad básica con libros diarios, libros mayor, etc.
-- 🌐 **Multi-idioma**: Soporte i18n para diferentes regiones
 - 🔐 **2FA**: Autenticación de dos factores
 - 📊 **Exportación de docuemntos a Excel/CSV/XLSX**: Capacidad de exportar articulos, clientes, proveedores... a Excel/CSV/XLSX
 - 📊 **Importación de docuemntos desde Excel/CSV/XLSX**: Capacidad de importar articulos, clientes, proveedores... desde Excel/CSV/XLSX
