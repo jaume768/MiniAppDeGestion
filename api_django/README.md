@@ -1039,6 +1039,11 @@ if (pm.response.code >= 400) {
 - 📊 **Capacidad de analizar un pdf de factura y extraer los datos relevantes**: Poder analizar un pdf de factura y extraer los datos relevantes para crear una factura de compra en el sistema
 - 🔐 **Envio a Verifactu**: Capacidad de enviar una factura a Verifactu para su validación.
 - 📧 **Envio de email de las ventas**: Envio de email de las ventas a los clientes.
+- 📄 **Plantillas de PDFs**: Poder elegir plantillas de PDFs para los documentos generados.
+- 📅 **Prueba gratis de 30 dias**: Prueba gratis de 30 dias para evaluar la funcionalidad del sistema y atraer leads.
+- 📅 **Suscripciones mensuales**: Suscripciones mensuales con descuento anual.
+- 📅 **Suscripciones anuales**: Suscripciones anuales.
+- 📅 **Suscripciones empresariales**: Suscripciones empresariales.
 
 ### **Mejoras Técnicas**
 - 🔍 **Elasticsearch**: Búsqueda avanzada de documentos
