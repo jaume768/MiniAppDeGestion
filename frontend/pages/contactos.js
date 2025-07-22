@@ -6,8 +6,8 @@ import { useState } from 'react';
 import { useApi } from '../hooks/useApi';
 import { useModal } from '../hooks/useModal';
 import { clientesService, proveedoresService } from '../services/api';
-import DataTable from '../components/ui/DataTable';
-import FormModal from '../components/ui/FormModal';
+import SimpleDataTable from '../components/ui/SimpleDataTable';
+import SimpleModal from '../components/ui/SimpleModal';
 import PermissionWrapper from '../components/PermissionWrapper';
 import { Toaster } from 'react-hot-toast';
 import styles from '../styles/Contactos.module.css';
@@ -305,16 +305,14 @@ const ContactosPage = () => {
         <div className={styles.contentContainer}>
           {/* Barra de herramientas */}
           <div className={styles.toolbar}>
-            <div className={styles.searchContainer}>
-              <input 
-                type="text" 
-                placeholder={`Buscar ${activeTab}...`}
-                className={styles.searchInput}
-              />
-            </div>
+
             <PermissionWrapper requiredPermission="can_create_data">
               <button
-                onClick={() => currentModal.openCreate()}
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  currentModal.openCreate();
+                }}
                 className={styles.addButton}
               >
                 ✨ Nuevo {activeTab === 'clientes' ? 'Cliente' : 'Proveedor'}
@@ -324,22 +322,23 @@ const ContactosPage = () => {
 
           {/* Data Table */}
           <div className={styles.dataTable}>
-            <DataTable
+            <SimpleDataTable
               data={currentApi.data || []}
               columns={currentColumns}
               loading={currentApi.loading}
               onEdit={(item) => currentModal.openEdit(item)}
               onView={(item) => currentModal.openView(item)}
               onDelete={(item) => currentApi.remove(item.id)}
-              canEdit="can_edit_data"
-              canDelete="can_delete_data"
+              canEdit={true}
+              canView={true}
+              canDelete={true}
               searchPlaceholder={`Buscar ${activeTab}...`}
             />
           </div>
         </div>
         
         {/* Modal Form */}
-        <FormModal
+        <SimpleModal
           isOpen={currentModal.isOpen}
           mode={currentModal.mode}
           title={{

@@ -11,8 +11,8 @@ import {
   invitacionesServiceExtended, 
   empresasService 
 } from '../services/api';
-import DataTable from '../components/ui/DataTable';
-import FormModal from '../components/ui/FormModal';
+import SimpleDataTable from '../components/ui/SimpleDataTable';
+import SimpleModal from '../components/ui/SimpleModal';
 import PermissionWrapper from '../components/PermissionWrapper';
 import { Toaster, toast } from 'react-hot-toast';
 import styles from '../styles/Usuarios.module.css';
@@ -400,7 +400,7 @@ const UsuariosPage = () => {
           {/* Data Table */}
           {config && (
             <div className={styles.dataTable}>
-              <DataTable
+              <SimpleDataTable
                 data={config.api.data || []}
                 columns={config.columns}
                 loading={config.api.loading}
@@ -418,7 +418,7 @@ const UsuariosPage = () => {
         
         {/* Modal Form para Invitaciones/Empresas */}
         {config && (
-        <FormModal
+        <SimpleModal
           isOpen={config.modal.isOpen}
           mode={config.modal.mode}
           title={{
@@ -442,7 +442,7 @@ const UsuariosPage = () => {
       )}
 
       {/* Modal de Perfil */}
-      <FormModal
+      <SimpleModal
         isOpen={perfilModal.isOpen}
         mode={perfilModal.mode}
         title="Mi Perfil"

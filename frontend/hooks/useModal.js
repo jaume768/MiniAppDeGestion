@@ -1,7 +1,7 @@
 /**
  * Hook genérico para gestión de modales
  */
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 export const useModal = (initialState = false) => {
   const [isOpen, setIsOpen] = useState(initialState);

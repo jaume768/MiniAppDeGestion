@@ -6,8 +6,8 @@ import { useState, useEffect } from 'react';
 import { useApi } from '../hooks/useApi';
 import { useModal } from '../hooks/useModal';
 import { categoriasService, marcasService, articulosService } from '../services/api';
-import DataTable from '../components/ui/DataTable';
-import FormModal from '../components/ui/FormModal';
+import SimpleDataTable from '../components/ui/SimpleDataTable';
+import SimpleModal from '../components/ui/SimpleModal';
 import PermissionWrapper from '../components/PermissionWrapper';
 import { Toaster } from 'react-hot-toast';
 import styles from '../styles/Articulos.module.css';
@@ -167,17 +167,21 @@ const ArticulosPage = () => {
     { 
       key: 'precio', 
       label: 'Precio',
-      render: (value) => `${parseFloat(value).toFixed(2)}€`
+      render: (item) => `${parseFloat(item.precio).toFixed(2)}€`
     },
     { key: 'stock', label: 'Stock', sortable: true },
     { 
       key: 'activo', 
       label: 'Estado',
-      render: (value) => (
-        <span className={`px-2 py-1 rounded-full text-xs ${
-          value ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-        }`}>
-          {value ? 'Activo' : 'Inactivo'}
+      render: (item) => (
+        <span style={{
+          padding: '4px 8px',
+          borderRadius: '9999px',
+          fontSize: '12px',
+          backgroundColor: item.activo ? '#dcfce7' : '#fee2e2',
+          color: item.activo ? '#166534' : '#dc2626'
+        }}>
+          {item.activo ? 'Activo' : 'Inactivo'}
         </span>
       )
     }
@@ -190,20 +194,30 @@ const ArticulosPage = () => {
     { 
       key: 'articulos_count', 
       label: 'Artículos',
-      render: (value) => (
-        <span className="px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs">
-          {value} artículos
+      render: (item) => (
+        <span style={{
+          padding: '4px 8px',
+          backgroundColor: '#dbeafe',
+          color: '#1e40af',
+          borderRadius: '9999px',
+          fontSize: '12px'
+        }}>
+          {item.articulos_count} artículos
         </span>
       )
     },
     { 
       key: 'activa', 
       label: 'Estado',
-      render: (value) => (
-        <span className={`px-2 py-1 rounded-full text-xs ${
-          value ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-        }`}>
-          {value ? 'Activa' : 'Inactiva'}
+      render: (item) => (
+        <span style={{
+          padding: '4px 8px',
+          borderRadius: '9999px',
+          fontSize: '12px',
+          backgroundColor: item.activa ? '#dcfce7' : '#fee2e2',
+          color: item.activa ? '#166534' : '#dc2626'
+        }}>
+          {item.activa ? 'Activa' : 'Inactiva'}
         </span>
       )
     }
@@ -217,20 +231,30 @@ const ArticulosPage = () => {
     { 
       key: 'articulos_count', 
       label: 'Artículos',
-      render: (value) => (
-        <span className="px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs">
-          {value} artículos
+      render: (item) => (
+        <span style={{
+          padding: '4px 8px',
+          backgroundColor: '#dbeafe',
+          color: '#1e40af',
+          borderRadius: '9999px',
+          fontSize: '12px'
+        }}>
+          {item.articulos_count} artículos
         </span>
       )
     },
     { 
       key: 'activa', 
       label: 'Estado',
-      render: (value) => (
-        <span className={`px-2 py-1 rounded-full text-xs ${
-          value ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-        }`}>
-          {value ? 'Activa' : 'Inactiva'}
+      render: (item) => (
+        <span style={{
+          padding: '4px 8px',
+          borderRadius: '9999px',
+          fontSize: '12px',
+          backgroundColor: item.activa ? '#dcfce7' : '#fee2e2',
+          color: item.activa ? '#166534' : '#dc2626'
+        }}>
+          {item.activa ? 'Activa' : 'Inactiva'}
         </span>
       )
     }
@@ -314,13 +338,7 @@ const ArticulosPage = () => {
         <div className={styles.contentContainer}>
           {/* Barra de herramientas */}
           <div className={styles.toolbar}>
-            <div className={styles.searchContainer}>
-              <input 
-                type="text" 
-                placeholder={`Buscar ${config?.title.toLowerCase()}...`}
-                className={styles.searchInput}
-              />
-            </div>
+
             <PermissionWrapper requiredPermission="can_create_data">
               <button
                 onClick={() => config?.modal.openCreate()}
@@ -333,22 +351,23 @@ const ArticulosPage = () => {
 
           {/* Data Table */}
           <div className={styles.dataTable}>
-            <DataTable
+            <SimpleDataTable
               data={config?.api.data || []}
               columns={config?.columns || []}
               loading={config?.api.loading}
               onEdit={(item) => config?.modal.openEdit(item)}
               onView={(item) => config?.modal.openView(item)}
               onDelete={(item) => config?.api.remove(item.id)}
-              canEdit="can_edit_data"
-              canDelete="can_delete_data"
+              canEdit={true}
+              canView={true}
+              canDelete={true}
               searchPlaceholder={`Buscar ${config?.title.toLowerCase()}...`}
             />
           </div>
         </div>
 
         {/* Modal Form */}
-        <FormModal
+        <SimpleModal
           isOpen={config?.modal.isOpen}
           mode={config?.modal.mode}
           title={{
