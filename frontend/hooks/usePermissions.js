@@ -37,6 +37,12 @@ export const usePermissions = () => {
 
   // Verificar permiso específico
   const hasPermission = (permission) => {
+    // Los administradores tienen todos los permisos
+    if (user?.role === 'admin') {
+      return true;
+    }
+    
+    // Para otros usuarios, verificar permisos específicos
     return permissions[permission] === true;
   };
 
