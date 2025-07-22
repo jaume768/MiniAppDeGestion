@@ -1,170 +1,109 @@
-import { useCallback } from 'react';
+/**
+ * Hook para gestión de permisos del usuario
+ * Extrae y verifica permisos desde los datos del usuario en localStorage
+ */
+import { useMemo } from 'react';
 import { getAccessibleModules, getModulesByCategory, canAccessModule } from '../config/modules';
 
-/**
- * Hook para manejar permisos del usuario
- * Utiliza los datos del usuario almacenados en localStorage
- */
-export function usePermissions() {
-  // Obtener datos del usuario desde localStorage
-  const getUserData = useCallback(() => {
+export const usePermissions = () => {
+  const userData = useMemo(() => {
+    if (typeof window === 'undefined') return null;
+    
+    const stored = localStorage.getItem('userData');
+    if (!stored) return null;
+    
     try {
-      const userDataStr = localStorage.getItem('user_data');
-      return userDataStr ? JSON.parse(userDataStr) : null;
+      const parsed = JSON.parse(stored);
+      // console.log('userData from localStorage:', parsed); // Debug
+      return parsed;
     } catch (error) {
-      console.error('Error parsing user data:', error);
+      console.error('Error parsing userData:', error);
       return null;
     }
   }, []);
 
-  /**
-   * Verifica si el usuario tiene un permiso específico
-   * @param {string} permission - Nombre del permiso a verificar
-   * @returns {boolean} True si tiene el permiso
-   */
-  const hasPermission = useCallback((permission) => {
-    const userData = getUserData();
-    return userData?.permissions?.[permission] || false;
-  }, [getUserData]);
+  const user = userData?.user;
+  const permissions = user?.permissions || {};
+  const accessibleModules = user?.accessible_modules || permissions?.accessible_modules || [];
+  const canAccessModule = (moduleName) => {
+    if (!accessibleModules) return false;
+    
+    // SuperAdmin tiene acceso a todo
+    if (accessibleModules.includes('all')) return true;
+    
+    // Verificar si el módulo está en la lista
+    return accessibleModules.includes(moduleName);
+  };
 
-  /**
-   * Verifica si el usuario tiene alguno de los permisos especificados
-   * @param {Array<string>} permissions - Array de permisos a verificar
-   * @returns {boolean} True si tiene al menos uno de los permisos
-   */
-  const hasAnyPermission = useCallback((permissions) => {
-    if (!Array.isArray(permissions)) {
-      return false;
-    }
-    return permissions.some(permission => hasPermission(permission));
-  }, [hasPermission]);
+  // Verificar permiso específico
+  const hasPermission = (permission) => {
+    return permissions[permission] === true;
+  };
 
-  /**
-   * Verifica si el usuario puede acceder a un módulo específico
-   * @param {string} moduleKey - Clave del módulo
-   * @returns {boolean} True si puede acceder
-   */
-  const canAccessModuleByKey = useCallback((moduleKey) => {
-    const userData = getUserData();
-    const accessibleModules = userData?.permissions?.accessible_modules || [];
-    return canAccessModule(accessibleModules, moduleKey);
-  }, [getUserData]);
-
-  /**
-   * Obtiene todos los módulos accesibles para el usuario
-   * @returns {Array} Array de módulos accesibles
-   */
-  const getAccessibleModulesForUser = useCallback(() => {
-    const userData = getUserData();
-    const accessibleModules = userData?.permissions?.accessible_modules || [];
-    return getAccessibleModules(accessibleModules);
-  }, [getUserData]);
-
-  /**
-   * Obtiene módulos accesibles por categoría
-   * @param {string} category - Categoría ('operational' | 'administrative')
-   * @returns {Array} Array de módulos filtrados por categoría
-   */
-  const getAccessibleModulesByCategory = useCallback((category) => {
-    const userData = getUserData();
-    const accessibleModules = userData?.permissions?.accessible_modules || [];
+  // Obtener módulos accesibles por categoría
+  const getAccessibleModulesByCategoryFunc = (category = null) => {
     return getModulesByCategory(accessibleModules, category);
-  }, [getUserData]);
+  };
 
-  /**
-   * Verifica si el usuario es admin o superadmin
-   * @returns {boolean} True si es admin o superadmin
-   */
-  const isAdmin = useCallback(() => {
-    const userData = getUserData();
-    return ['admin', 'superadmin'].includes(userData?.role);
-  }, [getUserData]);
-
-  /**
-   * Verifica si el usuario es superadmin
-   * @returns {boolean} True si es superadmin
-   */
-  const isSuperAdmin = useCallback(() => {
-    const userData = getUserData();
-    return userData?.role === 'superadmin';
-  }, [getUserData]);
-
-  /**
-   * Obtiene el rol del usuario
-   * @returns {string|null} Rol del usuario
-   */
-  const getUserRole = useCallback(() => {
-    const userData = getUserData();
-    return userData?.role || null;
-  }, [getUserData]);
-
-  /**
-   * Obtiene el cargo del usuario
-   * @returns {string|null} Cargo del usuario
-   */
-  const getUserCargo = useCallback(() => {
-    const userData = getUserData();
-    return userData?.cargo || null;
-  }, [getUserData]);
-
-  /**
-   * Obtiene todos los permisos del usuario
-   * @returns {Object} Objeto con todos los permisos
-   */
-  const getAllPermissions = useCallback(() => {
-    const userData = getUserData();
-    return userData?.permissions || {};
-  }, [getUserData]);
-
-  /**
-   * Genera badges de permisos activos para mostrar en la UI
-   * @returns {Array} Array de badges con nombre y color
-   */
-  const getPermissionBadges = useCallback(() => {
-    const permissions = getAllPermissions();
+  // Helpers adicionales para compatibilidad
+  const getRole = () => user?.role;
+  const getCargo = () => user?.cargo;
+  
+  // Obtener badges de permisos para mostrar en el dashboard
+  const getPermissionBadges = () => {
+    if (!permissions) return [];
+    
     const badges = [];
-
-    if (permissions.can_create_data) {
-      badges.push({ name: 'Crear', color: 'bg-green-100 text-green-800' });
-    }
-    if (permissions.can_edit_data) {
-      badges.push({ name: 'Editar', color: 'bg-blue-100 text-blue-800' });
-    }
-    if (permissions.can_delete_data) {
-      badges.push({ name: 'Eliminar', color: 'bg-red-100 text-red-800' });
-    }
-    if (permissions.can_manage_users) {
-      badges.push({ name: 'Gestionar Usuarios', color: 'bg-purple-100 text-purple-800' });
-    }
-    if (permissions.can_view_reports) {
-      badges.push({ name: 'Ver Reportes', color: 'bg-yellow-100 text-yellow-800' });
-    }
-    if (permissions.can_manage_settings) {
-      badges.push({ name: 'Configuración', color: 'bg-gray-100 text-gray-800' });
-    }
-
+    const permissionLabels = {
+      can_create_data: 'Crear',
+      can_edit_data: 'Editar',
+      can_delete_data: 'Eliminar',
+      can_manage_users: 'Gestionar Usuarios',
+      can_view_reports: 'Ver Reportes',
+      can_manage_settings: 'Configuración'
+    };
+    
+    Object.entries(permissions).forEach(([key, value]) => {
+      if (value && permissionLabels[key]) {
+        badges.push({
+          key,
+          label: permissionLabels[key],
+          active: true
+        });
+      }
+    });
+    
     return badges;
-  }, [getAllPermissions]);
+  };
 
   return {
-    // Verificación de permisos
+    user,
+    permissions,
+    accessibleModules,
+    canAccessModule,
     hasPermission,
-    hasAnyPermission,
-    
-    // Acceso a módulos
-    canAccessModule: canAccessModuleByKey,
-    getAccessibleModules: getAccessibleModulesForUser,
-    getAccessibleModulesByCategory,
+    getAccessibleModulesByCategory: getAccessibleModulesByCategoryFunc,
+    getPermissionBadges,
+    getRole,
+    getCargo,
     
     // Información del usuario
-    isAdmin,
-    isSuperAdmin,
-    getUserRole,
-    getUserCargo,
-    getAllPermissions,
-    getPermissionBadges,
+    isAuthenticated: !!user,
+    role: user?.role,
+    cargo: user?.cargo,
+    userName: user?.first_name && user?.last_name 
+      ? `${user.first_name} ${user.last_name}` 
+      : user?.username,
     
-    // Utilidades
-    getUserData
+    // Aliases para compatibilidad
+    userRole: user?.role,
+    userCargo: user?.cargo,
+    
+    // Helpers adicionales
+    isSuperAdmin: user?.role === 'superadmin',
+    isAdmin: user?.role === 'admin',
+    isManager: user?.role === 'manager',
+    isEmployee: user?.role === 'employee',
+    isReadonly: user?.role === 'readonly'
   };
-}
+};

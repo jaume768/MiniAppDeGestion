@@ -44,7 +44,7 @@ export default function Login() {
 
     try {
       const response = await axios.post(
-        `${API_BASE_URL}/api/auth/login/`,
+        `${API_BASE_URL}/auth/login/`,
         {
           username: formData.username,
           password: formData.password
@@ -59,7 +59,7 @@ export default function Login() {
       // Guardar tokens y datos del usuario
       localStorage.setItem('access_token', response.data.access);
       localStorage.setItem('refresh_token', response.data.refresh);
-      localStorage.setItem('user_data', JSON.stringify(response.data.user));
+      localStorage.setItem('userData', JSON.stringify(response.data));
 
       // Redirigir al dashboard
       router.push('/dashboard');

@@ -7,46 +7,34 @@ import styles from '../styles/Dashboard.module.css';
 
 export default function Dashboard() {
   const router = useRouter();
-  const [userData, setUserData] = useState(null);
   const [loading, setLoading] = useState(true);
   
   const {
+    user,
     getAccessibleModulesByCategory,
     getPermissionBadges,
-    getUserRole,
-    getUserCargo,
+    getRole,
+    getCargo,
     isAdmin,
-    isSuperAdmin
+    isSuperAdmin,
+    userName,
+    isAuthenticated
   } = usePermissions();
 
   useEffect(() => {
-    // Verificar si el usuario está autenticado
-    const accessToken = localStorage.getItem('access_token');
-    const userDataStr = localStorage.getItem('user_data');
-
-    if (!accessToken || !userDataStr) {
-      // No hay sesión activa, redirigir al login
+    // Verificar si el usuario está autenticado usando el hook
+    if (!isAuthenticated) {
       router.push('/login');
       return;
     }
-
-    try {
-      const user = JSON.parse(userDataStr);
-      setUserData(user);
-    } catch (error) {
-      console.error('Error parsing user data:', error);
-      router.push('/login');
-      return;
-    }
-
     setLoading(false);
-  }, [router]);
+  }, [router, isAuthenticated]);
 
   const handleLogout = () => {
     // Limpiar datos de sesión
     localStorage.removeItem('access_token');
     localStorage.removeItem('refresh_token');
-    localStorage.removeItem('user_data');
+    localStorage.removeItem('userData');
     
     // Redirigir al login
     router.push('/login');
@@ -91,8 +79,8 @@ export default function Dashboard() {
   const PermissionBadges = () => (
     <div className={styles.permissionBadges}>
       {permissionBadges.map((badge, index) => (
-        <span key={index} className={`${styles.badge} ${styles[badge.name.toLowerCase().replace(' ', '')]}}`}>
-          {badge.name}
+        <span key={index} className={`${styles.badge} ${styles[badge.label.toLowerCase().replace(/\s+/g, '')]}}`}>
+          {badge.label}
         </span>
       ))}
     </div>
@@ -126,7 +114,7 @@ export default function Dashboard() {
             </div>
             <div className={styles.userMenu}>
               <span className={styles.userName}>
-                {userData?.first_name} {userData?.last_name}
+                {user?.first_name || 'Usuario'} {user?.last_name || ''}
               </span>
               <button onClick={handleLogout} className={styles.logoutBtn}>
                 Cerrar Sesión
@@ -143,34 +131,26 @@ export default function Dashboard() {
               <div className={styles.welcomeHeader}>
                 <div className={styles.welcomeText}>
                   <h2 className={styles.welcomeTitle}>
-                    ¡Hola, {userData?.first_name}! 👋
+                    ¡Hola, {user?.first_name || 'Usuario'}! 👋
                   </h2>
                   <p className={styles.welcomeSubtitle}>
-                    Empresa: <strong>{userData?.empresa_nombre}</strong>
+                    Empresa: <strong>{user?.empresa_nombre || 'Sin empresa'}</strong>
                   </p>
                   <p className={styles.welcomeRole}>
-                    {userData?.cargo && (
-                      <span className={styles.cargoChip}>{userData.cargo}</span>
+                    {user?.cargo && (
+                      <span className={styles.cargoChip}>{user.cargo}</span>
                     )}
                     <span className={styles.roleChip}>
-                      {getRoleLabel(userData?.role)}
+                      {getRoleLabel(user?.role)}
                     </span>
                   </p>
                 </div>
                 <div className={styles.userAvatar}>
                   <div className={styles.avatarCircle}>
-                    {userData?.first_name?.charAt(0)}{userData?.last_name?.charAt(0)}
+                    {user?.first_name?.charAt(0) || 'U'}{user?.last_name?.charAt(0) || ''}
                   </div>
                 </div>
               </div>
-              
-              {/* Permission Badges */}
-              {permissionBadges.length > 0 && (
-                <div className={styles.permissionsSection}>
-                  <h4 className={styles.permissionsTitle}>Tus permisos activos:</h4>
-                  <PermissionBadges />
-                </div>
-              )}
             </section>
 
             {/* Operational Modules */}
@@ -218,32 +198,32 @@ export default function Dashboard() {
                 <div className={styles.userInfoGrid}>
                   <div className={styles.infoItem}>
                     <label className={styles.infoLabel}>Usuario:</label>
-                    <span className={styles.infoValue}>{userData?.username}</span>
+                    <span className={styles.infoValue}>{user?.username || 'N/A'}</span>
                   </div>
                   <div className={styles.infoItem}>
                     <label className={styles.infoLabel}>Email:</label>
-                    <span className={styles.infoValue}>{userData?.email}</span>
+                    <span className={styles.infoValue}>{user?.email || 'N/A'}</span>
                   </div>
                   <div className={styles.infoItem}>
                     <label className={styles.infoLabel}>Rol:</label>
                     <span className={`${styles.infoValue} ${styles.roleBadge}`}>
-                      {getRoleLabel(userData?.role)}
+                      {getRoleLabel(user?.role)}
                     </span>
                   </div>
                   <div className={styles.infoItem}>
                     <label className={styles.infoLabel}>Empresa:</label>
-                    <span className={styles.infoValue}>{userData?.empresa_nombre}</span>
+                    <span className={styles.infoValue}>{user?.empresa_nombre || 'N/A'}</span>
                   </div>
-                  {userData?.telefono && (
+                  {user?.telefono && (
                     <div className={styles.infoItem}>
                       <label className={styles.infoLabel}>Teléfono:</label>
-                      <span className={styles.infoValue}>{userData.telefono}</span>
+                      <span className={styles.infoValue}>{user.telefono}</span>
                     </div>
                   )}
-                  {userData?.cargo && (
+                  {user?.cargo && (
                     <div className={styles.infoItem}>
                       <label className={styles.infoLabel}>Cargo:</label>
-                      <span className={styles.infoValue}>{userData.cargo}</span>
+                      <span className={styles.infoValue}>{user.cargo}</span>
                     </div>
                   )}
                 </div>
