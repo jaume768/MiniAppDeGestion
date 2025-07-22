@@ -128,7 +128,7 @@ class CustomUser(AbstractUser):
         }
         
         if self.is_superadmin:
-            return {key: True for key in base_permissions.keys()}
+            base_permissions = {key: True for key in base_permissions.keys()}
         
         elif self.is_empresa_admin:
             base_permissions.update({
@@ -156,7 +156,67 @@ class CustomUser(AbstractUser):
         base_permissions['can_manage_users'] = self.can_manage_users
         base_permissions['can_manage_settings'] = self.can_manage_settings
         
+        # Agregar módulos accesibles según cargo
+        base_permissions['accessible_modules'] = self.get_accessible_modules()
+        
         return base_permissions
+    
+    def get_accessible_modules(self):
+        """Retorna los módulos accesibles según rol y cargo del usuario"""
+        # Módulos base por rol
+        if self.is_superadmin:
+            return ['all']  # Acceso completo a todos los módulos
+        
+        elif self.is_empresa_admin:
+            return [
+                'dashboard', 'ventas', 'compras', 'inventario', 'articulos',
+                'contactos', 'rrhh', 'proyectos', 'tpv', 'reportes',
+                'usuarios', 'configuracion'
+            ]
+        
+        elif self.is_manager:
+            return [
+                'dashboard', 'ventas', 'compras', 'inventario', 'articulos',
+                'contactos', 'rrhh', 'proyectos', 'tpv', 'reportes'
+            ]
+        
+        elif self.role == 'employee':
+            # Módulos específicos según cargo para empleados
+            cargo_modules = {
+                'Vendedora': [
+                    'dashboard', 'ventas', 'contactos', 'articulos', 
+                    'inventario', 'tpv', 'reportes'
+                ],
+                'Encargado de Almacén': [
+                    'dashboard', 'inventario', 'articulos', 'compras', 
+                    'contactos', 'ventas'
+                ],
+                'Contable': [
+                    'dashboard', 'reportes', 'ventas', 'compras', 'contactos'
+                ],
+                'Cajero': [
+                    'dashboard', 'tpv', 'ventas', 'contactos'
+                ],
+                'Administrativo': [
+                    'dashboard', 'contactos', 'articulos', 'reportes'
+                ],
+                'Técnico': [
+                    'dashboard', 'proyectos', 'inventario', 'articulos'
+                ],
+                'Comercial': [
+                    'dashboard', 'ventas', 'contactos', 'articulos', 'reportes'
+                ],
+                'Recepcionista': [
+                    'dashboard', 'contactos'
+                ]
+            }
+            
+            return cargo_modules.get(self.cargo, ['dashboard'])
+        
+        elif self.role == 'readonly':
+            return ['dashboard'] if self.can_view_reports else []
+        
+        return ['dashboard']  # Módulo mínimo por defecto
 
     def save(self, *args, **kwargs):
         # Auto-asignar permisos basándose en el rol

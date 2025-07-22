@@ -1,12 +1,23 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import Head from 'next/head';
+import Link from 'next/link';
+import { usePermissions } from '../hooks/usePermissions';
 import styles from '../styles/Dashboard.module.css';
 
 export default function Dashboard() {
   const router = useRouter();
   const [userData, setUserData] = useState(null);
   const [loading, setLoading] = useState(true);
+  
+  const {
+    getAccessibleModulesByCategory,
+    getPermissionBadges,
+    getUserRole,
+    getUserCargo,
+    isAdmin,
+    isSuperAdmin
+  } = usePermissions();
 
   useEffect(() => {
     // Verificar si el usuario está autenticado
@@ -50,6 +61,55 @@ export default function Dashboard() {
     );
   }
 
+  // Obtener módulos accesibles por categoría
+  const operationalModules = getAccessibleModulesByCategory('operational');
+  const administrativeModules = getAccessibleModulesByCategory('administrative');
+  const permissionBadges = getPermissionBadges();
+  
+  // Componente para renderizar una tarjeta de módulo
+  const ModuleCard = ({ module }) => (
+    <Link href={module.path} key={module.key}>
+      <div className={`${styles.moduleCard} ${styles[module.key] || ''}`}>
+        <div className={styles.moduleIcon}>{module.icon}</div>
+        <div className={styles.moduleContent}>
+          <h3 className={styles.moduleTitle}>{module.name}</h3>
+          <p className={styles.moduleDescription}>{module.description}</p>
+          {module.submodules && (
+            <div className={styles.submodules}>
+              <small>Incluye: {module.submodules.slice(0, 3).join(', ')}
+                {module.submodules.length > 3 && ` (+${module.submodules.length - 3} más)`}
+              </small>
+            </div>
+          )}
+        </div>
+        <div className={styles.moduleArrow}>→</div>
+      </div>
+    </Link>
+  );
+  
+  // Componente para mostrar badges de permisos
+  const PermissionBadges = () => (
+    <div className={styles.permissionBadges}>
+      {permissionBadges.map((badge, index) => (
+        <span key={index} className={`${styles.badge} ${styles[badge.name.toLowerCase().replace(' ', '')]}}`}>
+          {badge.name}
+        </span>
+      ))}
+    </div>
+  );
+
+  // Función para obtener el label del rol en español
+  const getRoleLabel = (role) => {
+    const roleLabels = {
+      'superadmin': 'Super Administrador',
+      'admin': 'Administrador',
+      'manager': 'Gerente',
+      'employee': 'Empleado',
+      'readonly': 'Solo Lectura'
+    };
+    return roleLabels[role] || role;
+  };
+
   return (
     <>
       <Head>
@@ -80,105 +140,113 @@ export default function Dashboard() {
           <div className={styles.container}>
             {/* Welcome Section */}
             <section className={styles.welcomeSection}>
-              <h2 className={styles.welcomeTitle}>
-                ¡Bienvenido, {userData?.first_name}!
-              </h2>
-              <p className={styles.welcomeText}>
-                Tu empresa <strong>{userData?.empresa_nombre}</strong> está lista para gestionar.
-              </p>
+              <div className={styles.welcomeHeader}>
+                <div className={styles.welcomeText}>
+                  <h2 className={styles.welcomeTitle}>
+                    ¡Hola, {userData?.first_name}! 👋
+                  </h2>
+                  <p className={styles.welcomeSubtitle}>
+                    Empresa: <strong>{userData?.empresa_nombre}</strong>
+                  </p>
+                  <p className={styles.welcomeRole}>
+                    {userData?.cargo && (
+                      <span className={styles.cargoChip}>{userData.cargo}</span>
+                    )}
+                    <span className={styles.roleChip}>
+                      {getRoleLabel(userData?.role)}
+                    </span>
+                  </p>
+                </div>
+                <div className={styles.userAvatar}>
+                  <div className={styles.avatarCircle}>
+                    {userData?.first_name?.charAt(0)}{userData?.last_name?.charAt(0)}
+                  </div>
+                </div>
+              </div>
+              
+              {/* Permission Badges */}
+              {permissionBadges.length > 0 && (
+                <div className={styles.permissionsSection}>
+                  <h4 className={styles.permissionsTitle}>Tus permisos activos:</h4>
+                  <PermissionBadges />
+                </div>
+              )}
             </section>
 
-            {/* Stats Cards */}
-            <section className={styles.statsGrid}>
-              <div className={styles.statCard}>
-                <div className={styles.statIcon}>📊</div>
-                <div className={styles.statContent}>
-                  <h3>Panel de Control</h3>
-                  <p>Visualiza métricas y estadísticas</p>
-                  <span className={styles.comingSoon}>Próximamente</span>
+            {/* Operational Modules */}
+            {operationalModules.length > 0 && (
+              <section className={styles.modulesSection}>
+                <h3 className={styles.sectionTitle}>📊 Módulos Operacionales</h3>
+                <div className={styles.modulesGrid}>
+                  {operationalModules.map(module => (
+                    <ModuleCard key={module.key} module={module} />
+                  ))}
                 </div>
-              </div>
+              </section>
+            )}
 
-              <div className={styles.statCard}>
-                <div className={styles.statIcon}>💰</div>
-                <div className={styles.statContent}>
-                  <h3>Facturación</h3>
-                  <p>Gestiona facturas y pagos</p>
-                  <span className={styles.comingSoon}>Próximamente</span>
+            {/* Administrative Modules */}
+            {administrativeModules.length > 0 && (
+              <section className={styles.modulesSection}>
+                <h3 className={styles.sectionTitle}>⚙️ Administración</h3>
+                <div className={styles.modulesGrid}>
+                  {administrativeModules.map(module => (
+                    <ModuleCard key={module.key} module={module} />
+                  ))}
                 </div>
-              </div>
+              </section>
+            )}
 
-              <div className={styles.statCard}>
-                <div className={styles.statIcon}>📦</div>
-                <div className={styles.statContent}>
-                  <h3>Inventario</h3>
-                  <p>Control de productos y stock</p>
-                  <span className={styles.comingSoon}>Próximamente</span>
+            {/* No modules message */}
+            {operationalModules.length === 0 && administrativeModules.length === 0 && (
+              <section className={styles.noModulesSection}>
+                <div className={styles.noModulesCard}>
+                  <div className={styles.noModulesIcon}>🔒</div>
+                  <h3 className={styles.noModulesTitle}>Sin acceso a módulos</h3>
+                  <p className={styles.noModulesText}>
+                    Tu rol actual no tiene acceso a ningún módulo del sistema.
+                    Contacta con tu administrador para obtener más permisos.
+                  </p>
                 </div>
-              </div>
-
-              <div className={styles.statCard}>
-                <div className={styles.statIcon}>👥</div>
-                <div className={styles.statContent}>
-                  <h3>Recursos Humanos</h3>
-                  <p>Gestión de empleados</p>
-                  <span className={styles.comingSoon}>Próximamente</span>
-                </div>
-              </div>
-
-              <div className={styles.statCard}>
-                <div className={styles.statIcon}>🛒</div>
-                <div className={styles.statContent}>
-                  <h3>Ventas</h3>
-                  <p>Gestión de ventas y clientes</p>
-                  <span className={styles.comingSoon}>Próximamente</span>
-                </div>
-              </div>
-
-              <div className={styles.statCard}>
-                <div className={styles.statIcon}>📋</div>
-                <div className={styles.statContent}>
-                  <h3>Proyectos</h3>
-                  <p>Gestión de proyectos y tareas</p>
-                  <span className={styles.comingSoon}>Próximamente</span>
-                </div>
-              </div>
-            </section>
+              </section>
+            )}
 
             {/* User Info Section */}
             <section className={styles.userInfoSection}>
-              <h3>Información de tu cuenta</h3>
-              <div className={styles.userInfoGrid}>
-                <div className={styles.infoItem}>
-                  <label>Usuario:</label>
-                  <span>{userData?.username}</span>
-                </div>
-                <div className={styles.infoItem}>
-                  <label>Email:</label>
-                  <span>{userData?.email}</span>
-                </div>
-                <div className={styles.infoItem}>
-                  <label>Rol:</label>
-                  <span className={styles.roleBadge}>
-                    {userData?.role === 'admin' ? 'Administrador' : userData?.role}
-                  </span>
-                </div>
-                <div className={styles.infoItem}>
-                  <label>Empresa:</label>
-                  <span>{userData?.empresa_nombre}</span>
-                </div>
-                {userData?.telefono && (
+              <h3 className={styles.sectionTitle}>📋 Información de tu cuenta</h3>
+              <div className={styles.userInfoCard}>
+                <div className={styles.userInfoGrid}>
                   <div className={styles.infoItem}>
-                    <label>Teléfono:</label>
-                    <span>{userData.telefono}</span>
+                    <label className={styles.infoLabel}>Usuario:</label>
+                    <span className={styles.infoValue}>{userData?.username}</span>
                   </div>
-                )}
-                {userData?.cargo && (
                   <div className={styles.infoItem}>
-                    <label>Cargo:</label>
-                    <span>{userData.cargo}</span>
+                    <label className={styles.infoLabel}>Email:</label>
+                    <span className={styles.infoValue}>{userData?.email}</span>
                   </div>
-                )}
+                  <div className={styles.infoItem}>
+                    <label className={styles.infoLabel}>Rol:</label>
+                    <span className={`${styles.infoValue} ${styles.roleBadge}`}>
+                      {getRoleLabel(userData?.role)}
+                    </span>
+                  </div>
+                  <div className={styles.infoItem}>
+                    <label className={styles.infoLabel}>Empresa:</label>
+                    <span className={styles.infoValue}>{userData?.empresa_nombre}</span>
+                  </div>
+                  {userData?.telefono && (
+                    <div className={styles.infoItem}>
+                      <label className={styles.infoLabel}>Teléfono:</label>
+                      <span className={styles.infoValue}>{userData.telefono}</span>
+                    </div>
+                  )}
+                  {userData?.cargo && (
+                    <div className={styles.infoItem}>
+                      <label className={styles.infoLabel}>Cargo:</label>
+                      <span className={styles.infoValue}>{userData.cargo}</span>
+                    </div>
+                  )}
+                </div>
               </div>
             </section>
           </div>

@@ -124,7 +124,7 @@ def create_superuser_and_empresas():
                     'password': 'ventas123',
                     'first_name': 'Ana',
                     'last_name': 'Martín',
-                    'role': 'empleado',
+                    'role': 'employee',
                     'cargo': 'Vendedora',
                     'can_view_reports': True
                 },
@@ -134,7 +134,7 @@ def create_superuser_and_empresas():
                     'password': 'almacen123',
                     'first_name': 'Pedro',
                     'last_name': 'Ruiz',
-                    'role': 'empleado',
+                    'role': 'employee',
                     'cargo': 'Encargado de Almacén'
                 }
             ]
