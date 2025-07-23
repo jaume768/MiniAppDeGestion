@@ -51,7 +51,7 @@ class ProveedorViewSet(viewsets.ModelViewSet):
     
     def get_queryset(self):
         """Retorna el queryset filtrado por tenant"""
-        return self.queryset.filter(empresa=self.request.user.empresa)
+        return Proveedor.objects.all()
 
 
 class SerieViewSet(viewsets.ModelViewSet):

@@ -28,11 +28,19 @@ class EmpleadoViewSet(viewsets.ModelViewSet):
     
     def get_queryset(self):
         """Retorna el queryset filtrado por tenant y departamento si se especifica"""
-        queryset = Empleado.objects.all()
+        # Optimizar consultas con select_related
+        queryset = Empleado.objects.select_related(
+            'usuario', 'departamento', 'usuario__empresa'
+        ).all()
         
         # Filtrar por departamento si se especifica en query params
         departamento_id = self.request.query_params.get('departamento', None)
         if departamento_id is not None:
             queryset = queryset.filter(departamento_id=departamento_id)
+        
+        # Filtrar por usuarios activos si se especifica
+        solo_activos = self.request.query_params.get('activos', None)
+        if solo_activos and solo_activos.lower() == 'true':
+            queryset = queryset.filter(activo=True, usuario__is_active=True)
             
         return queryset

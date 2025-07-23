@@ -114,6 +114,10 @@ export const marcasService = new CRUDService('/marcas/');
 export const invitacionesService = new CRUDService('/auth/invitations/');
 export const empresasService = new CRUDService('/auth/empresas/');
 
+// Servicios de HR
+export const empleadosService = new CRUDService('/hr/empleados/');
+export const departamentosService = new CRUDService('/hr/departamentos/');
+
 // Servicios específicos de usuario
 export const usuariosService = {
   // CRUD básico usando el registro endpoint para creación
@@ -159,5 +163,7 @@ export const invitacionesServiceExtended = {
     return response.data;
   }
 };
+
+// Los servicios de empleados y departamentos ya están definidos anteriormente con CRUDService
 
 export default api;

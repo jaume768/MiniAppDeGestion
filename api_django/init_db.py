@@ -146,6 +146,10 @@ def create_superuser_and_empresas():
                         **user_data
                     )
                     print(f"✓ Usuario creado: {user.username}")
+                    
+                    # Los empleados se crean automáticamente via signals
+                    # cuando se crea un CustomUser con role='employee'
+                    pass
         
         empresas_created[empresa.cif] = empresa
     
@@ -649,6 +653,33 @@ def create_sample_data_for_empresa(empresa):
             )
             if created:
                 print(f"✓ Departamento: {nombre}")
+        
+        # Asignar departamentos a empleados creados automáticamente
+        print("Asignando departamentos a empleados...")
+        try:
+            from hr.models import Empleado
+            empleados = Empleado.objects.filter(empresa=empresa, departamento__isnull=True)
+            
+            for empleado in empleados:
+                departamento = None
+                username = empleado.usuario.username
+                
+                # Asignar departamento según el username
+                if 'ventas' in username:
+                    departamento = Departamento.objects.filter(empresa=empresa, nombre='Ventas').first()
+                elif 'almacen' in username:
+                    departamento = Departamento.objects.filter(empresa=empresa, nombre='Almacén').first()
+                elif 'admin' in username:
+                    departamento = Departamento.objects.filter(empresa=empresa, nombre='Administración').first()
+                elif 'it' in username or 'desarrollo' in empleado.puesto.lower():
+                    departamento = Departamento.objects.filter(empresa=empresa, nombre='IT').first()
+                
+                if departamento:
+                    empleado.departamento = departamento
+                    empleado.save()
+                    print(f"✓ Departamento asignado: {empleado.usuario.get_full_name()} → {departamento.nombre}")
+        except Exception as e:
+            print(f"⚠️  Error asignando departamentos: {e}")
         
         # ==== Crear datos de TPV ====
         print("Creando datos de TPV...")
