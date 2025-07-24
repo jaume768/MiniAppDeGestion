@@ -115,8 +115,8 @@ export const invitacionesService = new CRUDService('/auth/invitations/');
 export const empresasService = new CRUDService('/auth/empresas/');
 
 // Servicios de HR
-export const empleadosService = new CRUDService('/hr/empleados/');
-export const departamentosService = new CRUDService('/hr/departamentos/');
+export const empleadosService = new CRUDService('/empleados/');
+export const departamentosService = new CRUDService('/departamentos/');
 
 // Servicios específicos de usuario
 export const usuariosService = {

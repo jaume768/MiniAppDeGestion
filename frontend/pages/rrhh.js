@@ -11,6 +11,9 @@ import styles from '../styles/Empleados.module.css';
 
 export default function RRHHPage() {
   const { hasPermission } = usePermissions();
+  // Estado para controlar si el componente está montado (evita errores de hidratación)
+  const [isMounted, setIsMounted] = useState(false);
+  
   // Modal para empleados
   const modal = useModal();
   
@@ -22,10 +25,16 @@ export default function RRHHPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
 
+  // Efecto para marcar el componente como montado
   useEffect(() => {
-    empleadosApi.fetchData();
-    departamentosApi.fetchData();
+    setIsMounted(true);
   }, []);
+
+  // Los datos se cargan automáticamente con autoLoad=true en useApi
+  // useEffect(() => {
+  //   empleadosApi.loadData();
+  //   departamentosApi.loadData();
+  // }, []);
 
   // Configuración de campos para el formulario de empleados
   const empleadoFields = [
@@ -158,10 +167,6 @@ export default function RRHHPage() {
   ];
 
   // Manejadores de eventos
-  const handleCreate = () => {
-    modal.openCreate();
-  };
-
   const handleView = (empleado) => {
     modal.openView(empleado);
   };
@@ -174,7 +179,7 @@ export default function RRHHPage() {
     if (window.confirm(`¿Está seguro de que desea eliminar al empleado ${empleado.nombre} ${empleado.apellidos}?`)) {
       try {
         await empleadosService.delete(empleado.id);
-        empleadosApi.fetchData();
+        empleadosApi.loadData();
       } catch (error) {
         console.error('Error al eliminar empleado:', error);
         alert('Error al eliminar el empleado');
@@ -190,7 +195,7 @@ export default function RRHHPage() {
         await empleadosService.update(modal.data.id, formData);
       }
       modal.closeModal();
-      empleadosApi.fetchData();
+      empleadosApi.loadData();
     } catch (error) {
       console.error('Error al guardar empleado:', error);
       throw error;
@@ -259,15 +264,17 @@ export default function RRHHPage() {
                   />
                 </div>
                 
-                <PermissionWrapper permission="can_create_data">
-                  <button
-                    onClick={handleCreate}
-                    className={styles.btnPrimary}
-                  >
-                    <span>➕</span>
-                    <span>Nuevo Empleado</span>
-                  </button>
-                </PermissionWrapper>
+                {isMounted && (
+                  <PermissionWrapper permission="can_create_data">
+                    <button
+                      onClick={modal.openCreate}
+                      className={styles.btnPrimary}
+                    >
+                      <span>➕</span>
+                      <span>Nuevo Empleado</span>
+                    </button>
+                  </PermissionWrapper>
+                )}
               </div>
             </div>
 
@@ -292,10 +299,10 @@ export default function RRHHPage() {
                         : 'Comienza agregando tu primer empleado'
                       }
                     </p>
-                    {!searchTerm && (
+                    {!searchTerm && isMounted && (
                       <PermissionWrapper permission="can_create_data">
                         <button
-                          onClick={handleCreate}
+                          onClick={modal.openCreate}
                           className={styles.btnPrimary}
                         >
                           <span>➕</span>
