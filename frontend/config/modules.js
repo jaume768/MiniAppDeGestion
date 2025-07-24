@@ -24,11 +24,12 @@ export const MODULES = {
   },
   inventario: {
     name: 'Inventario',
-    description: 'Control de stock y almacenes',
+    description: 'Gestión integral de stock, almacenes y movimientos',
     icon: '📦',
-    color: 'bg-orange-500',
+    color: 'bg-green-600',
     path: '/inventario',
-    category: 'operational'
+    category: 'operational',
+    submodules: ['almacenes', 'stock', 'movimientos', 'transferencias']
   },
   articulos: {
     name: 'Artículos',

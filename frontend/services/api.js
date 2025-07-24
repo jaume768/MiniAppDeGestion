@@ -166,4 +166,54 @@ export const invitacionesServiceExtended = {
 
 // Los servicios de empleados y departamentos ya están definidos anteriormente con CRUDService
 
+// Servicios de inventario
+export const almacenesService = new CRUDService('/inventory/almacenes/');
+export const stockService = new CRUDService('/inventory/stock/');
+export const movimientosService = new CRUDService('/inventory/movimientos/');
+export const transferenciasService = new CRUDService('/inventory/transferencias/');
+
+// Servicios de inventario con acciones específicas
+export const stockServiceExtended = {
+  ...stockService,
+  
+  async getResumen() {
+    const response = await api.get('/inventory/stock/resumen/');
+    return response.data;
+  },
+  
+  async getAlertas() {
+    const response = await api.get('/inventory/stock/alertas/');
+    return response.data;
+  },
+  
+  async ajustarStock(stockId, data) {
+    const response = await api.post(`/inventory/stock/${stockId}/ajustar_stock/`, data);
+    return response.data;
+  }
+};
+
+export const transferenciasServiceExtended = {
+  ...transferenciasService,
+  
+  async agregarItem(transferenciaId, data) {
+    const response = await api.post(`/inventory/transferencias/${transferenciaId}/agregar_item/`, data);
+    return response.data;
+  },
+  
+  async enviar(transferenciaId) {
+    const response = await api.post(`/inventory/transferencias/${transferenciaId}/enviar/`);
+    return response.data;
+  },
+  
+  async recibir(transferenciaId, data) {
+    const response = await api.post(`/inventory/transferencias/${transferenciaId}/recibir/`, data);
+    return response.data;
+  },
+  
+  async cancelar(transferenciaId) {
+    const response = await api.post(`/inventory/transferencias/${transferenciaId}/cancelar/`);
+    return response.data;
+  }
+};
+
 export default api;

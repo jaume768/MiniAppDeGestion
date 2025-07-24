@@ -1,0 +1,24 @@
+Revisar en inventory.js:
+- El apartado de transferencias, revisar como esta en la api (modelos, serializers, views y demas),
+porque al intenar hacer post con el formulario de un transferencia me sale error 500.
+- También revisar el post de almacenes, me sale error 400 intentando con el formulario.
+- También revisar el movimientos porque me sale error 405 intentando con el formulario.
+- Y probar el stock También.
+
+Revisar rrhh.js:
+- Salen los trabajadores pero falta ver los departamentos creados en la empresa.
+- No me aparece poder editar ni eliminar los empleados.
+
+
+Erro al intentar eliminar un contacto en contactos.js y lo mismo con articulos.js:
+
+1 of 2 errors
+Unhandled Runtime Error
+
+Error: A <Transition /> is used but it is missing a `show={true | false}` prop.
+Call Stack
+Ie
+node_modules/@headlessui/react/dist/components/transition/transition.js (1:4863)
+React
+
+
