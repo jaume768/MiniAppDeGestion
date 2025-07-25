@@ -310,8 +310,11 @@ class TransferenciaStockViewSet(viewsets.ModelViewSet):
         ).prefetch_related('items__articulo')
     
     def perform_create(self, serializer):
-        """Asignar usuario que solicita"""
-        serializer.save(solicitado_por=self.request.user)
+        """Asignar usuario que solicita y empresa"""
+        serializer.save(
+            solicitado_por=self.request.user,
+            empresa=self.request.user.empresa
+        )
     
     @action(detail=True, methods=['post'])
     def agregar_item(self, request, pk=None):
